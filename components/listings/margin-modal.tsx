@@ -81,15 +81,24 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
         ct_cost: ctCost,
         registration,
         other_costs: otherCosts,
-        sell_price: sellPrice,
+        sell_price: sellPrice || null,
         total_cost: totalCost,
-        margin: margin ?? 0,
+        margin: margin ?? null,
       }
 
+      let error
       if (existingMargin) {
-        await supabase.from('listing_margins').update(payload).eq('id', existingMargin.id)
+        const res = await supabase.from('listing_margins').update(payload).eq('id', existingMargin.id)
+        error = res.error
       } else {
-        await supabase.from('listing_margins').insert(payload)
+        const res = await supabase.from('listing_margins').insert(payload)
+        error = res.error
+      }
+
+      if (error) {
+        console.error('Erreur sauvegarde marge:', error)
+        alert('Erreur lors de la sauvegarde : ' + error.message)
+        return
       }
 
       onSaved()
