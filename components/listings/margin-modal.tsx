@@ -62,8 +62,8 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
   const sellPrice = parseInt(form.sell_price) || 0
 
   const totalCost = buyPrice + transport + repair + ctCost + registration + otherCosts
-  const margin = sellPrice - totalCost
-  const marginPct = totalCost > 0 ? ((margin / totalCost) * 100).toFixed(1) : '0'
+  const margin = sellPrice > 0 ? sellPrice - totalCost : null
+  const marginPct = margin !== null && totalCost > 0 ? ((margin / totalCost) * 100).toFixed(1) : null
 
   async function handleSave() {
     setLoading(true)
@@ -83,7 +83,7 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
         other_costs: otherCosts,
         sell_price: sellPrice,
         total_cost: totalCost,
-        margin,
+        margin: margin ?? 0,
       }
 
       if (existingMargin) {
@@ -149,6 +149,7 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
           </div>
 
           {/* Marge */}
+          {margin !== null ? (
           <div className={`p-4 rounded-xl border text-center ${margin >= 0 ? 'bg-green-900/20 border-green-700/50' : 'bg-red-900/20 border-red-700/50'}`}>
             <p className="text-xs text-gray-400 mb-1">Marge nette</p>
             <p className={`text-3xl font-bold ${margin >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -158,6 +159,11 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
               {margin >= 0 ? '+' : ''}{marginPct}%
             </p>
           </div>
+          ) : (
+          <div className="p-4 rounded-xl border border-[#2a2f3e] bg-[#0a0d14] text-center">
+            <p className="text-xs text-gray-500">Entre un prix de revente cible pour voir ta marge</p>
+          </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">
