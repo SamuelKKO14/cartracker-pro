@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ClientFormModal } from '@/components/clients/client-form-modal'
+import { ImportClientsModal } from '@/components/clients/import-clients-modal'
 import { formatPrice } from '@/lib/utils'
 import type { Client } from '@/types/database'
-import { Plus, Search, Users, Phone, Mail, Euro, Pencil, Trash2, FileText, ChevronRight } from 'lucide-react'
+import { Download, Plus, Search, Users, Phone, Mail, Euro, Pencil, Trash2, FileText, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ClientsPage() {
@@ -17,6 +18,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showNewClient, setShowNewClient] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editClient, setEditClient] = useState<Client | null>(null)
 
   const fetchClients = useCallback(async () => {
@@ -95,6 +97,9 @@ export default function ClientsPage() {
                 className="pl-9"
               />
             </div>
+            <Button variant="secondary" onClick={() => setShowImport(true)}>
+              <Download className="w-4 h-4" /> Importer
+            </Button>
             <Button onClick={() => setShowNewClient(true)}>
               <Plus className="w-4 h-4" /> Nouveau client
             </Button>
@@ -183,6 +188,9 @@ export default function ClientsPage() {
         </div>
       </div>
 
+      {showImport && (
+        <ImportClientsModal open onClose={() => setShowImport(false)} onImported={() => { setShowImport(false); fetchClients() }} />
+      )}
       {showNewClient && (
         <ClientFormModal open onClose={() => setShowNewClient(false)} onSaved={() => { setShowNewClient(false); fetchClients() }} />
       )}
