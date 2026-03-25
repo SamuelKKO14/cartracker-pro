@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { GamosChat } from '@/components/gamos/gamos-chat'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -14,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <main className="flex-1 ml-16 flex flex-col overflow-hidden">
         {children}
       </main>
+      <GamosChat />
     </div>
   )
 }
