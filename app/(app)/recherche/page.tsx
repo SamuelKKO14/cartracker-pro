@@ -1,0 +1,384 @@
+'use client'
+import { useState, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Header } from '@/components/layout/header'
+import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { COUNTRY_LABELS, calculateAutoScore } from '@/lib/utils'
+import { ExternalLink, Wand2, Upload, Check, AlertCircle } from 'lucide-react'
+
+const FUELS = ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL']
+const GEARBOXES = ['Manuelle', 'Automatique']
+
+interface SearchForm {
+  brand: string
+  model: string
+  yearMin: string
+  priceMax: string
+  kmMax: string
+  fuel: string
+  gearbox: string
+  country: string
+}
+
+interface SearchSite {
+  name: string
+  flag: string
+  build: (f: SearchForm) => string
+}
+
+const SEARCH_SITES: SearchSite[] = [
+  {
+    name: 'AutoScout24 FR',
+    flag: '🇫🇷',
+    build: ({ brand, model, yearMin, priceMax, kmMax, fuel, gearbox }) => {
+      const p = new URLSearchParams({ cy: 'F', atype: 'C' })
+      if (brand) p.set('mmvmk0', brand.toLowerCase())
+      if (model) p.set('mmvmo0', model.toLowerCase())
+      if (yearMin) p.set('fregfrom', yearMin)
+      if (priceMax) p.set('priceto', priceMax)
+      if (kmMax) p.set('kmto', kmMax)
+      if (fuel) {
+        const m: Record<string, string> = { Essence: 'B', Diesel: 'D', Hybride: 'H', Électrique: 'E', GPL: 'L' }
+        if (m[fuel]) p.set('fuel', m[fuel])
+      }
+      if (gearbox === 'Automatique') p.set('gear', 'A')
+      return `https://www.autoscout24.fr/lst?${p}`
+    },
+  },
+  {
+    name: 'AutoScout24 DE',
+    flag: '🇩🇪',
+    build: ({ brand, model, yearMin, priceMax, kmMax, fuel, gearbox }) => {
+      const p = new URLSearchParams({ atype: 'C' })
+      if (brand) p.set('mmvmk0', brand.toLowerCase())
+      if (model) p.set('mmvmo0', model.toLowerCase())
+      if (yearMin) p.set('fregfrom', yearMin)
+      if (priceMax) p.set('priceto', priceMax)
+      if (kmMax) p.set('kmto', kmMax)
+      if (fuel) {
+        const m: Record<string, string> = { Essence: 'B', Diesel: 'D', Hybride: 'H', Électrique: 'E', GPL: 'L' }
+        if (m[fuel]) p.set('fuel', m[fuel])
+      }
+      if (gearbox === 'Automatique') p.set('gear', 'A')
+      return `https://www.autoscout24.de/lst?${p}`
+    },
+  },
+  {
+    name: 'La Centrale',
+    flag: '🇫🇷',
+    build: ({ brand, model, yearMin, priceMax, kmMax, fuel }) => {
+      const p = new URLSearchParams()
+      if (brand) p.set('make', brand.toUpperCase())
+      if (model) p.set('model', model.toUpperCase())
+      if (yearMin) p.set('yearmin', yearMin)
+      if (priceMax) p.set('pricemax', priceMax)
+      if (kmMax) p.set('kmmax', kmMax)
+      if (fuel) p.set('fuel', fuel.toLowerCase())
+      return `https://www.lacentrale.fr/listing?${p}`
+    },
+  },
+  {
+    name: 'LeBonCoin',
+    flag: '🇫🇷',
+    build: ({ brand, priceMax, yearMin, kmMax }) => {
+      const parts = ['voitures/occasions']
+      if (brand) parts.push(brand.toLowerCase().replace(/\s/g, '-'))
+      const p = new URLSearchParams()
+      if (priceMax) p.set('price', `0-${priceMax}`)
+      if (yearMin) p.set('regdate', `${yearMin}-max`)
+      if (kmMax) p.set('mileage', `0-${kmMax}`)
+      return `https://www.leboncoin.fr/${parts.join('/')}?${p}`
+    },
+  },
+  {
+    name: 'Le Parking',
+    flag: '🇫🇷',
+    build: ({ brand, model, priceMax, yearMin }) => {
+      const p = new URLSearchParams()
+      if (brand) p.set('make', brand)
+      if (model) p.set('model', model)
+      if (priceMax) p.set('maxPrice', priceMax)
+      if (yearMin) p.set('minYear', yearMin)
+      return `https://www.leparking.fr/voiture-occasion/?${p}`
+    },
+  },
+  {
+    name: 'mobile.de',
+    flag: '🇩🇪',
+    build: ({ brand, model, priceMax, yearMin, kmMax, fuel, gearbox }) => {
+      const p = new URLSearchParams({ isSearchRequest: 'true', scopeId: 'C' })
+      if (brand) p.set('makeModelVariant1.makeName', brand)
+      if (model) p.set('makeModelVariant1.modelName', model)
+      if (priceMax) p.set('maxPrice', priceMax)
+      if (yearMin) p.set('minFirstRegistrationDate', `${yearMin}-01-01`)
+      if (kmMax) p.set('maxMileage', kmMax)
+      if (fuel) {
+        const m: Record<string, string> = { Essence: 'PETROL', Diesel: 'DIESEL', Hybride: 'HYBRID', Électrique: 'ELECTRICITY' }
+        if (m[fuel]) p.set('fuel', m[fuel])
+      }
+      if (gearbox) p.set('transmission', gearbox === 'Automatique' ? 'AUTOMATIC' : 'MANUAL')
+      return `https://suchen.mobile.de/fahrzeuge/search.html?${p}`
+    },
+  },
+]
+
+export default function RecherchePage() {
+  const [form, setForm] = useState<SearchForm>({
+    brand: '', model: '', yearMin: '', priceMax: '', kmMax: '', fuel: '', gearbox: '', country: '',
+  })
+  const [jsonInput, setJsonInput] = useState('')
+  const [importClientId, setImportClientId] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ success: number; errors: number } | null>(null)
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [clientsLoaded, setClientsLoaded] = useState(false)
+
+  const loadClients = useCallback(async () => {
+    if (clientsLoaded) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase.from('clients').select('id, name').eq('user_id', user.id).order('name')
+    setClients(data ?? [])
+    setClientsLoaded(true)
+  }, [clientsLoaded])
+
+  function update(key: keyof SearchForm, value: string) {
+    setForm(p => ({ ...p, [key]: value }))
+  }
+
+  const hasSearch = form.brand || form.model || form.yearMin || form.priceMax || form.kmMax
+
+  async function handleImportJSON() {
+    if (!jsonInput.trim()) return
+    setImporting(true)
+    setImportResult(null)
+
+    try {
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(jsonInput)
+      } catch {
+        setImportResult({ success: 0, errors: 1 })
+        return
+      }
+
+      const items = Array.isArray(parsed) ? parsed : [parsed]
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      let success = 0
+      let errors = 0
+
+      for (const item of items) {
+        if (typeof item !== 'object' || !item || !('brand' in item)) { errors++; continue }
+        const i = item as Record<string, unknown>
+        const year = i.year ? parseInt(String(i.year)) : null
+        const km = i.km ? parseInt(String(i.km)) : null
+        const price = i.price ? parseInt(String(i.price)) : null
+
+        const { error } = await supabase.from('listings').insert({
+          user_id: user.id,
+          client_id: importClientId || null,
+          brand: String(i.brand ?? ''),
+          model: i.model ? String(i.model) : null,
+          generation: i.generation ? String(i.generation) : null,
+          year,
+          km,
+          price,
+          fuel: i.fuel ? String(i.fuel) : null,
+          gearbox: i.gearbox ? String(i.gearbox) : null,
+          body: i.body ? String(i.body) : null,
+          country: i.country ? String(i.country) : null,
+          seller: i.seller ? String(i.seller) : null,
+          first_owner: Boolean(i.first_owner),
+          url: i.url ? String(i.url) : null,
+          source: 'Chat',
+          notes: i.notes ? String(i.notes) : null,
+          status: 'new',
+          auto_score: calculateAutoScore({ year, km, price, seller: i.seller ? String(i.seller) : null, first_owner: Boolean(i.first_owner) }),
+        })
+
+        if (error) errors++; else success++
+      }
+
+      setImportResult({ success, errors })
+      if (success > 0) setJsonInput('')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  return (
+    <>
+      <KeyboardShortcuts />
+      <Header title="Recherche" />
+
+      <div className="flex-1 overflow-y-auto pt-14">
+        <div className="p-6 max-w-4xl mx-auto space-y-8">
+
+          {/* Section 1: Search by criteria */}
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-gray-200 flex items-center gap-2">
+              <ExternalLink className="w-4 h-4 text-orange-400" />
+              Recherche par critères
+            </h2>
+
+            <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Marque</Label>
+                  <Input placeholder="BMW, Audi…" value={form.brand} onChange={e => update('brand', e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Modèle</Label>
+                  <Input placeholder="320d, A4…" value={form.model} onChange={e => update('model', e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Année min.</Label>
+                  <Input type="number" placeholder="2018" value={form.yearMin} onChange={e => update('yearMin', e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Prix max. (€)</Label>
+                  <Input type="number" placeholder="25000" value={form.priceMax} onChange={e => update('priceMax', e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>KM max.</Label>
+                  <Input type="number" placeholder="100000" value={form.kmMax} onChange={e => update('kmMax', e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Carburant</Label>
+                  <Select value={form.fuel || 'all'} onValueChange={v => update('fuel', v === 'all' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      {FUELS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Boîte</Label>
+                  <Select value={form.gearbox || 'all'} onValueChange={v => update('gearbox', v === 'all' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      {GEARBOXES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Links */}
+              {hasSearch && (
+                <div className="pt-2 space-y-2">
+                  <p className="text-xs text-gray-500">Liens générés :</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {SEARCH_SITES.map(site => (
+                      <a
+                        key={site.name}
+                        href={site.build(form)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 rounded-lg border border-[#2a2f3e] bg-[#0a0d14] hover:border-orange-500/40 hover:bg-orange-900/10 transition-colors group"
+                      >
+                        <span className="flex items-center gap-2 text-sm text-gray-200">
+                          <span>{site.flag}</span>
+                          <span className="text-xs">{site.name}</span>
+                        </span>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-orange-400 transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!hasSearch && (
+                <p className="text-xs text-gray-500 text-center py-2">
+                  Remplissez au moins un critère pour générer les liens de recherche
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* Section 2: Import JSON */}
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-gray-200 flex items-center gap-2">
+              <Upload className="w-4 h-4 text-orange-400" />
+              Importer des annonces (JSON)
+            </h2>
+
+            <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] space-y-4">
+              <p className="text-sm text-gray-400">
+                Collez ici le JSON généré depuis Claude ou un autre outil. Format attendu : tableau d'objets avec les champs{' '}
+                <code className="text-orange-400 text-xs">brand, model, year, km, price, fuel, gearbox, country, url…</code>
+              </p>
+
+              <div className="space-y-1.5">
+                <Label>Client associé (optionnel)</Label>
+                <Select value={importClientId || 'none'} onValueChange={v => setImportClientId(v === 'none' ? '' : v)} onOpenChange={loadClients}>
+                  <SelectTrigger><SelectValue placeholder="Aucun client" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Aucun client</SelectItem>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Textarea
+                placeholder={`[\n  {\n    "brand": "BMW",\n    "model": "320d",\n    "year": 2021,\n    "km": 45000,\n    "price": 28000,\n    "fuel": "Diesel",\n    "gearbox": "Automatique",\n    "country": "DE",\n    "url": "https://..."\n  }\n]`}
+                value={jsonInput}
+                onChange={e => setJsonInput(e.target.value)}
+                className="font-mono text-xs min-h-[200px]"
+              />
+
+              {importResult && (
+                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+                  importResult.errors === 0
+                    ? 'bg-green-900/20 border border-green-800/50 text-green-400'
+                    : 'bg-yellow-900/20 border border-yellow-800/50 text-yellow-400'
+                }`}>
+                  {importResult.errors === 0 ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  {importResult.success > 0 && `${importResult.success} annonce(s) importée(s) avec succès.`}
+                  {importResult.errors > 0 && ` ${importResult.errors} erreur(s).`}
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleImportJSON}
+                  disabled={importing || !jsonInput.trim()}
+                >
+                  <Wand2 className="w-4 h-4" />
+                  {importing ? 'Import en cours…' : 'Importer les annonces'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Claude prompt helper */}
+            <div className="p-4 rounded-xl border border-orange-900/30 bg-orange-900/10 space-y-2">
+              <p className="text-sm font-medium text-orange-300">💡 Astuce — Prompt Claude</p>
+              <p className="text-xs text-gray-400">
+                Copiez ce prompt dans Claude pour obtenir un JSON importable directement :
+              </p>
+              <pre className="text-xs text-gray-300 bg-[#0a0d14] p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
+{`Recherche des annonces de voitures d'occasion avec ces critères :
+- Marque : [MARQUE], Modèle : [MODÈLE]
+- Année min : [ANNEE], Prix max : [PRIX]€, KM max : [KM]
+
+Retourne un JSON array avec ces champs pour chaque annonce trouvée :
+brand, model, generation, year, km, price, fuel, gearbox, body, country (code ISO 2 lettres), seller (particulier/professionnel), first_owner (boolean), url, notes`}
+              </pre>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </>
+  )
+}
