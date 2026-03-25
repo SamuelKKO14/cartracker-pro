@@ -10,6 +10,7 @@ import { ChecklistModal } from '@/components/listings/checklist-modal'
 import { SearchLinksModal } from '@/components/listings/search-links-modal'
 import { ShareModal } from '@/components/listings/share-modal'
 import { ComparePanel } from '@/components/listings/compare-panel'
+import { PhotosModal } from '@/components/listings/photos-modal'
 import { ListingsGrid } from '@/components/listings/listings-grid'
 import { ListingsTable } from '@/components/listings/listings-table'
 import { ListingsKanban } from '@/components/listings/listings-kanban'
@@ -45,6 +46,7 @@ export default function AnnoncesPage() {
   const [marginListing, setMarginListing] = useState<ListingWithDetails | null>(null)
   const [checklistListing, setChecklistListing] = useState<ListingWithDetails | null>(null)
   const [searchLinksListing, setSearchLinksListing] = useState<ListingWithDetails | null>(null)
+  const [photosListing, setPhotosListing] = useState<ListingWithDetails | null>(null)
   const [showShare, setShowShare] = useState(false)
 
   // Selection
@@ -59,7 +61,7 @@ export default function AnnoncesPage() {
       if (!user) return
       const { data } = await supabase
         .from('listings')
-        .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*)')
+        .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*), listing_photos(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       setListings((data as ListingWithDetails[]) ?? [])
@@ -131,6 +133,7 @@ export default function AnnoncesPage() {
     onMargin: setMarginListing,
     onChecklist: setChecklistListing,
     onSearchLinks: setSearchLinksListing,
+    onPhotos: setPhotosListing,
     onRefresh: fetchListings,
     clients,
   }
@@ -292,6 +295,9 @@ export default function AnnoncesPage() {
       )}
       {searchLinksListing && (
         <SearchLinksModal open onClose={() => setSearchLinksListing(null)} listing={searchLinksListing} />
+      )}
+      {photosListing && (
+        <PhotosModal open onClose={() => setPhotosListing(null)} listing={photosListing} onRefresh={fetchListings} />
       )}
       {showShare && selectedListings.length > 0 && (
         <ShareModal open onClose={() => setShowShare(false)} listings={selectedListings} />

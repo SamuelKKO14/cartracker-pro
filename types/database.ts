@@ -256,6 +256,29 @@ export interface Database {
         }
         Relationships: []
       }
+      listing_photos: {
+        Row: {
+          id: string
+          user_id: string
+          listing_id: string
+          url: string
+          position: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          listing_id: string
+          url: string
+          position?: number
+          created_at?: string
+        }
+        Update: {
+          position?: number
+          url?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           id: string
@@ -311,6 +334,7 @@ export type ListingChecklist = Database['public']['Tables']['listing_checklist']
 export type SavedSearch = Database['public']['Tables']['saved_searches']['Row']
 
 export type ListingStatus = 'new' | 'viewed' | 'contacted' | 'negotiation' | 'bought' | 'resold' | 'ignored'
+export type ListingPhoto = Database['public']['Tables']['listing_photos']['Row']
 
 export type ListingWithDetails = Listing & {
   client?: Client | null
@@ -319,4 +343,5 @@ export type ListingWithDetails = Listing & {
   listing_margins?: ListingMargin[] | null
   checklist?: ListingChecklist | null
   listing_checklist?: ListingChecklist[] | null
+  listing_photos?: ListingPhoto[] | null
 }

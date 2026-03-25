@@ -9,7 +9,7 @@ import {
   STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS
 } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
-import { ExternalLink, Pencil, Calculator, CheckSquare, Search, Trash2 } from 'lucide-react'
+import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Search, Trash2 } from 'lucide-react'
 
 interface ListingsGridProps {
   listings: ListingWithDetails[]
@@ -19,12 +19,13 @@ interface ListingsGridProps {
   onMargin: (l: ListingWithDetails) => void
   onChecklist: (l: ListingWithDetails) => void
   onSearchLinks: (l: ListingWithDetails) => void
+  onPhotos: (l: ListingWithDetails) => void
   onRefresh: () => void
   clients: Client[]
 }
 
 export function ListingsGrid({
-  listings, selected, onToggleSelect, onEdit, onMargin, onChecklist, onSearchLinks, onRefresh
+  listings, selected, onToggleSelect, onEdit, onMargin, onChecklist, onSearchLinks, onPhotos, onRefresh
 }: ListingsGridProps) {
 
   async function handleDelete(id: string) {
@@ -44,30 +45,48 @@ export function ListingsGrid({
           .filter(([k]) => !['id', 'user_id', 'listing_id', 'notes', 'created_at'].includes(k))
           .filter(([, v]) => v === true).length : 0
         const isSelected = selected.has(listing.id)
+        const photos = listing.listing_photos ?? []
+        const coverUrl = photos[0]?.url ?? null
 
         return (
           <div
             key={listing.id}
-            className={`relative rounded-xl border bg-[#0d1117] transition-all group ${
+            className={`relative rounded-xl border bg-[#0d1117] transition-all group overflow-hidden ${
               isSelected ? 'border-orange-500/60 shadow-orange-900/20 shadow-lg' : 'border-[#1a1f2e] hover:border-[#2a2f3e]'
             }`}
           >
-            {/* Select checkbox */}
-            <div className="absolute top-3 left-3 z-10">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => onToggleSelect(listing.id)}
-              />
+            {/* Cover photo or placeholder */}
+            <div className="relative h-40 bg-[#0a0d14] overflow-hidden">
+              {coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={coverUrl}
+                  alt={`${listing.brand} ${listing.model ?? ''}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full">
+                  <Camera className="w-8 h-8 text-gray-700" />
+                </div>
+              )}
+
+              {/* Checkbox overlay */}
+              <div className="absolute top-2.5 left-2.5 z-10">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onToggleSelect(listing.id)}
+                />
+              </div>
+
+              {/* Score badge overlay */}
+              {score != null && (
+                <div className={`absolute top-2.5 right-2.5 z-10 text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(score)} bg-[#0a0d14]/90 border border-[#2a2f3e]`}>
+                  {score}
+                </div>
+              )}
             </div>
 
-            {/* Score badge */}
-            {score != null && (
-              <div className={`absolute top-3 right-3 z-10 text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(score)} bg-[#0a0d14] border border-[#2a2f3e]`}>
-                {score}
-              </div>
-            )}
-
-            <div className="p-4 pt-10">
+            <div className="p-4">
               {/* Header */}
               <div className="mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -138,6 +157,15 @@ export function ListingsGrid({
                   {listing.tags.length > 3 && <span className="text-xs text-gray-500">+{listing.tags.length - 3}</span>}
                 </div>
               )}
+
+              {/* Photos button */}
+              <button
+                onClick={() => onPhotos(listing)}
+                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 mb-3 transition-colors"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Photos {photos.length > 0 ? `(${photos.length})` : ''}
+              </button>
 
               {/* Actions */}
               <div className="flex items-center gap-1 flex-wrap opacity-0 group-hover:opacity-100 transition-opacity">

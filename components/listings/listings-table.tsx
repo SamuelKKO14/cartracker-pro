@@ -14,6 +14,7 @@ interface ListingsTableProps {
   onMargin: (l: ListingWithDetails) => void
   onChecklist: (l: ListingWithDetails) => void
   onSearchLinks: (l: ListingWithDetails) => void
+  onPhotos: (l: ListingWithDetails) => void
   onRefresh: () => void
   clients: Client[]
 }

@@ -201,3 +201,29 @@ create trigger clients_updated_at
 create trigger listings_updated_at
   before update on public.listings
   for each row execute function public.handle_updated_at();
+
+-- =============================================
+-- TABLE: listing_photos
+-- =============================================
+create table if not exists public.listing_photos (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  listing_id  uuid not null references public.listings(id) on delete cascade,
+  url         text not null,
+  position    integer not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.listing_photos enable row level security;
+
+create policy "listing_photos_select" on public.listing_photos for select using (auth.uid() = user_id);
+create policy "listing_photos_insert" on public.listing_photos for insert with check (auth.uid() = user_id);
+create policy "listing_photos_update" on public.listing_photos for update using (auth.uid() = user_id);
+create policy "listing_photos_delete" on public.listing_photos for delete using (auth.uid() = user_id);
+
+create index if not exists listing_photos_listing_id_idx on public.listing_photos(listing_id);
+
+-- Storage bucket (à créer manuellement dans Supabase Dashboard > Storage)
+-- Bucket name: listing-photos
+-- Public: true
+-- Allowed MIME types: image/*

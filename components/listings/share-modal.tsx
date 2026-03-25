@@ -31,6 +31,8 @@ function generateWhatsAppGrouped(listings: ListingWithDetails[]): string {
     if (l.fuel) lines.push(`   ⛽ ${l.fuel} · ${l.gearbox ?? ''}`)
     if (l.country) lines.push(`   🌍 ${COUNTRY_LABELS[l.country] ?? l.country}`)
     if (l.url) lines.push(`   🔗 ${l.url}`)
+    const photos = l.listing_photos ?? []
+    if (photos.length > 0) lines.push(`   📸 Photos : ${photos.map(p => p.url).join(' ')}`)
     lines.push('')
   })
   return lines.join('\n')
@@ -50,6 +52,9 @@ function generateWhatsAppIndividual(listing: ListingWithDetails): string {
     listing.first_owner ? '✅ 1ère main' : '',
     listing.margin?.margin != null ? `💰 Marge estimée: ${formatPrice(listing.margin.margin)}` : '',
     listing.url ? `🔗 ${listing.url}` : '',
+    (listing.listing_photos ?? []).length > 0
+      ? `📸 Photos : ${(listing.listing_photos ?? []).map(p => p.url).join(' ')}`
+      : '',
   ].filter(Boolean)
   return lines.join('\n')
 }
@@ -87,6 +92,8 @@ function generateSummary(listings: ListingWithDetails[]): string {
     if (l.country) lines.push(`   Pays : ${COUNTRY_LABELS[l.country] ?? l.country}`)
     if (l.margin?.margin != null) lines.push(`   Marge estimée : ${formatPrice(l.margin.margin)}`)
     if (l.notes) lines.push(`   Notes : ${l.notes}`)
+    const photos = l.listing_photos ?? []
+    if (photos.length > 0) lines.push(`   Photos : ${photos.map(p => p.url).join(' ')}`)
     lines.push('')
   })
 

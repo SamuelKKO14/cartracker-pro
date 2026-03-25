@@ -15,6 +15,7 @@ import { ListingFormModal } from '@/components/listings/listing-form-modal'
 import { MarginModal } from '@/components/listings/margin-modal'
 import { ChecklistModal } from '@/components/listings/checklist-modal'
 import { SearchLinksModal } from '@/components/listings/search-links-modal'
+import { PhotosModal } from '@/components/listings/photos-modal'
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -33,6 +34,7 @@ export default function ClientDetailPage() {
   const [marginListing, setMarginListing] = useState<ListingWithDetails | null>(null)
   const [checklistListing, setChecklistListing] = useState<ListingWithDetails | null>(null)
   const [searchLinksListing, setSearchLinksListing] = useState<ListingWithDetails | null>(null)
+  const [photosListing, setPhotosListing] = useState<ListingWithDetails | null>(null)
 
   const fetchData = useCallback(async () => {
     const supabase = createClient()
@@ -42,7 +44,7 @@ export default function ClientDetailPage() {
     const [clientRes, notesRes, listingsRes] = await Promise.all([
       supabase.from('clients').select('*').eq('id', id).eq('user_id', user.id).single(),
       supabase.from('client_notes').select('*').eq('client_id', id).eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('listings').select('*, listing_margins(*), listing_checklist(*)').eq('client_id', id).eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('listings').select('*, listing_margins(*), listing_checklist(*), listing_photos(*)').eq('client_id', id).eq('user_id', user.id).order('created_at', { ascending: false }),
     ])
 
     setClient(clientRes.data as Client | null)
@@ -120,6 +122,7 @@ export default function ClientDetailPage() {
     onMargin: setMarginListing,
     onChecklist: setChecklistListing,
     onSearchLinks: setSearchLinksListing,
+    onPhotos: setPhotosListing,
     onRefresh: fetchData,
     clients: [],
   }
@@ -250,6 +253,9 @@ export default function ClientDetailPage() {
       )}
       {searchLinksListing && (
         <SearchLinksModal open onClose={() => setSearchLinksListing(null)} listing={searchLinksListing} />
+      )}
+      {photosListing && (
+        <PhotosModal open onClose={() => setPhotosListing(null)} listing={photosListing} onRefresh={fetchData} />
       )}
     </>
   )
