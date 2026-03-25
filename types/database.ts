@@ -256,6 +256,59 @@ export interface Database {
         }
         Relationships: []
       }
+      client_shares: {
+        Row: {
+          id: string
+          user_id: string
+          client_id: string | null
+          token: string
+          title: string | null
+          message: string | null
+          listing_ids: string[]
+          views: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          client_id?: string | null
+          token?: string
+          title?: string | null
+          message?: string | null
+          listing_ids: string[]
+          views?: number
+          created_at?: string
+        }
+        Update: {
+          views?: number
+          title?: string | null
+          message?: string | null
+        }
+        Relationships: []
+      }
+      client_share_responses: {
+        Row: {
+          id: string
+          share_id: string
+          listing_id: string
+          reaction: string
+          comment: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          share_id: string
+          listing_id: string
+          reaction: string
+          comment?: string | null
+          created_at?: string
+        }
+        Update: {
+          reaction?: string
+          comment?: string | null
+        }
+        Relationships: []
+      }
       listing_photos: {
         Row: {
           id: string
@@ -333,6 +386,8 @@ export type ListingMargin = Database['public']['Tables']['listing_margins']['Row
 export type ListingChecklist = Database['public']['Tables']['listing_checklist']['Row']
 export type SavedSearch = Database['public']['Tables']['saved_searches']['Row']
 
+export type ClientShare = Database['public']['Tables']['client_shares']['Row']
+export type ClientShareResponse = Database['public']['Tables']['client_share_responses']['Row']
 export type ListingStatus = 'new' | 'viewed' | 'contacted' | 'negotiation' | 'bought' | 'resold' | 'ignored'
 export type ListingPhoto = Database['public']['Tables']['listing_photos']['Row']
 

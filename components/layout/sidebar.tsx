@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Car, Users, Search, List, BarChart3, CalendarDays, LogOut } from 'lucide-react'
+import { Car, Users, Search, List, BarChart3, CalendarDays, Share2, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/recherche', icon: Search, label: 'Recherche', key: '3' },
   { href: '/annonces', icon: List, label: 'Annonces', key: '4' },
   { href: '/stats', icon: BarChart3, label: 'Statistiques', key: '5' },
+  { href: '/partages', icon: Share2, label: 'Partages', key: '6' },
 ]
 
 export function Sidebar() {

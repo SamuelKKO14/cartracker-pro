@@ -26,7 +26,10 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
-  const isPublicPage = request.nextUrl.pathname === '/'
+  const isPublicPage =
+    request.nextUrl.pathname === '/' ||
+    request.nextUrl.pathname.startsWith('/share') ||
+    request.nextUrl.pathname.startsWith('/api/share/')
 
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone()

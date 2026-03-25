@@ -223,6 +223,59 @@ create policy "listing_photos_delete" on public.listing_photos for delete using 
 
 create index if not exists listing_photos_listing_id_idx on public.listing_photos(listing_id);
 
+-- =============================================
+-- TABLE: client_shares
+-- =============================================
+create table if not exists public.client_shares (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  client_id   uuid references public.clients(id) on delete set null,
+  token       text not null unique default encode(gen_random_bytes(32), 'hex'),
+  title       text,
+  message     text,
+  listing_ids uuid[] not null default '{}',
+  views       integer not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.client_shares enable row level security;
+
+-- Pro can manage their own shares
+create policy "shares_owner" on public.client_shares for all using (auth.uid() = user_id);
+-- Anyone can read a share by token (token is secret by design)
+create policy "shares_public_select" on public.client_shares for select using (true);
+
+create index if not exists client_shares_token_idx on public.client_shares(token);
+create index if not exists client_shares_user_id_idx on public.client_shares(user_id);
+
+-- =============================================
+-- TABLE: client_share_responses
+-- =============================================
+create table if not exists public.client_share_responses (
+  id          uuid primary key default gen_random_uuid(),
+  share_id    uuid not null references public.client_shares(id) on delete cascade,
+  listing_id  uuid not null,
+  reaction    text not null check (reaction in ('interested', 'not_interested')),
+  comment     text,
+  created_at  timestamptz not null default now(),
+  unique(share_id, listing_id)
+);
+
+alter table public.client_share_responses enable row level security;
+
+-- Anyone can insert a response (client side)
+create policy "responses_public_insert" on public.client_share_responses for insert with check (true);
+-- Anyone can update their response (upsert)
+create policy "responses_public_update" on public.client_share_responses for update using (true);
+-- Pro can read responses for their own shares
+create policy "responses_owner_select" on public.client_share_responses for select using (
+  exists (select 1 from public.client_shares cs where cs.id = share_id and cs.user_id = auth.uid())
+);
+-- Public can read responses (needed for the share page to show already-answered state)
+create policy "responses_public_select" on public.client_share_responses for select using (true);
+
+create index if not exists share_responses_share_id_idx on public.client_share_responses(share_id);
+
 -- Storage bucket (à créer manuellement dans Supabase Dashboard > Storage)
 -- Bucket name: listing-photos
 -- Public: true
