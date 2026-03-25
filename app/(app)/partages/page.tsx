@@ -69,7 +69,7 @@ export default function PartagesPage() {
         ...s,
         client_name: s.client_id ? (clientMap[s.client_id] ?? null) : null,
         responses: responsesMap[s.id] ?? [],
-        expanded: false,
+        expanded: (responsesMap[s.id]?.length ?? 0) > 0, // Auto-expand si réponses
       })))
     } finally {
       setLoading(false)
@@ -77,6 +77,12 @@ export default function PartagesPage() {
   }, [])
 
   useEffect(() => { fetchShares() }, [fetchShares])
+
+  // Auto-refresh toutes les 30 secondes
+  useEffect(() => {
+    const interval = setInterval(() => fetchShares(), 30000)
+    return () => clearInterval(interval)
+  }, [fetchShares])
 
   function getShareUrl(token: string) {
     return `${window.location.origin}/share/${token}`
@@ -129,6 +135,11 @@ export default function PartagesPage() {
                         {share.client_name && (
                           <span className="text-xs text-gray-500">👤 {share.client_name}</span>
                         )}
+                        {(share.responses?.length ?? 0) > 0 && (
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                            🔔 {share.responses?.length} nouvelle{(share.responses?.length ?? 0) > 1 ? 's' : ''} réponse{(share.responses?.length ?? 0) > 1 ? 's' : ''}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
                         <span>{formatDate(share.created_at)}</span>
@@ -175,14 +186,31 @@ export default function PartagesPage() {
                   {/* Responses panel */}
                   {share.expanded && share.responses && share.responses.length > 0 && (
                     <div className="border-t border-[#1a1f2e] bg-[#0a0d14]">
-                      {share.responses.map(r => (
-                        <div key={r.id} className="flex items-start gap-3 px-4 py-3 border-b border-[#1a1f2e] last:border-0">
-                          <span className="text-sm shrink-0">{REACTION_LABELS[r.reaction] ?? r.reaction}</span>
-                          {r.comment && (
-                            <span className="text-xs text-gray-400 italic">"{r.comment}"</span>
-                          )}
-                        </div>
-                      ))}
+                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Réponses du client
+                      </div>
+                      {share.responses.map(r => {
+                        // Trouve le numéro de l'annonce dans la liste
+                        const listingIndex = share.listing_ids.indexOf(r.listing_id)
+                        const listingLabel = listingIndex >= 0 ? `Véhicule #${listingIndex + 1}` : 'Véhicule'
+                        return (
+                          <div key={r.id} className="flex items-start gap-3 px-4 py-3 border-b border-[#1a1f2e] last:border-0">
+                            <div className="flex flex-col gap-1 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 font-medium">{listingLabel}</span>
+                                <span className={`text-sm font-semibold ${r.reaction === 'interested' ? 'text-green-400' : 'text-gray-400'}`}>
+                                  {REACTION_LABELS[r.reaction] ?? r.reaction}
+                                </span>
+                              </div>
+                              {r.comment && (
+                                <span className="text-xs text-gray-300 bg-[#1a1f2e] rounded-lg px-3 py-2 italic">
+                                  💬 "{r.comment}"
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
