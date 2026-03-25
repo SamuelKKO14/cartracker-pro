@@ -3,13 +3,15 @@ import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
+import { ListingFormModal } from '@/components/listings/listing-form-modal'
+import type { ListingInitialData } from '@/components/listings/listing-form-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { COUNTRY_LABELS, calculateAutoScore } from '@/lib/utils'
-import { ExternalLink, Wand2, Upload, Check, AlertCircle } from 'lucide-react'
+import { ExternalLink, Wand2, Upload, Check, AlertCircle, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
 
 const FUELS = ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL']
 const GEARBOXES = ['Manuelle', 'Automatique']
@@ -128,6 +130,13 @@ const SEARCH_SITES: SearchSite[] = [
 ]
 
 export default function RecherchePage() {
+  // Import intelligent state
+  const [aiText, setAiText] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiResult, setAiResult] = useState<ListingInitialData | null>(null)
+  const [showFormModal, setShowFormModal] = useState(false)
+
   const [form, setForm] = useState<SearchForm>({
     brand: '', model: '', yearMin: '', priceMax: '', kmMax: '', fuel: '', gearbox: '', country: '',
   })
@@ -215,13 +224,135 @@ export default function RecherchePage() {
     }
   }
 
+  async function handleAnalyze() {
+    if (!aiText.trim()) return
+    setAiLoading(true)
+    setAiError(null)
+    setAiResult(null)
+    try {
+      const res = await fetch('/api/analyze-listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiText }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setAiError(json.error ?? 'Erreur inconnue')
+      } else {
+        setAiResult(json.data)
+      }
+    } catch {
+      setAiError('Erreur réseau')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const AI_PREVIEW_FIELDS: { key: keyof ListingInitialData; label: string; format?: (v: unknown) => string }[] = [
+    { key: 'brand', label: 'Marque' },
+    { key: 'model', label: 'Modèle' },
+    { key: 'year', label: 'Année' },
+    { key: 'km', label: 'Kilométrage', format: v => v != null ? `${(v as number).toLocaleString('fr-FR')} km` : '' },
+    { key: 'price', label: 'Prix', format: v => v != null ? `${(v as number).toLocaleString('fr-FR')} €` : '' },
+    { key: 'fuel', label: 'Carburant' },
+    { key: 'gearbox', label: 'Boîte' },
+    { key: 'body', label: 'Carrosserie' },
+    { key: 'country', label: 'Pays' },
+    { key: 'seller', label: 'Vendeur' },
+    { key: 'first_owner', label: '1er proprio', format: v => v === true ? 'Oui' : v === false ? 'Non' : '' },
+    { key: 'horsepower', label: 'Puissance', format: v => v != null ? `${v} ch` : '' },
+    { key: 'color', label: 'Couleur' },
+    { key: 'url', label: 'URL' },
+    { key: 'notes', label: 'Notes' },
+  ]
+
   return (
     <>
       <KeyboardShortcuts />
       <Header title="Recherche" />
 
+      {showFormModal && aiResult && (
+        <ListingFormModal
+          open
+          onClose={() => setShowFormModal(false)}
+          onSaved={() => { setShowFormModal(false); setAiResult(null); setAiText('') }}
+          initialData={aiResult}
+        />
+      )}
+
       <div className="flex-1 overflow-y-auto pt-14">
         <div className="p-6 max-w-4xl mx-auto space-y-8">
+
+          {/* Section 0: Import intelligent */}
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-gray-200 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-orange-400" />
+              Import intelligent
+            </h2>
+
+            <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] space-y-4">
+              <p className="text-sm text-gray-400">
+                Collez le texte brut d'une annonce (depuis AutoScout24, LeBonCoin, mobile.de…) et l'IA extrait automatiquement toutes les données.
+              </p>
+
+              <Textarea
+                placeholder={"BMW 320d xDrive Touring – 2021\n45 000 km · Diesel · Automatique\nPrix : 28 900 €\n1ère main, carnet d'entretien complet\nVendeur professionnel – Allemagne\nhttps://..."}
+                value={aiText}
+                onChange={e => { setAiText(e.target.value); setAiError(null); setAiResult(null) }}
+                className="min-h-[140px] text-sm"
+              />
+
+              {aiError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {aiError}
+                </div>
+              )}
+
+              {aiResult && (
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Données extraites</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    {AI_PREVIEW_FIELDS.map(({ key, label, format }) => {
+                      const raw = aiResult[key]
+                      const value = format ? format(raw) : (raw != null ? String(raw) : '')
+                      const found = raw != null && raw !== ''
+                      return (
+                        <div key={key} className="flex items-center gap-2 text-sm">
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${found ? 'bg-green-500' : 'bg-gray-700'}`} />
+                          <span className="text-gray-500 shrink-0">{label} :</span>
+                          <span className={`truncate font-medium ${found ? 'text-gray-200' : 'text-gray-600'}`}>
+                            {found ? value : '—'}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between gap-3">
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={aiLoading || !aiText.trim()}
+                  variant="secondary"
+                >
+                  {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {aiLoading ? 'Analyse en cours…' : 'Analyser avec l\'IA'}
+                </Button>
+
+                {aiResult && (
+                  <Button
+                    onClick={() => setShowFormModal(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    Ouvrir dans le formulaire
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </section>
 
           {/* Section 1: Search by criteria */}
           <section className="space-y-4">

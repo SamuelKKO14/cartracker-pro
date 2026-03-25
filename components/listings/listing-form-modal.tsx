@@ -12,12 +12,31 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { Client, Listing } from '@/types/database'
 
+export interface ListingInitialData {
+  brand?: string
+  model?: string
+  year?: number | null
+  km?: number | null
+  price?: number | null
+  fuel?: string | null
+  gearbox?: string | null
+  body?: string | null
+  country?: string | null
+  seller?: string | null
+  first_owner?: boolean | null
+  horsepower?: number | null
+  color?: string | null
+  url?: string | null
+  notes?: string | null
+}
+
 interface ListingFormModalProps {
   open: boolean
   onClose: () => void
   onSaved: () => void
   listing?: Listing | null
   defaultClientId?: string
+  initialData?: ListingInitialData
 }
 
 const FUELS = ['Diesel', 'Essence', 'GPL', 'Hybride', 'Électrique']
@@ -54,7 +73,7 @@ const COUNTRIES_EXTENDED: Record<string, string> = {
   HU: '🇭🇺 Hongrie',
 }
 
-export function ListingFormModal({ open, onClose, onSaved, listing, defaultClientId }: ListingFormModalProps) {
+export function ListingFormModal({ open, onClose, onSaved, listing, defaultClientId, initialData }: ListingFormModalProps) {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
@@ -62,26 +81,26 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
 
   const [form, setForm] = useState({
     // Obligatoire
-    brand: listing?.brand ?? '',
-    model: listing?.model ?? '',
-    price: listing?.price?.toString() ?? '',
-    km: listing?.km?.toString() ?? '',
-    country: listing?.country ?? 'FR',
-    url: listing?.url ?? '',
+    brand: listing?.brand ?? initialData?.brand ?? '',
+    model: listing?.model ?? initialData?.model ?? '',
+    price: listing?.price?.toString() ?? initialData?.price?.toString() ?? '',
+    km: listing?.km?.toString() ?? initialData?.km?.toString() ?? '',
+    country: listing?.country ?? initialData?.country ?? 'FR',
+    url: listing?.url ?? initialData?.url ?? '',
     // Important
-    year: listing?.year?.toString() ?? '',
-    fuel: listing?.fuel ?? '',
-    gearbox: listing?.gearbox ?? '',
-    seller: listing?.seller ?? '',
-    first_owner: listing?.first_owner ?? false,
+    year: listing?.year?.toString() ?? initialData?.year?.toString() ?? '',
+    fuel: listing?.fuel ?? initialData?.fuel ?? '',
+    gearbox: listing?.gearbox ?? initialData?.gearbox ?? '',
+    seller: listing?.seller ?? initialData?.seller ?? '',
+    first_owner: listing?.first_owner ?? initialData?.first_owner ?? false,
     client_id: listing?.client_id ?? defaultClientId ?? '',
     source: listing?.source ?? '',
     status: listing?.status ?? 'new',
     // Détails
-    body: listing?.body ?? '',
-    horsepower: (listing as Listing & { horsepower?: number | null })?.horsepower?.toString() ?? '',
-    color: (listing as Listing & { color?: string | null })?.color ?? '',
-    notes: listing?.notes ?? '',
+    body: listing?.body ?? initialData?.body ?? '',
+    horsepower: (listing as Listing & { horsepower?: number | null })?.horsepower?.toString() ?? initialData?.horsepower?.toString() ?? '',
+    color: (listing as Listing & { color?: string | null })?.color ?? initialData?.color ?? '',
+    notes: listing?.notes ?? initialData?.notes ?? '',
     // Autres
     tags: listing?.tags ?? [] as string[],
     manual_score: listing?.manual_score?.toString() ?? '',
