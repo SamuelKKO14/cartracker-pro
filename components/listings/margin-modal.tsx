@@ -82,7 +82,6 @@ export function MarginModal({ open, onClose, listing, onSaved }: MarginModalProp
         registration,
         other_costs: otherCosts,
         sell_price: sellPrice || null,
-        margin: margin ?? null,
       }
 
       let error
