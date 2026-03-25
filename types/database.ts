@@ -96,6 +96,8 @@ export interface Database {
           tags: string[] | null
           auto_score: number | null
           manual_score: number | null
+          horsepower: number | null
+          color: string | null
           created_at: string
           updated_at: string
         }
@@ -122,6 +124,8 @@ export interface Database {
           tags?: string[] | null
           auto_score?: number | null
           manual_score?: number | null
+          horsepower?: number | null
+          color?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -146,6 +150,8 @@ export interface Database {
           tags?: string[] | null
           auto_score?: number | null
           manual_score?: number | null
+          horsepower?: number | null
+          color?: string | null
           updated_at?: string
         }
         Relationships: []

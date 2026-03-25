@@ -74,9 +74,15 @@ create table if not exists public.listings (
   tags          text[],
   auto_score    integer,
   manual_score  integer,
+  horsepower    integer,
+  color         text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
+
+-- Si la table listings existe déjà, ajouter les nouvelles colonnes :
+-- alter table public.listings add column if not exists horsepower integer;
+-- alter table public.listings add column if not exists color text;
 
 alter table public.listings enable row level security;
 

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
@@ -13,33 +13,31 @@ import { ComparePanel } from '@/components/listings/compare-panel'
 import { ListingsGrid } from '@/components/listings/listings-grid'
 import { ListingsTable } from '@/components/listings/listings-table'
 import { ListingsKanban } from '@/components/listings/listings-kanban'
+import { FiltersPanel, applyFilters, hasActiveFilters, INITIAL_FILTERS } from '@/components/listings/filters-panel'
+import type { FilterState } from '@/components/listings/filters-panel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Grid3X3, Table, Kanban, Search, SlidersHorizontal, Share2, GitCompare, X } from 'lucide-react'
-import { COUNTRY_LABELS, STATUS_LABELS, getFinalScore } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
 
 type ViewMode = 'grid' | 'table' | 'kanban'
 
 export default function AnnoncesPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const [view, setView] = useState<ViewMode>('grid')
   const [listings, setListings] = useState<ListingWithDetails[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Filters
-  const [search, setSearch] = useState('')
-  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') ?? '')
-  const [filterCountry, setFilterCountry] = useState('')
-  const [filterClient, setFilterClient] = useState(searchParams.get('client') ?? '')
-  const [filterMinScore, setFilterMinScore] = useState('')
-  const [filterTag, setFilterTag] = useState('')
-  const [sortBy, setSortBy] = useState('date_desc')
   const [showFilters, setShowFilters] = useState(false)
+
+  const [filters, setFilters] = useState<FilterState>({
+    ...INITIAL_FILTERS,
+    filterStatuses: searchParams.get('status') ? [searchParams.get('status')!] : [],
+    filterClient: searchParams.get('client') ?? '',
+  })
+  const [sortBy, setSortBy] = useState('date_desc')
 
   // Modals
   const [showNewListing, setShowNewListing] = useState(false)
@@ -59,13 +57,11 @@ export default function AnnoncesPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
       const { data } = await supabase
         .from('listings')
         .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-
       setListings((data as ListingWithDetails[]) ?? [])
     } finally {
       setLoading(false)
@@ -85,30 +81,18 @@ export default function AnnoncesPage() {
     fetchClients()
   }, [fetchListings, fetchClients])
 
-  // Filtered listings
-  const filtered = listings.filter(l => {
-    if (search) {
-      const q = search.toLowerCase()
-      const matches = [l.brand, l.model, l.generation, l.notes, l.source]
-        .filter(Boolean).some(v => v!.toLowerCase().includes(q))
-      if (!matches) return false
-    }
-    if (filterStatus && l.status !== filterStatus) return false
-    if (filterCountry && l.country !== filterCountry) return false
-    if (filterClient && l.client_id !== filterClient) return false
-    if (filterTag && !l.tags?.includes(filterTag)) return false
-    if (filterMinScore) {
-      const score = getFinalScore(l.auto_score, l.manual_score)
-      if (score == null || score < parseInt(filterMinScore)) return false
-    }
-    return true
-  }).sort((a, b) => {
+  // Apply filters + sort
+  const filtered = applyFilters(listings, filters).sort((a, b) => {
     switch (sortBy) {
       case 'price_asc': return (a.price ?? 0) - (b.price ?? 0)
       case 'price_desc': return (b.price ?? 0) - (a.price ?? 0)
       case 'km_asc': return (a.km ?? 0) - (b.km ?? 0)
       case 'km_desc': return (b.km ?? 0) - (a.km ?? 0)
-      case 'score_desc': return (getFinalScore(b.auto_score, b.manual_score) ?? 0) - (getFinalScore(a.auto_score, a.manual_score) ?? 0)
+      case 'score_desc': {
+        const scoreA = a.auto_score != null ? a.auto_score : 0
+        const scoreB = b.auto_score != null ? b.auto_score : 0
+        return scoreB - scoreA
+      }
       case 'year_desc': return (b.year ?? 0) - (a.year ?? 0)
       case 'date_desc': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       default: return 0
@@ -121,18 +105,23 @@ export default function AnnoncesPage() {
   function toggleSelect(id: string) {
     setSelected(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
   }
 
-  function clearFilters() {
-    setSearch(''); setFilterStatus(''); setFilterCountry(''); setFilterClient('')
-    setFilterMinScore(''); setFilterTag(''); setSortBy('date_desc')
-  }
-
-  const hasFilters = search || filterStatus || filterCountry || filterClient || filterMinScore || filterTag
+  const activeFilterCount = (() => {
+    const f = filters
+    return [
+      f.filterStatuses.length > 0, f.filterClient,
+      f.filterBrand, f.filterModel, f.filterYearMin, f.filterYearMax,
+      f.filterKmMax, f.filterFuels.length > 0, f.filterGearbox,
+      f.filterBodies.length > 0, f.filterHorsepowerMin, f.filterFirstOwnerOnly,
+      f.filterCountries.length > 0, f.filterPriceMax, f.filterBudgetMax,
+      f.filterScoreMin > 0, f.filterMarginMin, f.filterDateRange,
+      f.filterTags.length > 0, f.filterSeller,
+    ].filter(Boolean).length
+  })()
 
   const listingProps = {
     listings: filtered,
@@ -156,19 +145,30 @@ export default function AnnoncesPage() {
       />
 
       <div className="flex-1 overflow-y-auto pt-14">
-        <div className="p-4 space-y-4">
-          {/* Toolbar */}
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="p-4 space-y-3">
+
+          {/* ─── BARRE PRINCIPALE ─── */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Recherche texte */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <Input
-                placeholder="Rechercher une annonce…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+                placeholder="Marque, modèle, notes…"
+                value={filters.search}
+                onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
                 className="pl-9"
               />
+              {filters.search && (
+                <button
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  onClick={() => setFilters(f => ({ ...f, search: '' }))}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
+            {/* Filtres toggle */}
             <Button
               variant={showFilters ? 'default' : 'secondary'}
               size="sm"
@@ -176,22 +176,27 @@ export default function AnnoncesPage() {
             >
               <SlidersHorizontal className="w-4 h-4" />
               Filtres
-              {hasFilters && <Badge className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">!</Badge>}
+              {activeFilterCount > 0 && (
+                <span className="flex items-center justify-center h-4 w-4 rounded-full bg-white/20 text-[10px] font-bold ml-0.5">
+                  {activeFilterCount}
+                </span>
+              )}
             </Button>
 
+            {/* Tri */}
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="date_desc">Plus récents</SelectItem>
                 <SelectItem value="price_asc">Prix croissant</SelectItem>
                 <SelectItem value="price_desc">Prix décroissant</SelectItem>
                 <SelectItem value="km_asc">KM croissant</SelectItem>
                 <SelectItem value="score_desc">Meilleur score</SelectItem>
-                <SelectItem value="year_desc">Plus récents (année)</SelectItem>
+                <SelectItem value="year_desc">Année (récent)</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* View toggle */}
+            {/* Vue toggle */}
             <div className="flex items-center gap-1 bg-[#0d1117] border border-[#2a2f3e] rounded-lg p-1">
               {([['grid', Grid3X3], ['table', Table], ['kanban', Kanban]] as const).map(([v, Icon]) => (
                 <button
@@ -204,7 +209,7 @@ export default function AnnoncesPage() {
               ))}
             </div>
 
-            {/* Selection actions */}
+            {/* Sélection actions */}
             {selected.size > 0 && (
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{selected.size} sélectionnée{selected.size > 1 ? 's' : ''}</Badge>
@@ -221,69 +226,46 @@ export default function AnnoncesPage() {
             )}
           </div>
 
-          {/* Filters panel */}
+          {/* ─── PANNEAU DE FILTRES ─── */}
           {showFilters && (
-            <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0a0d14] space-y-3">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <Select value={filterStatus || 'all'} onValueChange={v => setFilterStatus(v === 'all' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    {Object.entries(STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={filterCountry || 'all'} onValueChange={v => setFilterCountry(v === 'all' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Pays" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les pays</SelectItem>
-                    {Object.entries(COUNTRY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={filterClient || 'all'} onValueChange={v => setFilterClient(v === 'all' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Client" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les clients</SelectItem>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={filterTag || 'all'} onValueChange={v => setFilterTag(v === 'all' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Tag" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les tags</SelectItem>
-                    {allTags.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  placeholder="Score min."
-                  value={filterMinScore}
-                  onChange={e => setFilterMinScore(e.target.value)}
-                  min="0" max="100"
-                />
-              </div>
-              {hasFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  <X className="w-3 h-3" /> Effacer les filtres
-                </Button>
-              )}
-            </div>
+            <FiltersPanel
+              filters={filters}
+              onChange={setFilters}
+              clients={clients}
+              allTags={allTags}
+              resultCount={filtered.length}
+              totalCount={listings.length}
+            />
           )}
 
-          {/* Results count */}
-          <p className="text-xs text-gray-500">
-            {filtered.length} annonce{filtered.length !== 1 ? 's' : ''}
-            {listings.length !== filtered.length ? ` (sur ${listings.length})` : ''}
-          </p>
+          {/* ─── RÉSULTATS ─── */}
+          {!showFilters && (
+            <p className="text-xs text-gray-500">
+              <span className="text-gray-300 font-medium">{filtered.length}</span>
+              {listings.length !== filtered.length && <span> / {listings.length}</span>}
+              {' '}annonce{filtered.length !== 1 ? 's' : ''}
+              {hasActiveFilters(filters) && (
+                <button
+                  className="ml-2 text-orange-400 hover:text-orange-300"
+                  onClick={() => setFilters({ ...INITIAL_FILTERS })}
+                >
+                  Effacer les filtres
+                </button>
+              )}
+            </p>
+          )}
 
-          {/* Views */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-gray-500 text-sm">Chargement…</div>
-            </div>
+            <div className="flex items-center justify-center py-20 text-gray-500 text-sm">Chargement…</div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-gray-500 mb-2">Aucune annonce trouvée</p>
-              <Button onClick={() => setShowNewListing(true)}>Ajouter une annonce</Button>
+            <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+              <p className="text-gray-500">
+                {hasActiveFilters(filters) ? 'Aucune annonce ne correspond aux filtres.' : 'Aucune annonce.'}
+              </p>
+              {hasActiveFilters(filters)
+                ? <Button variant="secondary" onClick={() => setFilters({ ...INITIAL_FILTERS })}>Effacer les filtres</Button>
+                : <Button onClick={() => setShowNewListing(true)}>Ajouter une annonce</Button>
+              }
             </div>
           ) : (
             <>
@@ -295,7 +277,7 @@ export default function AnnoncesPage() {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ─── MODALS ─── */}
       {showNewListing && (
         <ListingFormModal open onClose={() => setShowNewListing(false)} onSaved={() => { setShowNewListing(false); fetchListings() }} />
       )}
