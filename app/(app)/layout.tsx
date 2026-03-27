@@ -12,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen bg-[#06090f]">
       <Sidebar />
-      <main className="flex-1 ml-16 flex flex-col overflow-hidden">
+      <main className="flex-1 md:ml-16 flex flex-col overflow-hidden">
         {children}
       </main>
       <GamosChat />
