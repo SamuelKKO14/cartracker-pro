@@ -22,6 +22,8 @@ export function KeyboardShortcuts({ onNewListing }: KeyboardShortcutsProps) {
         case '3': router.push('/recherche'); break
         case '4': router.push('/annonces'); break
         case '5': router.push('/stats'); break
+        case '6': router.push('/partages'); break
+        case '7': router.push('/finance'); break
         case 'n':
         case 'N':
           if (onNewListing) onNewListing()

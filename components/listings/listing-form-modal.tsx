@@ -101,6 +101,9 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
     horsepower: (listing as Listing & { horsepower?: number | null })?.horsepower?.toString() ?? initialData?.horsepower?.toString() ?? '',
     color: (listing as Listing & { color?: string | null })?.color ?? initialData?.color ?? '',
     notes: listing?.notes ?? initialData?.notes ?? '',
+    // Revendue
+    sold_price: listing?.sold_price?.toString() ?? '',
+    sold_at: listing?.sold_at ? listing.sold_at.split('T')[0] : '',
     // Autres
     tags: listing?.tags ?? [] as string[],
     manual_score: listing?.manual_score?.toString() ?? '',
@@ -174,6 +177,8 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
         client_id: form.client_id || null,
         horsepower: form.horsepower ? parseInt(form.horsepower) : null,
         color: form.color || null,
+        sold_price: form.status === 'resold' && form.sold_price ? parseInt(form.sold_price) : null,
+        sold_at: form.status === 'resold' && form.sold_at ? new Date(form.sold_at).toISOString() : null,
         updated_at: new Date().toISOString(),
       }
 
@@ -322,6 +327,19 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
                   </Select>
                 </div>
               </div>
+
+              {form.status === 'resold' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Prix de vente réel (€)</Label>
+                    <Input type="number" placeholder="Ex: 18000" value={form.sold_price} onChange={e => updateField('sold_price', e.target.value)} min="0" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Date de vente</Label>
+                    <Input type="date" value={form.sold_at} onChange={e => updateField('sold_at', e.target.value)} />
+                  </div>
+                </div>
+              )}
 
               <label className="flex items-center gap-2.5 cursor-pointer w-fit">
                 <Checkbox checked={form.first_owner} onCheckedChange={v => updateField('first_owner', v as boolean)} />

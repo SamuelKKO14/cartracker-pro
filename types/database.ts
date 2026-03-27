@@ -98,6 +98,8 @@ export interface Database {
           manual_score: number | null
           horsepower: number | null
           color: string | null
+          sold_price: number | null
+          sold_at: string | null
           created_at: string
           updated_at: string
         }
@@ -126,6 +128,8 @@ export interface Database {
           manual_score?: number | null
           horsepower?: number | null
           color?: string | null
+          sold_price?: number | null
+          sold_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -152,6 +156,8 @@ export interface Database {
           manual_score?: number | null
           horsepower?: number | null
           color?: string | null
+          sold_price?: number | null
+          sold_at?: string | null
           updated_at?: string
         }
         Relationships: []
