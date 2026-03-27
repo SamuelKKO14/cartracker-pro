@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Car, Users, Search, List, BarChart3, CalendarDays, Share2, TrendingUp, User, LogOut } from 'lucide-react'
+import { Car, Users, Search, List, BarChart3, CalendarDays, Share2, TrendingUp, User, LogOut, Newspaper } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Profile } from '@/types/database'
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/stats', icon: BarChart3, label: 'Statistiques', key: '5' },
   { href: '/partages', icon: Share2, label: 'Partages', key: '6' },
   { href: '/finance', icon: TrendingUp, label: 'Finance', key: '7' },
+  { href: '/blog', icon: Newspaper, label: 'Blog', key: '8' },
 ]
 
 export function Sidebar() {
@@ -89,7 +90,7 @@ export function Sidebar() {
         {/* Mon compte */}
         <Link
           href="/compte"
-          title={`${displayName || 'Mon compte'} (8)`}
+          title={`${displayName || 'Mon compte'} (9)`}
           className={cn(
             'relative group flex items-center justify-center w-10 h-10 rounded-lg transition-colors',
             isCompteActive
