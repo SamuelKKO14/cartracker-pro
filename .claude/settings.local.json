@@ -10,7 +10,11 @@
       "mcp__claude_ai_Supabase__apply_migration",
       "Bash(node:*)",
       "Bash(wc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /Users/vigusb -name *tinker* -type d)",
+      "Bash(grep -E \"\\\\.\\(css|scss\\)$\")",
+      "Bash(cp /Users/vigusb/Desktop/vigusb-shopify/tinker/sections/header.liquid /tmp/header_content.liquid)",
+      "Read(//tmp/**)"
     ]
   }
 }

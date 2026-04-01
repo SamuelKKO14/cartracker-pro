@@ -100,12 +100,15 @@ export function GamosChat() {
             {messages.map((msg, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
-                  maxWidth: '80%', padding: '10px 13px', borderRadius: 12, fontSize: 13, lineHeight: 1.5,
+                  maxWidth: '80%', padding: '12px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.6,
                   background: msg.role === 'user' ? '#f97316' : '#0d1117',
                   color: msg.role === 'user' ? '#fff' : '#e2e8f0',
                   border: msg.role === 'assistant' ? '1px solid #1a1f2e' : 'none',
                   borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
                   borderBottomLeftRadius: msg.role === 'assistant' ? 4 : 12,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
                 }}>
                   {msg.content}
                 </div>
