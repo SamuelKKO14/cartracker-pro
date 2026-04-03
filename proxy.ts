@@ -25,11 +25,19 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+  const { pathname } = request.nextUrl
+
+  // Les routes /api/extension/* gèrent leur propre auth via token Bearer
+  if (pathname.startsWith('/api/extension')) {
+    return supabaseResponse
+  }
+
+  const isAuthPage = pathname.startsWith('/auth')
   const isPublicPage =
-    request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname.startsWith('/share') ||
-    request.nextUrl.pathname.startsWith('/api/share/')
+    pathname === '/' ||
+    pathname.startsWith('/share') ||
+    pathname.startsWith('/api/share/') ||
+    pathname.startsWith('/api/blog/')
 
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone()
