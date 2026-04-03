@@ -14,7 +14,6 @@ import { ListingsGrid } from '@/components/listings/listings-grid'
 import { ListingFormModal } from '@/components/listings/listing-form-modal'
 import { MarginModal } from '@/components/listings/margin-modal'
 import { ChecklistModal } from '@/components/listings/checklist-modal'
-import { SearchLinksModal } from '@/components/listings/search-links-modal'
 import { PhotosModal } from '@/components/listings/photos-modal'
 
 export default function ClientDetailPage() {
@@ -33,7 +32,6 @@ export default function ClientDetailPage() {
   const [editListing, setEditListing] = useState<ListingWithDetails | null>(null)
   const [marginListing, setMarginListing] = useState<ListingWithDetails | null>(null)
   const [checklistListing, setChecklistListing] = useState<ListingWithDetails | null>(null)
-  const [searchLinksListing, setSearchLinksListing] = useState<ListingWithDetails | null>(null)
   const [photosListing, setPhotosListing] = useState<ListingWithDetails | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -118,10 +116,10 @@ export default function ClientDetailPage() {
       if (next.has(id)) next.delete(id); else next.add(id)
       return next
     }),
+    onViewDetail: () => {},
     onEdit: setEditListing,
     onMargin: setMarginListing,
     onChecklist: setChecklistListing,
-    onSearchLinks: setSearchLinksListing,
     onPhotos: setPhotosListing,
     onRefresh: fetchData,
     clients: [],
@@ -250,9 +248,6 @@ export default function ClientDetailPage() {
       )}
       {checklistListing && (
         <ChecklistModal open onClose={() => setChecklistListing(null)} listing={checklistListing} onSaved={fetchData} />
-      )}
-      {searchLinksListing && (
-        <SearchLinksModal open onClose={() => setSearchLinksListing(null)} listing={searchLinksListing} />
       )}
       {photosListing && (
         <PhotosModal open onClose={() => setPhotosListing(null)} listing={photosListing} onRefresh={fetchData} />
