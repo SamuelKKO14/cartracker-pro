@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import {
 } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
 import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Trash2 } from 'lucide-react'
+import { PhotosViewer } from './photos-viewer'
 
 interface ListingsGridProps {
   listings: ListingWithDetails[]
@@ -27,6 +29,7 @@ interface ListingsGridProps {
 export function ListingsGrid({
   listings, selected, onToggleSelect, onViewDetail, onEdit, onMargin, onChecklist, onPhotos, onRefresh
 }: ListingsGridProps) {
+  const [viewer, setViewer] = useState<{ urls: string[], idx: number } | null>(null)
 
   async function handleDelete(id: string) {
     if (!confirm('Supprimer cette annonce ?')) return
@@ -36,6 +39,15 @@ export function ListingsGrid({
   }
 
   return (
+    <>
+    {viewer && (
+      <PhotosViewer
+        photos={viewer.urls}
+        index={viewer.idx}
+        onIndexChange={idx => setViewer(v => v ? { ...v, idx } : null)}
+        onClose={() => setViewer(null)}
+      />
+    )}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {listings.map(listing => {
         const score = getFinalScore(listing.auto_score, listing.manual_score)
@@ -57,17 +69,19 @@ export function ListingsGrid({
             }`}
           >
             {/* Cover photo or placeholder */}
-            <div className="relative h-40 bg-[#0a0d14] overflow-hidden">
+            <div className="relative h-[260px] bg-[#0a0d14] overflow-hidden">
               {coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={coverUrl}
                   alt={`${listing.brand} ${listing.model ?? ''}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={e => { e.stopPropagation(); setViewer({ urls: photos.map(p => p.url), idx: 0 }) }}
                 />
               ) : (
-                <div className="flex items-center justify-center w-full h-full">
+                <div className="flex flex-col items-center justify-center w-full h-full gap-2">
                   <Camera className="w-8 h-8 text-gray-700" />
+                  <span className="text-xs text-gray-700">Aucune photo</span>
                 </div>
               )}
 
@@ -85,7 +99,41 @@ export function ListingsGrid({
                   {score}
                 </div>
               )}
+
+              {/* Photos count badge */}
+              {photos.length > 0 && (
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/65 text-white text-xs px-2 py-0.5 rounded-full select-none pointer-events-none">
+                  <Camera className="w-3 h-3" />
+                  Photos ({photos.length})
+                </div>
+              )}
             </div>
+
+            {/* Thumbnail strip */}
+            {photos.length > 1 && (
+              <div
+                className="flex gap-1.5 px-2 py-2 bg-[#080b10] overflow-x-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                {photos.slice(0, 5).map((photo, idx) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => setViewer({ urls: photos.map(p => p.url), idx })}
+                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all hover:opacity-100 ${
+                      idx === 0 ? 'border-orange-500 opacity-90' : 'border-transparent opacity-60 hover:border-orange-400/50'
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+                {photos.length > 5 && (
+                  <div className="flex-shrink-0 w-14 h-10 rounded bg-[#161b22] border-2 border-transparent flex items-center justify-center">
+                    <span className="text-xs text-gray-500">+{photos.length - 5}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="p-4">
               {/* Header */}
@@ -195,5 +243,6 @@ export function ListingsGrid({
         )
       })}
     </div>
+    </>
   )
 }
