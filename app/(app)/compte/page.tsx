@@ -158,7 +158,7 @@ export default function ComptePage() {
         .from('profiles')
         .upsert({ id: userId, avatar_url: publicUrl, updated_at: new Date().toISOString() })
 
-      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : { id: userId, full_name: null, company_name: null, phone: null, avatar_url: publicUrl, website: null, bio: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : { id: userId, full_name: null, company_name: null, phone: null, avatar_url: publicUrl, website: null, bio: null, goal_monthly_margin: 5000, goal_annual_revenue: 100000, goal_margin_per_vehicle: 2500, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       showToast('Photo mise à jour')
     } catch {
       showToast('Erreur lors de l\'upload', 'error')
