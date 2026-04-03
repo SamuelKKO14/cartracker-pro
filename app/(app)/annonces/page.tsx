@@ -7,7 +7,6 @@ import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
 import { ListingFormModal } from '@/components/listings/listing-form-modal'
 import { MarginModal } from '@/components/listings/margin-modal'
 import { ChecklistModal } from '@/components/listings/checklist-modal'
-import { SearchLinksModal } from '@/components/listings/search-links-modal'
 import { ShareModal } from '@/components/listings/share-modal'
 import { ComparePanel } from '@/components/listings/compare-panel'
 import { PhotosModal } from '@/components/listings/photos-modal'
@@ -20,10 +19,342 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Grid3X3, Table, Kanban, Search, SlidersHorizontal, Share2, GitCompare, X } from 'lucide-react'
-import type { ListingWithDetails, Client } from '@/types/database'
+import { Progress } from '@/components/ui/progress'
+import {
+  Grid3X3, Table, Kanban, Search, SlidersHorizontal, Share2, GitCompare, X,
+  ArrowLeft, Pencil, Calculator, CheckSquare, ExternalLink, Camera, Flag,
+} from 'lucide-react'
+import {
+  formatPrice, formatKm, STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS,
+  getFinalScore, getScoreColor,
+} from '@/lib/utils'
+import type { ListingWithDetails, Client, Listing } from '@/types/database'
 
 type ViewMode = 'grid' | 'table' | 'kanban'
+
+// ─── Detail view ──────────────────────────────────────────────────────────────
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (!value && value !== 0) return null
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-sm text-gray-200">{value}</span>
+    </div>
+  )
+}
+
+function ListingDetailView({
+  listing: initialListing,
+  onBack,
+  onRefresh,
+}: {
+  listing: ListingWithDetails
+  onBack: () => void
+  onRefresh: () => void
+}) {
+  const [listing, setListing] = useState(initialListing)
+  const [activeModal, setActiveModal] = useState<'edit' | 'margin' | 'checklist' | null>(null)
+  const [markingSold, setMarkingSold] = useState(false)
+  const [sellPrice, setSellPrice] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function refetchListing() {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('listings')
+      .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*), listing_photos(*)')
+      .eq('id', listing.id)
+      .single()
+    if (data) setListing(data as ListingWithDetails)
+    onRefresh()
+  }
+
+  async function handleMarkSold() {
+    const price = parseInt(sellPrice)
+    if (!price || price <= 0) { alert('Entrez un prix de vente valide'); return }
+    setSaving(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const soldAt = new Date().toISOString()
+
+      await supabase.from('listings').update({
+        status: 'resold',
+        sold_price: price,
+        sold_at: soldAt,
+        updated_at: soldAt,
+      }).eq('id', listing.id)
+
+      const marginData = listing.listing_margins?.[0] ?? null
+      const totalCost = marginData?.total_cost ?? marginData?.buy_price ?? null
+      const margin = totalCost !== null ? price - totalCost : null
+      const marginPct = margin !== null && marginData?.buy_price
+        ? parseFloat(((margin / marginData.buy_price) * 100).toFixed(2))
+        : null
+
+      await supabase.from('transactions').insert({
+        user_id: user.id,
+        listing_id: listing.id,
+        brand: listing.brand,
+        model: listing.model,
+        year: listing.year,
+        buy_price: marginData?.buy_price ?? null,
+        sell_price: price,
+        total_cost: totalCost,
+        margin,
+        margin_pct: marginPct,
+        sold_at: soldAt,
+      })
+
+      onRefresh()
+      onBack()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const score = getFinalScore(listing.auto_score, listing.manual_score)
+  const margin = listing.listing_margins?.[0]?.margin ?? null
+  const checklist = listing.listing_checklist?.[0] ?? null
+  const checklistCount = checklist
+    ? Object.entries(checklist)
+        .filter(([k]) => !['id', 'user_id', 'listing_id', 'notes', 'created_at'].includes(k))
+        .filter(([, v]) => v === true).length
+    : 0
+  const photos = listing.listing_photos ?? []
+  const m = listing.listing_margins?.[0]
+
+  return (
+    <div className="flex-1 overflow-y-auto pt-14">
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+
+        {/* Back button */}
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour aux annonces
+        </button>
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-100">
+              {listing.brand} {listing.model}
+              {listing.generation ? <span className="text-gray-500 font-normal text-lg ml-2">{listing.generation}</span> : null}
+            </h1>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className={`text-xs px-2 py-0.5 rounded border ${STATUS_COLORS[listing.status] ?? ''}`}>
+                {STATUS_LABELS[listing.status] ?? listing.status}
+              </span>
+              {score != null && (
+                <span className={`text-xs font-bold ${getScoreColor(score)}`}>Score {score}/100</span>
+              )}
+              {listing.first_owner && <span className="text-xs text-teal-400 border border-teal-800/50 px-1.5 py-0.5 rounded">1ère main</span>}
+            </div>
+          </div>
+
+          {/* Action tabs */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setActiveModal('edit')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#2a2f3e] bg-[#0d1117] text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" /> Modifier
+            </button>
+            <button
+              onClick={() => setActiveModal('margin')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#2a2f3e] bg-[#0d1117] text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors"
+            >
+              <Calculator className="w-3.5 h-3.5" /> Marge
+            </button>
+            <button
+              onClick={() => setActiveModal('checklist')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#2a2f3e] bg-[#0d1117] text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors"
+            >
+              <CheckSquare className="w-3.5 h-3.5" /> Checklist
+            </button>
+            {listing.url && (
+              <a
+                href={listing.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#2a2f3e] bg-[#0d1117] text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Source
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Photo strip */}
+        {photos.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {photos.map(p => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={p.id}
+                src={p.url}
+                alt=""
+                className="h-32 w-48 object-cover rounded-lg flex-shrink-0 border border-[#1a1f2e]"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Characteristics */}
+        <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Caractéristiques</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+            <InfoRow label="Marque" value={listing.brand} />
+            <InfoRow label="Modèle" value={listing.model} />
+            <InfoRow label="Génération" value={listing.generation} />
+            <InfoRow label="Année" value={listing.year} />
+            <InfoRow label="Kilométrage" value={listing.km ? formatKm(listing.km) : null} />
+            <InfoRow label="Prix" value={listing.price ? formatPrice(listing.price) : null} />
+            <InfoRow label="Carburant" value={listing.fuel} />
+            <InfoRow label="Boîte" value={listing.gearbox} />
+            <InfoRow label="Carrosserie" value={listing.body} />
+            <InfoRow label="Puissance" value={listing.horsepower ? `${listing.horsepower} ch` : null} />
+            <InfoRow label="Couleur" value={listing.color} />
+            <InfoRow label="Pays" value={listing.country ? COUNTRY_LABELS[listing.country] : null} />
+            <InfoRow label="Vendeur" value={listing.seller} />
+            <InfoRow label="Source" value={listing.source} />
+            <InfoRow label="Client associé" value={(listing.clients as { name?: string } | null)?.name ?? (listing.client as { name?: string } | null)?.name} />
+          </div>
+          {listing.tags && listing.tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {listing.tags.map(tag => (
+                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-orange-900/20 text-orange-400 border border-orange-800/30">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          {listing.notes && (
+            <p className="mt-4 text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">{listing.notes}</p>
+          )}
+        </div>
+
+        {/* Marge résumé */}
+        {m && (
+          <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Marge calculée</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <InfoRow label="Prix d'achat" value={m.buy_price ? formatPrice(m.buy_price) : null} />
+              <InfoRow label="Total charges" value={m.total_cost ? formatPrice(m.total_cost) : null} />
+              <InfoRow label="Prix de vente" value={m.sell_price ? formatPrice(m.sell_price) : null} />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-gray-500">Marge nette</span>
+                <span className={`text-sm font-bold ${margin !== null ? (margin >= 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-400'}`}>
+                  {margin !== null ? formatPrice(margin) : '—'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Checklist résumé */}
+        {checklist && (
+          <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Checklist pré-achat</h2>
+              <span className="text-xs text-gray-400">{checklistCount}/12</span>
+            </div>
+            <Progress value={(checklistCount / 12) * 100} className="h-2" />
+          </div>
+        )}
+
+        {/* Marquer comme revendue */}
+        {listing.status !== 'resold' && (
+          <div className="p-5 rounded-xl border border-orange-900/40 bg-orange-900/10">
+            {!markingSold ? (
+              <button
+                onClick={() => setMarkingSold(true)}
+                className="flex items-center gap-2 text-sm font-semibold text-orange-400 hover:text-orange-300 transition-colors"
+              >
+                <Flag className="w-4 h-4" />
+                Marquer comme revendue
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-gray-200">Confirmer la vente</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder="Prix de vente (€)"
+                      value={sellPrice}
+                      onChange={e => setSellPrice(e.target.value)}
+                      className="bg-[#0d1117] border border-[#2a2f3e] rounded-lg px-3 py-2 text-sm text-gray-200 outline-none focus:border-orange-500 w-48"
+                      autoFocus
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleMarkSold}
+                    disabled={saving || !sellPrice}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    {saving ? 'Enregistrement…' : 'Confirmer'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => { setMarkingSold(false); setSellPrice('') }}
+                  >
+                    Annuler
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Le statut passera à "Revendue" et une transaction sera créée.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {listing.status === 'resold' && listing.sold_price && (
+          <div className="p-4 rounded-xl border border-teal-900/40 bg-teal-900/10 text-sm text-teal-300">
+            ✓ Revendue {listing.sold_at ? `le ${new Date(listing.sold_at).toLocaleDateString('fr-FR')}` : ''} pour {formatPrice(listing.sold_price)}
+          </div>
+        )}
+      </div>
+
+      {/* Modals triggered from detail view */}
+      {activeModal === 'edit' && (
+        <ListingFormModal
+          open
+          onClose={() => setActiveModal(null)}
+          onSaved={() => { setActiveModal(null); refetchListing() }}
+          listing={listing}
+        />
+      )}
+      {activeModal === 'margin' && (
+        <MarginModal
+          open
+          onClose={() => setActiveModal(null)}
+          listing={listing as unknown as Listing}
+          onSaved={() => { setActiveModal(null); refetchListing() }}
+        />
+      )}
+      {activeModal === 'checklist' && (
+        <ChecklistModal
+          open
+          onClose={() => setActiveModal(null)}
+          listing={listing as unknown as Listing}
+          onSaved={() => { setActiveModal(null); refetchListing() }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AnnoncesPage() {
   const searchParams = useSearchParams()
@@ -32,6 +363,7 @@ export default function AnnoncesPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
+  const [detailListing, setDetailListing] = useState<ListingWithDetails | null>(null)
 
   const [filters, setFilters] = useState<FilterState>({
     ...INITIAL_FILTERS,
@@ -40,12 +372,11 @@ export default function AnnoncesPage() {
   })
   const [sortBy, setSortBy] = useState('date_desc')
 
-  // Modals
+  // Modals (still used from list view action buttons)
   const [showNewListing, setShowNewListing] = useState(false)
   const [editListing, setEditListing] = useState<ListingWithDetails | null>(null)
   const [marginListing, setMarginListing] = useState<ListingWithDetails | null>(null)
   const [checklistListing, setChecklistListing] = useState<ListingWithDetails | null>(null)
-  const [searchLinksListing, setSearchLinksListing] = useState<ListingWithDetails | null>(null)
   const [photosListing, setPhotosListing] = useState<ListingWithDetails | null>(null)
   const [showShare, setShowShare] = useState(false)
 
@@ -129,13 +460,28 @@ export default function AnnoncesPage() {
     listings: filtered,
     selected,
     onToggleSelect: toggleSelect,
+    onViewDetail: setDetailListing,
     onEdit: setEditListing,
     onMargin: setMarginListing,
     onChecklist: setChecklistListing,
-    onSearchLinks: setSearchLinksListing,
     onPhotos: setPhotosListing,
     onRefresh: fetchListings,
     clients,
+  }
+
+  // ── Vue détail ──
+  if (detailListing) {
+    return (
+      <>
+        <KeyboardShortcuts />
+        <Header title="Annonces" />
+        <ListingDetailView
+          listing={detailListing}
+          onBack={() => setDetailListing(null)}
+          onRefresh={fetchListings}
+        />
+      </>
+    )
   }
 
   return (
@@ -292,9 +638,6 @@ export default function AnnoncesPage() {
       )}
       {checklistListing && (
         <ChecklistModal open onClose={() => setChecklistListing(null)} listing={checklistListing} onSaved={fetchListings} />
-      )}
-      {searchLinksListing && (
-        <SearchLinksModal open onClose={() => setSearchLinksListing(null)} listing={searchLinksListing} />
       )}
       {photosListing && (
         <PhotosModal open onClose={() => setPhotosListing(null)} listing={photosListing} onRefresh={fetchListings} />

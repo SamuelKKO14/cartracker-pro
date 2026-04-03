@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
 import { MarginModal } from '@/components/listings/margin-modal'
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil, Check, X, Plus, Trash2 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
-import type { Client, Listing, ListingMargin } from '@/types/database'
+import type { Client, Listing, ListingMargin, Goal } from '@/types/database'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -380,6 +380,63 @@ function SaleDetailModal({
   )
 }
 
+// ─── Goal progress helpers ────────────────────────────────────────────────────
+
+const GOAL_TYPE_LABELS: Record<string, string> = { ca: "Chiffre d'affaires", margin: 'Marge nette' }
+const GOAL_PERIOD_LABELS: Record<string, string> = { week: 'Semaine', month: 'Mois', year: 'Année' }
+
+function getGoalPeriodBounds(period: string): { start: Date; end: Date } {
+  const now = new Date()
+  const end = new Date(now)
+  end.setHours(23, 59, 59, 999)
+
+  if (period === 'week') {
+    const day = now.getDay()
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1)
+    const start = new Date(now)
+    start.setDate(diff)
+    start.setHours(0, 0, 0, 0)
+    return { start, end }
+  }
+  if (period === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    start.setHours(0, 0, 0, 0)
+    return { start, end }
+  }
+  // year
+  const start = new Date(now.getFullYear(), 0, 1)
+  start.setHours(0, 0, 0, 0)
+  return { start, end }
+}
+
+function computeGoalProgress(goal: Goal, allResold: ResoldListing[]): number {
+  const { start, end } = getGoalPeriodBounds(goal.period)
+  const sales = allResold.filter(l => {
+    if (!l.sold_at) return false
+    const d = new Date(l.sold_at)
+    return d >= start && d <= end
+  })
+  if (goal.type === 'ca') {
+    return sales.reduce((s, l) => s + (l.sold_price ?? 0), 0)
+  }
+  // margin
+  let total = 0
+  for (const l of sales) {
+    const mg = getListingMargin(l)
+    if (mg !== null) total += mg
+  }
+  return total
+}
+
+// Pct restant de la période (0-1) pour juger si on est en retard
+function getPeriodElapsedFraction(period: string): number {
+  const now = new Date()
+  const { start, end } = getGoalPeriodBounds(period)
+  const total = end.getTime() - start.getTime()
+  const elapsed = now.getTime() - start.getTime()
+  return Math.min(elapsed / total, 1)
+}
+
 // ─── BarChart Tooltip ─────────────────────────────────────────────────────────
 
 function BarTooltipContent({
@@ -415,6 +472,14 @@ export default function FinancePage() {
   const [selectedSale, setSelectedSale] = useState<ResoldListing | null>(null)
   const [marginListing, setMarginListing] = useState<ResoldListing | null>(null)
 
+  // ── Goals (table goals) ──
+  const [userGoals, setUserGoals] = useState<Goal[]>([])
+  const [showGoalForm, setShowGoalForm] = useState(false)
+  const [goalForm, setGoalForm] = useState<{ type: string; period: string; target: string }>({
+    type: 'ca', period: 'month', target: '',
+  })
+  const [goalSaving, setGoalSaving] = useState(false)
+
   useEffect(() => {
     async function fetchData() {
       const supabase = createClient()
@@ -422,7 +487,7 @@ export default function FinancePage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: resold }, { data: nego }, { data: profile }] = await Promise.all([
+      const [{ data: resold }, { data: nego }, { data: profile }, { data: goalsData }] = await Promise.all([
         supabase
           .from('listings')
           .select('id, brand, model, year, km, price, sold_price, sold_at, status, listing_margins(*), clients(*)')
@@ -438,6 +503,11 @@ export default function FinancePage() {
           .select('goal_monthly_margin, goal_annual_revenue, goal_margin_per_vehicle')
           .eq('id', user.id)
           .single(),
+        supabase
+          .from('goals')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true }),
       ])
 
       setAllResold((resold as ResoldListing[]) ?? [])
@@ -449,6 +519,7 @@ export default function FinancePage() {
           goal_margin_per_vehicle: profile.goal_margin_per_vehicle ?? 2500,
         })
       }
+      setUserGoals((goalsData as Goal[]) ?? [])
       setLoading(false)
     }
     fetchData()
@@ -459,6 +530,31 @@ export default function FinancePage() {
     const supabase = createClient()
     await supabase.from('profiles').update({ [key]: val }).eq('id', userId)
     setGoals(prev => ({ ...prev, [key]: val }))
+  }
+
+  // ── Goals CRUD ──
+  async function handleAddGoal() {
+    if (!userId || !goalForm.target) return
+    const target = parseInt(goalForm.target)
+    if (isNaN(target) || target <= 0) return
+    setGoalSaving(true)
+    const supabase = createClient()
+    const { data } = await supabase.from('goals').insert({
+      user_id: userId,
+      type: goalForm.type,
+      period: goalForm.period,
+      target,
+    }).select().single()
+    if (data) setUserGoals(prev => [...prev, data as Goal])
+    setGoalForm({ type: 'ca', period: 'month', target: '' })
+    setShowGoalForm(false)
+    setGoalSaving(false)
+  }
+
+  async function handleDeleteGoal(id: string) {
+    const supabase = createClient()
+    await supabase.from('goals').delete().eq('id', id)
+    setUserGoals(prev => prev.filter(g => g.id !== id))
   }
 
   // ── Période filtrée ──
@@ -767,6 +863,124 @@ export default function FinancePage() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Section 4b — Mes objectifs (goals table) */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">🎯 Mes objectifs</h2>
+                  <button
+                    onClick={() => setShowGoalForm(v => !v)}
+                    className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 border border-orange-900/40 bg-orange-900/10 px-2.5 py-1 rounded-lg transition-colors"
+                  >
+                    <Plus size={12} /> Ajouter
+                  </button>
+                </div>
+
+                {/* Form d'ajout */}
+                {showGoalForm && (
+                  <div className="p-4 rounded-xl border border-[#2a2f3e] bg-[#0a0d14] mb-3 space-y-3">
+                    <p className="text-xs font-semibold text-gray-300">Nouvel objectif</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <select
+                        value={goalForm.type}
+                        onChange={e => setGoalForm(f => ({ ...f, type: e.target.value }))}
+                        className="bg-[#0d1117] border border-[#2a2f3e] rounded-lg px-2 py-1.5 text-sm text-gray-200 outline-none focus:border-orange-500"
+                      >
+                        <option value="ca">Chiffre d'affaires</option>
+                        <option value="margin">Marge nette</option>
+                      </select>
+                      <select
+                        value={goalForm.period}
+                        onChange={e => setGoalForm(f => ({ ...f, period: e.target.value }))}
+                        className="bg-[#0d1117] border border-[#2a2f3e] rounded-lg px-2 py-1.5 text-sm text-gray-200 outline-none focus:border-orange-500"
+                      >
+                        <option value="week">Semaine</option>
+                        <option value="month">Mois</option>
+                        <option value="year">Année</option>
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Montant cible (€)"
+                        value={goalForm.target}
+                        onChange={e => setGoalForm(f => ({ ...f, target: e.target.value }))}
+                        className="bg-[#0d1117] border border-[#2a2f3e] rounded-lg px-3 py-1.5 text-sm text-gray-200 outline-none focus:border-orange-500 w-44"
+                      />
+                      <button
+                        onClick={handleAddGoal}
+                        disabled={goalSaving || !goalForm.target}
+                        className="px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {goalSaving ? 'Enregistrement…' : 'Enregistrer'}
+                      </button>
+                      <button
+                        onClick={() => setShowGoalForm(false)}
+                        className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 rounded-lg transition-colors"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Liste des objectifs */}
+                {userGoals.length === 0 && !showGoalForm ? (
+                  <p className="text-xs text-gray-500 py-3">Aucun objectif défini. Cliquez sur "Ajouter" pour en créer un.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {userGoals.map(goal => {
+                      const realized = computeGoalProgress(goal, allResold)
+                      const pct = goal.target > 0 ? Math.min((realized / goal.target) * 100, 100) : 0
+                      const elapsed = getPeriodElapsedFraction(goal.period)
+                      const isLate = elapsed > 0.5 && pct < 50
+                      const reached = realized >= goal.target
+                      const barColor = reached ? '#1D9E75' : isLate ? '#E24B4A' : '#f97316'
+                      return (
+                        <div key={goal.id} className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-semibold text-gray-200">
+                                {GOAL_TYPE_LABELS[goal.type] ?? goal.type}
+                              </span>
+                              <span className="text-xs text-gray-500 bg-[#1a1f2e] px-2 py-0.5 rounded-full">
+                                {GOAL_PERIOD_LABELS[goal.period] ?? goal.period}
+                              </span>
+                              <span className="text-xs text-gray-500 bg-[#1a1f2e] px-2 py-0.5 rounded-full">
+                                objectif {fmt(goal.target)}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              className="text-gray-600 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+
+                          <div className="flex items-baseline gap-1 mb-2">
+                            <span className="text-xl font-bold text-gray-100">{fmt(realized)}</span>
+                            <span className="text-xs text-gray-500">/ {fmt(goal.target)}</span>
+                          </div>
+
+                          <div className="h-2 rounded-full bg-[#1a1f2e] overflow-hidden mb-1.5">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%`, backgroundColor: barColor }}
+                            />
+                          </div>
+
+                          <p className="text-xs" style={{ color: barColor }}>
+                            {reached
+                              ? 'Objectif atteint ✓'
+                              : isLate
+                              ? `⚠ En retard — ${Math.round(pct)}% atteint, il manque ${fmt(goal.target - realized)}`
+                              : `${Math.round(pct)}% — il manque ${fmt(goal.target - realized)}`}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Section 5 — Ventes */}

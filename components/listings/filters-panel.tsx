@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -214,6 +214,86 @@ function MultiChips({
   )
 }
 
+function normalize(s: string) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function ClientAutocomplete({ clients, value, onChange }: {
+  clients: Client[]
+  value: string
+  onChange: (id: string) => void
+}) {
+  const selectedClient = clients.find(c => c.id === value)
+  const [text, setText] = useState(selectedClient?.name ?? '')
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setText(selectedClient?.name ?? '')
+  }, [selectedClient?.name])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const suggestions = text.trim()
+    ? clients.filter(c => normalize(c.name).includes(normalize(text)))
+    : []
+
+  function select(c: Client) {
+    setText(c.name)
+    onChange(c.id)
+    setOpen(false)
+  }
+
+  function clear() {
+    setText('')
+    onChange('')
+    setOpen(false)
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="relative">
+        <Input
+          placeholder="Rechercher un client…"
+          value={text}
+          onChange={e => { setText(e.target.value); setOpen(true); if (!e.target.value) onChange('') }}
+          onFocus={() => { if (text) setOpen(true) }}
+          className="h-8 text-sm pr-6"
+        />
+        {text && (
+          <button
+            type="button"
+            onClick={clear}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+      {open && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#0d1117] border border-[#2a2f3e] rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+          {suggestions.map(c => (
+            <button
+              key={c.id}
+              type="button"
+              onMouseDown={() => select(c)}
+              className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors"
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function FiltersPanel({ filters: f, onChange, clients, allTags, resultCount, totalCount }: FiltersPanelProps) {
   function set<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     onChange({ ...f, [key]: value })
@@ -266,13 +346,11 @@ export function FiltersPanel({ filters: f, onChange, clients, allTags, resultCou
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <label className="text-xs text-gray-500">Client associé</label>
-            <Select value={f.filterClient || 'all'} onValueChange={v => set('filterClient', v === 'all' ? '' : v)}>
-              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tous les clients" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les clients</SelectItem>
-                {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <ClientAutocomplete
+              clients={clients}
+              value={f.filterClient}
+              onChange={id => set('filterClient', id)}
+            />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs text-gray-500">Vendeur</label>

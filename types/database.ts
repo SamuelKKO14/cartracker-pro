@@ -399,6 +399,77 @@ export interface Database {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          id: string
+          user_id: string
+          listing_id: string | null
+          brand: string | null
+          model: string | null
+          year: number | null
+          buy_price: number | null
+          sell_price: number | null
+          total_cost: number | null
+          margin: number | null
+          margin_pct: number | null
+          sold_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          listing_id?: string | null
+          brand?: string | null
+          model?: string | null
+          year?: number | null
+          buy_price?: number | null
+          sell_price?: number | null
+          total_cost?: number | null
+          margin?: number | null
+          margin_pct?: number | null
+          sold_at?: string
+          created_at?: string
+        }
+        Update: {
+          brand?: string | null
+          model?: string | null
+          year?: number | null
+          buy_price?: number | null
+          sell_price?: number | null
+          total_cost?: number | null
+          margin?: number | null
+          margin_pct?: number | null
+          sold_at?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          period: string
+          target: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          period: string
+          target: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          type?: string
+          period?: string
+          target?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_history: {
         Row: {
           id: string
@@ -440,6 +511,8 @@ export type ClientShareResponse = Database['public']['Tables']['client_share_res
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ListingStatus = 'new' | 'viewed' | 'contacted' | 'negotiation' | 'bought' | 'resold' | 'ignored'
 export type ListingPhoto = Database['public']['Tables']['listing_photos']['Row']
+export type Transaction = Database['public']['Tables']['transactions']['Row']
+export type Goal = Database['public']['Tables']['goals']['Row']
 
 export type ListingWithDetails = Listing & {
   client?: Client | null

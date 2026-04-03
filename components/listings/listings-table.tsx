@@ -4,22 +4,22 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { formatPrice, formatKm, getFinalScore, getScoreColor, STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
-import { ExternalLink, Pencil, Calculator, CheckSquare, Search, Trash2 } from 'lucide-react'
+import { ExternalLink, Pencil, Calculator, CheckSquare, Trash2 } from 'lucide-react'
 
 interface ListingsTableProps {
   listings: ListingWithDetails[]
   selected: Set<string>
   onToggleSelect: (id: string) => void
+  onViewDetail: (l: ListingWithDetails) => void
   onEdit: (l: ListingWithDetails) => void
   onMargin: (l: ListingWithDetails) => void
   onChecklist: (l: ListingWithDetails) => void
-  onSearchLinks: (l: ListingWithDetails) => void
   onPhotos: (l: ListingWithDetails) => void
   onRefresh: () => void
   clients: Client[]
 }
 
-export function ListingsTable({ listings, selected, onToggleSelect, onEdit, onMargin, onChecklist, onSearchLinks, onRefresh }: ListingsTableProps) {
+export function ListingsTable({ listings, selected, onToggleSelect, onViewDetail, onEdit, onMargin, onChecklist, onRefresh }: ListingsTableProps) {
 
   async function handleDelete(id: string) {
     if (!confirm('Supprimer cette annonce ?')) return
@@ -55,9 +55,10 @@ export function ListingsTable({ listings, selected, onToggleSelect, onEdit, onMa
             return (
               <tr
                 key={listing.id}
-                className={`border-b border-[#1a1f2e] last:border-0 transition-colors ${isSelected ? 'bg-orange-900/10' : i % 2 === 0 ? 'bg-[#0d1117]' : 'bg-[#0a0d14]'} hover:bg-[#1a1f2e]`}
+                onClick={() => onViewDetail(listing)}
+                className={`border-b border-[#1a1f2e] last:border-0 transition-colors cursor-pointer ${isSelected ? 'bg-orange-900/10' : i % 2 === 0 ? 'bg-[#0d1117]' : 'bg-[#0a0d14]'} hover:bg-[#1a1f2e]`}
               >
-                <td className="p-3">
+                <td className="p-3" onClick={e => e.stopPropagation()}>
                   <Checkbox checked={isSelected} onCheckedChange={() => onToggleSelect(listing.id)} />
                 </td>
                 <td className="p-3">
@@ -92,7 +93,7 @@ export function ListingsTable({ listings, selected, onToggleSelect, onEdit, onMa
                 <td className="p-3 text-xs text-gray-400">
                   {listing.client ? (listing.client as { name: string }).name : '—'}
                 </td>
-                <td className="p-3">
+                <td className="p-3" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center gap-1">
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onEdit(listing)}>
                       <Pencil className="w-3 h-3" />
@@ -103,11 +104,8 @@ export function ListingsTable({ listings, selected, onToggleSelect, onEdit, onMa
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onChecklist(listing)}>
                       <CheckSquare className="w-3 h-3" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onSearchLinks(listing)}>
-                      <Search className="w-3 h-3" />
-                    </Button>
                     {listing.url && (
-                      <a href={listing.url} target="_blank" rel="noopener noreferrer">
+                      <a href={listing.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
                           <ExternalLink className="w-3 h-3" />
                         </Button>

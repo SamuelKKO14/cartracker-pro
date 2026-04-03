@@ -9,23 +9,23 @@ import {
   STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS
 } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
-import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Search, Trash2 } from 'lucide-react'
+import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Trash2 } from 'lucide-react'
 
 interface ListingsGridProps {
   listings: ListingWithDetails[]
   selected: Set<string>
   onToggleSelect: (id: string) => void
+  onViewDetail: (l: ListingWithDetails) => void
   onEdit: (l: ListingWithDetails) => void
   onMargin: (l: ListingWithDetails) => void
   onChecklist: (l: ListingWithDetails) => void
-  onSearchLinks: (l: ListingWithDetails) => void
   onPhotos: (l: ListingWithDetails) => void
   onRefresh: () => void
   clients: Client[]
 }
 
 export function ListingsGrid({
-  listings, selected, onToggleSelect, onEdit, onMargin, onChecklist, onSearchLinks, onPhotos, onRefresh
+  listings, selected, onToggleSelect, onViewDetail, onEdit, onMargin, onChecklist, onPhotos, onRefresh
 }: ListingsGridProps) {
 
   async function handleDelete(id: string) {
@@ -51,7 +51,8 @@ export function ListingsGrid({
         return (
           <div
             key={listing.id}
-            className={`relative rounded-xl border bg-[#0d1117] transition-all group overflow-hidden ${
+            onClick={() => onViewDetail(listing)}
+            className={`relative rounded-xl border bg-[#0d1117] transition-all group overflow-hidden cursor-pointer ${
               isSelected ? 'border-orange-500/60 shadow-orange-900/20 shadow-lg' : 'border-[#1a1f2e] hover:border-[#2a2f3e]'
             }`}
           >
@@ -71,7 +72,7 @@ export function ListingsGrid({
               )}
 
               {/* Checkbox overlay */}
-              <div className="absolute top-2.5 left-2.5 z-10">
+              <div className="absolute top-2.5 left-2.5 z-10" onClick={e => e.stopPropagation()}>
                 <Checkbox
                   checked={isSelected}
                   onCheckedChange={() => onToggleSelect(listing.id)}
@@ -160,7 +161,7 @@ export function ListingsGrid({
 
               {/* Photos button */}
               <button
-                onClick={() => onPhotos(listing)}
+                onClick={e => { e.stopPropagation(); onPhotos(listing) }}
                 className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 mb-3 transition-colors"
               >
                 <Camera className="w-3.5 h-3.5" />
@@ -169,26 +170,23 @@ export function ListingsGrid({
 
               {/* Actions */}
               <div className="flex items-center gap-1 flex-wrap opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onEdit(listing)}>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={e => { e.stopPropagation(); onEdit(listing) }}>
                   <Pencil className="w-3 h-3" />
                 </Button>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onMargin(listing)}>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={e => { e.stopPropagation(); onMargin(listing) }}>
                   <Calculator className="w-3 h-3" />
                 </Button>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onChecklist(listing)}>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={e => { e.stopPropagation(); onChecklist(listing) }}>
                   <CheckSquare className="w-3 h-3" />
                 </Button>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onSearchLinks(listing)}>
-                  <Search className="w-3 h-3" />
-                </Button>
                 {listing.url && (
-                  <a href={listing.url} target="_blank" rel="noopener noreferrer">
+                  <a href={listing.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                     <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
                       <ExternalLink className="w-3 h-3" />
                     </Button>
                   </a>
                 )}
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-red-500 hover:text-red-400 ml-auto" onClick={() => handleDelete(listing.id)}>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-red-500 hover:text-red-400 ml-auto" onClick={e => { e.stopPropagation(); handleDelete(listing.id) }}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
