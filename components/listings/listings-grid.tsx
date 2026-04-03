@@ -10,8 +10,8 @@ import {
   STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS
 } from '@/lib/utils'
 import type { ListingWithDetails, Client } from '@/types/database'
-import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Trash2 } from 'lucide-react'
-import { PhotosViewer } from './photos-viewer'
+import { Camera, ExternalLink, Pencil, Calculator, CheckSquare, Trash2, Loader2 } from 'lucide-react'
+import { PhotosViewer, type ViewerPhoto } from './photos-viewer'
 
 interface ListingsGridProps {
   listings: ListingWithDetails[]
@@ -29,7 +29,34 @@ interface ListingsGridProps {
 export function ListingsGrid({
   listings, selected, onToggleSelect, onViewDetail, onEdit, onMargin, onChecklist, onPhotos, onRefresh
 }: ListingsGridProps) {
-  const [viewer, setViewer] = useState<{ urls: string[], idx: number } | null>(null)
+  const [viewer, setViewer] = useState<{ photos: ViewerPhoto[], idx: number } | null>(null)
+  const [confirmPhotoId, setConfirmPhotoId] = useState<string | null>(null)
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null)
+
+  async function handleDeletePhoto(photo: ViewerPhoto) {
+    setDeletingPhotoId(photo.id)
+    try {
+      const supabase = createClient()
+      // Supprimer du storage si c'est un fichier hébergé
+      try {
+        const u = new URL(photo.url)
+        const match = u.pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)
+        if (match) await supabase.storage.from('listing-photos').remove([match[1]])
+      } catch { /* URL externe, pas de storage à supprimer */ }
+      await supabase.from('listing_photos').delete().eq('id', photo.id)
+      // Mise à jour immédiate du viewer
+      setViewer(v => {
+        if (!v) return null
+        const next = v.photos.filter(p => p.id !== photo.id)
+        if (next.length === 0) return null
+        return { photos: next, idx: Math.min(v.idx, next.length - 1) }
+      })
+      setConfirmPhotoId(null)
+      onRefresh()
+    } finally {
+      setDeletingPhotoId(null)
+    }
+  }
 
   async function handleDelete(id: string) {
     if (!confirm('Supprimer cette annonce ?')) return
@@ -42,10 +69,11 @@ export function ListingsGrid({
     <>
     {viewer && (
       <PhotosViewer
-        photos={viewer.urls}
+        photos={viewer.photos}
         index={viewer.idx}
         onIndexChange={idx => setViewer(v => v ? { ...v, idx } : null)}
         onClose={() => setViewer(null)}
+        onDelete={handleDeletePhoto}
       />
     )}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -76,7 +104,7 @@ export function ListingsGrid({
                   src={coverUrl}
                   alt={`${listing.brand} ${listing.model ?? ''}`}
                   className="w-full h-full object-cover cursor-zoom-in"
-                  onClick={e => { e.stopPropagation(); setViewer({ urls: photos.map(p => p.url), idx: 0 }) }}
+                  onClick={e => { e.stopPropagation(); setViewer({ photos: photos.map(p => ({ id: p.id, url: p.url })), idx: 0 }) }}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center w-full h-full gap-2">
@@ -116,16 +144,49 @@ export function ListingsGrid({
                 onClick={e => e.stopPropagation()}
               >
                 {photos.slice(0, 5).map((photo, idx) => (
-                  <button
-                    key={photo.id}
-                    onClick={() => setViewer({ urls: photos.map(p => p.url), idx })}
-                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all hover:opacity-100 ${
-                      idx === 0 ? 'border-orange-500 opacity-90' : 'border-transparent opacity-60 hover:border-orange-400/50'
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
-                  </button>
+                  <div key={photo.id} className="relative flex-shrink-0 group/thumb">
+                    <button
+                      onClick={() => setViewer({ photos: photos.map(p => ({ id: p.id, url: p.url })), idx })}
+                      className={`w-14 h-10 rounded overflow-hidden border-2 transition-all block hover:opacity-100 ${
+                        idx === 0 ? 'border-orange-500 opacity-90' : 'border-transparent opacity-60 hover:border-orange-400/50'
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+
+                    {/* Confirmation inline sur la miniature */}
+                    {confirmPhotoId === photo.id ? (
+                      <div className="absolute inset-0 rounded bg-black/85 flex flex-col items-center justify-center gap-0.5 z-10">
+                        {deletingPhotoId === photo.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleDeletePhoto({ id: photo.id, url: photo.url })}
+                              className="text-[9px] text-red-400 hover:text-red-200 font-bold leading-tight"
+                            >
+                              Confirmer
+                            </button>
+                            <button
+                              onClick={() => setConfirmPhotoId(null)}
+                              className="text-[9px] text-gray-400 hover:text-gray-200 leading-tight"
+                            >
+                              Annuler
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmPhotoId(photo.id)}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded bg-black/60 text-red-400 opacity-0 group-hover/thumb:opacity-100 transition-opacity hover:bg-red-900/70"
+                        aria-label="Supprimer cette photo"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
                 ))}
                 {photos.length > 5 && (
                   <div className="flex-shrink-0 w-14 h-10 rounded bg-[#161b22] border-2 border-transparent flex items-center justify-center">
