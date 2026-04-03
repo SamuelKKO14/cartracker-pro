@@ -23,14 +23,12 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  // Les routes /api/extension/* gèrent leur propre auth via token Bearer
-  if (pathname.startsWith('/api/extension')) {
-    return supabaseResponse
-  }
+  // Toutes les routes API gèrent leur propre auth — pas d'appel Supabase
+  if (pathname.startsWith('/api/')) return NextResponse.next({ request })
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   const isAuthPage = pathname.startsWith('/auth')
   const isPublicPage =
@@ -55,5 +53,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|_next/|api/|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|eot)$).*)',
+  ],
 }
