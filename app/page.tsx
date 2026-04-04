@@ -2,11 +2,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Zap, Calculator, Share2, Globe, Bot, BarChart3,
-  Check, X, Menu, Car, ChevronRight, Star, ArrowRight,
+  Car, Menu, X, ArrowRight, ChevronDown,
+  Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
+  Puzzle, CheckCircle, Sparkles, Users, Euro, FileText,
+  TrendingUp, Newspaper, ClipboardList, Search, Minus, Plus,
+  MessageSquare,
 } from 'lucide-react'
 
-// ─── Intersection Observer hook ───────────────────────────────────────────────
+// ── Hooks ─────────────────────────────────────────────────────────────────────
 
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null)
@@ -24,12 +27,24 @@ function useInView(threshold = 0.12) {
   return { ref, inView }
 }
 
-// ─── FadeUp wrapper ───────────────────────────────────────────────────────────
+function useCountUp(target: number, inView: boolean, duration = 1600) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!inView) return
+    let current = 0
+    const step = target / (duration / 16)
+    const timer = setInterval(() => {
+      current += step
+      if (current >= target) { setCount(target); clearInterval(timer) }
+      else setCount(Math.floor(current))
+    }, 16)
+    return () => clearInterval(timer)
+  }, [inView, target, duration])
+  return count
+}
 
 function FadeUp({ children, delay = 0, className = '' }: {
-  children: React.ReactNode
-  delay?: number
-  className?: string
+  children: React.ReactNode; delay?: number; className?: string
 }) {
   const { ref, inView } = useInView()
   return (
@@ -37,9 +52,9 @@ function FadeUp({ children, delay = 0, className = '' }: {
       ref={ref}
       className={className}
       style={{
-        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
         opacity: inView ? 1 : 0,
         transform: inView ? 'translateY(0)' : 'translateY(28px)',
+        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
       }}
     >
       {children}
@@ -47,235 +62,109 @@ function FadeUp({ children, delay = 0, className = '' }: {
   )
 }
 
-// ─── Counter ──────────────────────────────────────────────────────────────────
-
-function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const { ref, inView } = useInView()
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    if (!inView) return
-    const start = performance.now()
-    const dur = 1800
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setCount(Math.round(eased * target))
-      if (p < 1) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  }, [inView, target])
-  return <span ref={ref}>{count}{suffix}</span>
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// ─── Demo Mockup ─────────────────────────────────────────────────────────────
+// ── Data ───────────────────────────────────────────────────────────────────────
 
-const DEMO_STEPS = [
-  { id: 'import', icon: '⚡', label: 'Import IA' },
-  { id: 'margin', icon: '💰', label: 'Marge' },
-  { id: 'share',  icon: '🔗', label: 'Partage' },
-  { id: 'gamos',  icon: '🤖', label: 'Gamos' },
+const FEATURES = [
+  { icon: Sparkles, label: 'Import Intelligent IA', desc: "Copiez-collez le texte d'une annonce, l'IA extrait tout en 5 secondes. Marque, modèle, prix, km, carburant, boîte, pays.", color: 'yellow', glow: 'hover:border-yellow-500/40 hover:shadow-[0_0_16px_rgba(234,179,8,0.1)]' },
+  { icon: Puzzle, label: 'Extension Chrome', desc: "Importez directement depuis AutoScout24, La Centrale, LeBonCoin, mobile.de avec les photos. Un clic suffit.", color: 'cyan', glow: 'hover:border-cyan-500/40 hover:shadow-[0_0_16px_rgba(6,182,212,0.1)]' },
+  { icon: Calculator, label: 'Calcul de marge', desc: "Prix d'achat + transport + remise en état + CT + immat = coût total. Marge nette calculée à l'euro près.", color: 'green', glow: 'hover:border-green-500/40 hover:shadow-[0_0_16px_rgba(34,197,94,0.1)]' },
+  { icon: Share2, label: 'Partage client', desc: "Générez un lien de partage. Votre client voit les voitures et peut répondre. Vos sources restent confidentielles.", color: 'blue', glow: 'hover:border-blue-500/40 hover:shadow-[0_0_16px_rgba(59,130,246,0.1)]' },
+  { icon: Globe, label: '16 pays européens', desc: "Allemagne, Belgique, Pologne, Espagne, Italie, Pays-Bas, Suède, Roumanie… Toute l'Europe couverte.", color: 'violet', glow: 'hover:border-violet-500/40 hover:shadow-[0_0_16px_rgba(139,92,246,0.1)]' },
+  { icon: Bot, label: 'Gamos IA', desc: "Votre assistant IA personnel. Conseils d'import, frais par pays, aide à la rédaction. Disponible 24h/24.", color: 'orange', glow: 'hover:border-orange-500/40 hover:shadow-[0_0_16px_rgba(249,115,22,0.15)]' },
+  { icon: BarChart3, label: 'Suivi Finance', desc: "CA, marges, objectifs mensuels et annuels. Pilotez votre activité comme un vrai business.", color: 'teal', glow: 'hover:border-teal-500/40 hover:shadow-[0_0_16px_rgba(20,184,166,0.1)]' },
+  { icon: ClipboardList, label: 'Checklist pré-achat', desc: "12 points de vérification : CT, carnet, HistoVec, sinistres, essai, pneus, papiers, gage…", color: 'emerald', glow: 'hover:border-emerald-500/40 hover:shadow-[0_0_16px_rgba(16,185,129,0.1)]' },
+  { icon: Newspaper, label: 'Blog intégré', desc: "Créez et publiez des articles optimisés SEO pour attirer des clients. Génération assistée par IA.", color: 'rose', glow: 'hover:border-rose-500/40 hover:shadow-[0_0_16px_rgba(244,63,94,0.1)]' },
 ]
 
-const URL_TEXT  = 'https://autoscout24.de/bmw-320d-2021...'
-const CHAT_TEXT = 'Frais import depuis la Pologne ?'
-
-function DemoMockup() {
-  const [step, setStep] = useState(0)
-  const [typed, setTyped] = useState('')
-  const [revealed, setRevealed] = useState(false)
-
-  const runStep = useCallback((s: number) => {
-    setTyped('')
-    setRevealed(false)
-    const target = s === 0 ? URL_TEXT : s === 3 ? CHAT_TEXT : ''
-
-    if (target) {
-      let i = 0
-      const iv = setInterval(() => {
-        i++
-        setTyped(target.slice(0, i))
-        if (i >= target.length) {
-          clearInterval(iv)
-          setTimeout(() => setRevealed(true), 400)
-        }
-      }, s === 3 ? 55 : 38)
-      return () => clearInterval(iv)
-    } else {
-      const t = setTimeout(() => setRevealed(true), 350)
-      return () => clearTimeout(t)
-    }
-  }, [])
-
-  useEffect(() => {
-    const cleanup = runStep(step)
-    const next = setTimeout(() => setStep(s => (s + 1) % 4), 4400)
-    return () => { cleanup?.(); clearTimeout(next) }
-  }, [step, runStep])
-
-  return (
-    <div className="relative w-full max-w-4xl mx-auto">
-      <div className="absolute -inset-4 rounded-2xl bg-orange-500/5 blur-2xl pointer-events-none" />
-
-      <div className="relative rounded-xl border border-[#1a1f2e] bg-[#0a0d14] overflow-hidden shadow-[0_0_80px_rgba(249,115,22,0.07)]">
-        {/* Title bar */}
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#1a1f2e] bg-[#06090f]">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-            <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-          </div>
-          <div className="flex-1 mx-3 h-6 rounded-md bg-[#1a1f2e] flex items-center px-3">
-            <span className="text-xs text-gray-500 font-mono">app.cartracker.pro/annonces</span>
-          </div>
-          <div className="w-6 h-6 rounded-md bg-orange-500 flex items-center justify-center">
-            <Car className="w-3 h-3 text-white" />
-          </div>
-        </div>
-
-        <div className="flex h-[340px] overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-12 shrink-0 bg-[#0a0d14] border-r border-[#1a1f2e] flex flex-col items-center py-3 gap-1.5">
-            {['📅','👥','🔍','📋','📊','📈'].map((ic, i) => (
-              <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${i === 3 ? 'bg-orange-500/20' : ''}`}>
-                {ic}
-              </div>
-            ))}
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 p-4 space-y-3 overflow-hidden">
-            {/* Tabs */}
-            <div className="flex gap-2 flex-wrap">
-              {DEMO_STEPS.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => setStep(i)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                    i === step
-                      ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
-                      : 'bg-[#1a1f2e] text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  {s.icon} {s.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Step content */}
-            <div style={{ minHeight: 220 }}>
-
-              {step === 0 && (
-                <div className="space-y-2.5">
-                  <div className="h-8 rounded-lg bg-[#1a1f2e] flex items-center px-3 border border-orange-500/20">
-                    <span className="text-xs text-gray-300 font-mono truncate">
-                      {typed}
-                      <span className="inline-block w-0.5 h-3 bg-orange-400 ml-px animate-pulse" />
-                    </span>
-                  </div>
-                  <div
-                    className="grid grid-cols-2 gap-2 transition-all duration-700"
-                    style={{ opacity: revealed ? 1 : 0, transform: revealed ? 'none' : 'translateY(8px)' }}
-                  >
-                    {[['Marque','BMW'],['Modèle','320d'],['Année','2021'],['KM','45 000 km'],['Carburant','Diesel'],['Prix','16 900 €']].map(([lbl, val]) => (
-                      <div key={lbl} className="h-8 rounded-lg bg-[#1a1f2e] flex items-center px-3 gap-2">
-                        <span className="text-xs text-gray-500">{lbl}</span>
-                        <span className="text-xs text-orange-400 font-medium ml-auto">{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {revealed && (
-                    <div className="h-1.5 bg-[#1a1f2e] rounded-full overflow-hidden">
-                      <div className="h-full bg-orange-500 rounded-full transition-all duration-1000" style={{ width: '100%' }} />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {step === 1 && (
-                <div className="space-y-2" style={{ opacity: revealed ? 1 : 0.3, transition: 'opacity 0.5s ease' }}>
-                  {[
-                    { label: "Prix d'achat (DE)", val: '14 500 €', color: 'text-red-400' },
-                    { label: 'Transport', val: '650 €', color: 'text-red-400' },
-                    { label: 'Immatriculation', val: '300 €', color: 'text-red-400' },
-                    { label: 'Réparations', val: '400 €', color: 'text-red-400' },
-                    { label: 'Prix de vente client', val: '19 000 €', color: 'text-green-400' },
-                    { label: 'Marge nette', val: '3 150 €', color: 'text-orange-400 font-bold' },
-                  ].map(({ label, val, color }, i) => (
-                    <div
-                      key={label}
-                      className={`flex items-center justify-between h-8 px-3 rounded-lg ${
-                        i === 5 ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-[#1a1f2e]'
-                      }`}
-                    >
-                      <span className="text-xs text-gray-500">{label}</span>
-                      <span className={`text-xs ${color}`}>{val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-3">
-                  <p className="text-xs text-gray-500">Sélection pour Thomas M. — 3 véhicules</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { b: 'BMW', m: '320d', p: '19 000 €' },
-                      { b: 'Audi', m: 'A4', p: '21 500 €' },
-                      { b: 'VW', m: 'Passat', p: '17 200 €' },
-                    ].map(car => (
-                      <div key={car.b} className="rounded-lg bg-[#1a1f2e] p-2.5 space-y-1.5">
-                        <div className="w-full h-10 rounded bg-[#0a0d14] flex items-center justify-center text-xl">🚗</div>
-                        <p className="text-xs font-medium text-gray-300">{car.b} {car.m}</p>
-                        <p className="text-xs text-orange-400">{car.p}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div
-                    className="h-9 rounded-lg bg-green-900/20 border border-green-700/40 flex items-center px-3 gap-2 transition-all duration-700"
-                    style={{ opacity: revealed ? 1 : 0, transform: revealed ? 'none' : 'translateY(6px)' }}
-                  >
-                    <span className="text-xs text-green-400 font-mono flex-1 truncate">🔗 cartracker.pro/share/xK9pM2...</span>
-                    <span className="text-xs text-green-400 bg-green-900/40 px-2 py-0.5 rounded-full shrink-0">Copié !</span>
-                  </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="space-y-2.5">
-                  <div className="flex justify-end">
-                    <div className="bg-orange-500/15 border border-orange-500/25 rounded-2xl rounded-tr-sm px-3.5 py-2 max-w-[70%]">
-                      <p className="text-xs text-orange-200">
-                        {typed}
-                        <span className="inline-block w-0.5 h-3 bg-orange-400 ml-px animate-pulse" />
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex gap-2.5 transition-all duration-500"
-                    style={{ opacity: revealed ? 1 : 0, transform: revealed ? 'none' : 'translateY(8px)' }}
-                  >
-                    <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-sm shrink-0 mt-0.5">🤖</div>
-                    <div className="bg-[#1a1f2e] rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[80%]">
-                      <p className="text-xs text-gray-300 leading-relaxed">
-                        Import depuis la Pologne : comptez <span className="text-orange-400 font-medium">800–1 200 €</span> (transport + homologation + taxes). Je peux vous aider à calculer la marge précise 📊
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+const ICON_COLOR: Record<string, string> = {
+  yellow: 'text-yellow-400 bg-yellow-900/20',
+  cyan: 'text-cyan-400 bg-cyan-900/20',
+  green: 'text-green-400 bg-green-900/20',
+  blue: 'text-blue-400 bg-blue-900/20',
+  violet: 'text-violet-400 bg-violet-900/20',
+  orange: 'text-orange-400 bg-orange-900/20',
+  teal: 'text-teal-400 bg-teal-900/20',
+  emerald: 'text-emerald-400 bg-emerald-900/20',
+  rose: 'text-rose-400 bg-rose-900/20',
 }
 
-// ─── Navbar ───────────────────────────────────────────────────────────────────
+const STEPS = [
+  { num: '1', icon: Search, title: 'Trouvez', desc: "Naviguez sur les sites européens ou utilisez l'import IA pour ajouter des annonces en secondes." },
+  { num: '2', icon: ClipboardList, title: 'Organisez', desc: "Associez les annonces à vos clients, calculez les marges, remplissez la checklist pré-achat." },
+  { num: '3', icon: Share2, title: 'Partagez', desc: "Envoyez une sélection personnalisée par lien sécurisé. Votre client répond directement." },
+  { num: '4', icon: Euro, title: 'Vendez', desc: "Marquez comme revendu. Le CA et la marge se calculent automatiquement dans Finance." },
+]
 
-function Navbar() {
+const COMPARE_ROWS = [
+  { feature: "Import IA depuis sites européens", ctp: true, a: false, b: false, c: false },
+  { feature: "Extension Chrome d'import", ctp: true, a: false, b: false, c: false },
+  { feature: "Partage client sans source", ctp: true, a: false, b: "Partiel", c: false },
+  { feature: "Assistant IA intégré", ctp: true, a: false, b: false, c: false },
+  { feature: "16 pays européens", ctp: true, a: "France seule", b: "4 pays", c: "France seule" },
+  { feature: "Calcul de marge complet", ctp: true, a: "Partiel", b: true, c: "Partiel" },
+  { feature: "Blog intégré", ctp: true, a: false, b: false, c: false },
+  { feature: "Prix", ctp: "Dès 0€", a: "50-150€/m.", b: "80-200€/m.", c: "60-120€/m." },
+]
+
+const FAQS = [
+  {
+    q: "CarTracker Pro fonctionne avec quels sites d'annonces ?",
+    a: "Notre extension Chrome fonctionne nativement avec AutoScout24, La Centrale, LeBonCoin, mobile.de, Le Parking et AutoHero. Pour tous les autres sites, notre IA universelle extrait automatiquement les informations. L'import IA par copier-coller fonctionne avec n'importe quel texte d'annonce."
+  },
+  {
+    q: "Est-ce que mes clients voient d'où viennent les annonces ?",
+    a: "Non, jamais. Quand vous partagez une sélection par lien, le client voit uniquement les photos, les caractéristiques et le prix que vous avez fixé. Aucune source, aucun site d'origine n'est visible."
+  },
+  {
+    q: "Comment fonctionne le calcul de marge ?",
+    a: "Vous entrez le prix d'achat, les frais de transport, remise en état, contrôle technique, immatriculation et autres frais. L'outil calcule le coût total et votre marge nette en fonction du prix de revente que vous fixez."
+  },
+  {
+    q: "Je peux essayer gratuitement ?",
+    a: "Oui ! Le plan Starter est gratuit avec 10 annonces et 5 clients. Aucune carte bancaire requise. Le plan Pro offre un essai gratuit de 14 jours."
+  },
+  {
+    q: "Qu'est-ce que Gamos ?",
+    a: "Gamos est votre assistant IA intégré directement dans l'outil. Il connaît le marché automobile européen, peut vous aider à calculer les frais d'import par pays, rédiger des messages clients, et vous guider dans toutes les fonctionnalités de l'outil."
+  },
+  {
+    q: "Est-ce que l'outil fonctionne sur mobile ?",
+    a: "Oui, CarTracker Pro est entièrement responsive. Vous pouvez gérer vos clients et annonces depuis votre téléphone. L'extension Chrome fonctionne sur ordinateur."
+  },
+]
+
+const DEMO_TABS = [
+  { id: 'import', label: '⚡ Import IA' },
+  { id: 'extension', label: '🔌 Extension' },
+  { id: 'clients', label: '👥 Clients' },
+  { id: 'marge', label: '💰 Marge' },
+  { id: 'partage', label: '🔗 Partage' },
+  { id: 'gamos', label: '🤖 Gamos' },
+  { id: 'finance', label: '📊 Finance' },
+]
+
+const DEMO_DESC: Record<string, string> = {
+  import: "Copiez le texte d'une annonce depuis n'importe quel site européen. Notre IA extrait automatiquement marque, modèle, année, km, prix, carburant, boîte, pays. 5 secondes chrono.",
+  extension: "Installez notre extension Chrome. Naviguez sur AutoScout24, La Centrale, LeBonCoin, mobile.de — un clic sur l'icône CarTracker et l'annonce est dans votre bibliothèque. Avec les photos.",
+  clients: "Créez des dossiers par client. Budget, critères de recherche, notes de suivi datées. Associez les annonces à chaque client. Retrouvez tout en 1 clic.",
+  marge: "Calculez votre marge nette sur chaque annonce. Prix d'achat, transport, remise en état, CT, immatriculation — tout est pris en compte. Fixez vos objectifs financiers.",
+  partage: "Envoyez une sélection personnalisée à votre client par lien. Il voit les voitures avec les photos et peut dire 'celle-ci m'intéresse'. Vous ne révélez jamais vos sources.",
+  gamos: "Votre assistant IA personnel. Il connaît le marché auto, calcule les frais d'import, vous guide dans l'outil. Disponible 24h/24 dans un chat intégré.",
+  finance: "Suivez votre chiffre d'affaires, vos marges et vos performances. Fixez des objectifs mensuels ou annuels. Visualisez votre activité comme un vrai business.",
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+
+export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('import')
+  const [tabVisible, setTabVisible] = useState(true)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -283,369 +172,711 @@ function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-[#06090f]/90 backdrop-blur-xl border-b border-[#1a1f2e]' : ''
-    }`}>
-      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-            <Car className="w-4 h-4 text-white" />
+  const changeTab = useCallback((id: string) => {
+    setTabVisible(false)
+    setTimeout(() => { setActiveTab(id); setTabVisible(true) }, 180)
+  }, [])
+
+  const toggleFaq = (i: number) => setOpenFaq(prev => prev === i ? null : i)
+
+  // ── DEMO MOCKUPS ──────────────────────────────────────────────────────────
+
+  const MockImport = () => (
+    <div className="space-y-3">
+      <div className="rounded-lg border border-[#2a2f3e] bg-[#060912] p-3 text-sm text-gray-600 min-h-[80px]">
+        BMW 320d xDrive Touring – 2021 · 45 000 km · Diesel · Automatique · Prix : 18 500 € · Vendeur pro, Allemagne...
+      </div>
+      <button className="w-full py-2 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 text-sm font-medium flex items-center justify-center gap-2">
+        <Sparkles className="w-4 h-4" /> Analyser avec l'IA
+      </button>
+      <div className="grid grid-cols-3 gap-2 pt-1">
+        {[['Marque','BMW'],['Modèle','320d'],['Année','2021'],['Km','45 000'],['Prix','18 500€'],['Pays','🇩🇪 DE']].map(([k,v]) => (
+          <div key={k} className="rounded-md bg-[#0d1117] border border-[#1a1f2e] px-2 py-1.5">
+            <p className="text-[9px] text-gray-600 mb-0.5">{k}</p>
+            <p className="text-xs font-semibold text-orange-400">{v}</p>
           </div>
-          <span className="font-bold text-white text-sm">
-            CarTracker <span className="text-orange-400">Pro</span>
-          </span>
-        </Link>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-900/20 border border-green-500/30 text-green-400 text-xs font-medium">
+        <CheckCircle className="w-3.5 h-3.5" /> Annonce importée avec succès
+      </div>
+    </div>
+  )
 
-        <div className="hidden md:flex items-center gap-7">
-          {[['Fonctionnalités','#fonctionnalites'],['Tarifs','#tarifs'],['À propos','#a-propos']].map(([label, href]) => (
-            <a key={label} href={href} className="text-sm text-gray-400 hover:text-gray-100 transition-colors">
-              {label}
-            </a>
-          ))}
+  const MockExtension = () => (
+    <div className="space-y-2">
+      <div className="rounded-lg border border-[#2a2f3e] bg-[#060912] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2 bg-[#0d1117] border-b border-[#1a1f2e]">
+          <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></div>
+          <div className="flex-1 mx-2 px-2 py-0.5 rounded bg-[#060912] border border-[#2a2f3e] text-[10px] text-gray-500 truncate">autoscout24.de/bmw-320d-touring-2021...</div>
+          <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center flex-shrink-0"><Car className="w-3 h-3 text-white" /></div>
         </div>
-
-        <div className="hidden md:flex items-center gap-3 shrink-0">
-          <Link
-            href="/auth/login"
-            className="px-4 py-1.5 text-sm text-gray-200 border border-[#2a2f3e] rounded-lg hover:border-gray-500 transition-colors"
-          >
-            Se connecter
-          </Link>
-          <Link
-            href="/auth/register"
-            className="px-4 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-400 transition-colors"
-          >
-            Essayer gratuitement
-          </Link>
+        <div className="p-3 space-y-2">
+          <div className="rounded-lg border border-orange-500/30 bg-[#0a0d14] p-3 space-y-2">
+            <div className="flex gap-2">
+              <div className="w-16 h-12 rounded bg-[#1a1f2e] flex items-center justify-center text-gray-600 flex-shrink-0">
+                <Car className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-100">BMW 320d G20</p>
+                <p className="text-xs text-gray-500">2021 · 45 000 km · Diesel</p>
+                <p className="text-sm font-bold text-orange-400">18 500 €</p>
+              </div>
+            </div>
+            <select className="w-full h-7 rounded border border-[#2a2f3e] bg-[#060912] text-xs text-gray-400 px-2">
+              <option>M. Dupont ▼</option>
+            </select>
+            <button className="w-full py-1.5 rounded bg-orange-500 text-white text-xs font-medium flex items-center justify-center gap-1.5">
+              <Plus className="w-3 h-3" /> Importer dans CarTracker
+            </button>
+            <p className="text-[10px] text-green-400 text-center">✅ Annonce importée avec 6 photos</p>
+          </div>
         </div>
+      </div>
+    </div>
+  )
 
-        <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setMobileOpen(o => !o)}>
-          <Menu className="w-5 h-5" />
+  const MockClients = () => (
+    <div className="space-y-2">
+      {[
+        { name: 'Thomas Martin', budget: '25 000€', crit: 'SUV diesel auto', count: 8, badge: 'Actif', bc: 'bg-green-900/30 text-green-400 border-green-500/30', init: 'TM', ac: 'bg-blue-900/30 text-blue-400' },
+        { name: 'Sophie Durand', budget: '35 000€', crit: 'Berline premium', count: 12, badge: 'En négo', bc: 'bg-orange-900/30 text-orange-400 border-orange-500/30', init: 'SD', ac: 'bg-purple-900/30 text-purple-400' },
+        { name: 'Karim Benzema', budget: '18 000€', crit: 'Citadine hybride', count: 3, badge: 'Nouveau', bc: 'bg-gray-800/50 text-gray-400 border-gray-600/30', init: 'KB', ac: 'bg-teal-900/30 text-teal-400' },
+      ].map(c => (
+        <div key={c.name} className="flex items-center gap-3 p-3 rounded-lg bg-[#060912] border border-[#1a1f2e]">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${c.ac}`}>{c.init}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">{c.name}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${c.bc}`}>{c.badge}</span>
+            </div>
+            <p className="text-xs text-gray-500 truncate">{c.budget} · {c.crit} · {c.count} annonces</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const MockMarge = () => (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-1.5">
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Coûts</p>
+        {[['Prix d\'achat','18 500€'],['Transport','450€'],['Remise en état','800€'],['CT','80€'],['Immat','300€'],['Autres','0€']].map(([k,v]) => (
+          <div key={k} className="flex justify-between text-xs py-1 border-b border-[#1a1f2e]">
+            <span className="text-gray-500">{k}</span>
+            <span className="text-gray-300 font-medium">{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Résultat</p>
+        <div className="rounded-lg bg-[#060912] border border-[#1a1f2e] p-2.5">
+          <p className="text-[10px] text-gray-600">Coût total</p>
+          <p className="text-sm font-bold text-gray-200">20 130 €</p>
+        </div>
+        <div className="rounded-lg bg-[#060912] border border-[#1a1f2e] p-2.5">
+          <p className="text-[10px] text-gray-600">Prix revente</p>
+          <p className="text-sm font-bold text-gray-200">23 500 €</p>
+        </div>
+        <div className="rounded-xl bg-green-900/25 border border-green-500/30 p-3 flex-1">
+          <p className="text-[10px] text-green-500 font-semibold">MARGE NETTE</p>
+          <p className="text-2xl font-extrabold text-green-400 leading-tight">+3 370€</p>
+          <p className="text-xs text-green-500 font-medium">+16,7%</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  const MockPartage = () => (
+    <div className="space-y-2">
+      <div className="rounded-lg bg-[#060912] border border-orange-500/20 p-3">
+        <p className="text-xs font-semibold text-orange-400 mb-0.5">Sélection pour Thomas Martin</p>
+        <p className="text-[10px] text-gray-600">par CarTracker Pro · 3 véhicules</p>
+      </div>
+      {[['BMW 320d G20','2021 · 45 000 km · Diesel · Auto','23 500€','87'],['Mercedes GLC','2020 · 58 000 km · Diesel · Auto','28 900€','82']].map(([t,s,p,sc]) => (
+        <div key={t} className="flex gap-2 p-2.5 rounded-lg bg-[#060912] border border-[#1a1f2e]">
+          <div className="w-14 h-10 rounded bg-[#1a1f2e] flex items-center justify-center text-gray-600 flex-shrink-0">
+            <Car className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-xs font-semibold text-gray-200">{t}</span>
+              <span className="text-[10px] font-bold text-orange-400 bg-orange-900/20 px-1.5 py-0.5 rounded-full">{sc}</span>
+            </div>
+            <p className="text-[10px] text-gray-500 truncate">{s}</p>
+            <div className="flex items-center justify-between mt-0.5">
+              <span className="text-sm font-bold text-orange-400">{p}</span>
+              <button className="text-[10px] text-pink-400 border border-pink-500/30 px-1.5 py-0.5 rounded-full">♥ Intéressé</button>
+            </div>
+          </div>
+        </div>
+      ))}
+      <p className="text-[10px] text-gray-600 text-center">🔒 Aucune source n'est visible par le client</p>
+    </div>
+  )
+
+  const MockGamos = () => (
+    <div className="space-y-2">
+      <div className="flex justify-end">
+        <div className="max-w-[85%] bg-[#1a1f2e] rounded-2xl rounded-tr-sm px-3 py-2">
+          <p className="text-xs text-gray-200">Combien coûte l'import d'une voiture depuis la Pologne ?</p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Bot className="w-3.5 h-3.5 text-white" />
+        </div>
+        <div className="max-w-[85%] bg-[#060912] border border-[#1a1f2e] rounded-2xl rounded-tl-sm px-3 py-2">
+          <p className="text-xs text-gray-300 leading-relaxed">Pour une voiture depuis la <span className="text-orange-400 font-medium">Pologne</span>, comptez environ :<br/>• Transport : <span className="text-green-400">600-800€</span><br/>• Quitus fiscal : <span className="text-green-400">gratuit (UE)</span><br/>• Immatriculation : <span className="text-gray-200">~300€</span><br/>• CT : <span className="text-gray-200">~80€</span><br/><br/>Total estimé : <span className="text-orange-400 font-semibold">980-1 180€ de frais</span></p>
+        </div>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <input readOnly className="flex-1 h-8 rounded-full bg-[#060912] border border-[#2a2f3e] text-xs text-gray-600 px-3" defaultValue="Posez votre question à Gamos..." />
+        <button className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+          <ArrowRight className="w-3.5 h-3.5 text-white" />
         </button>
       </div>
+    </div>
+  )
 
+  const MockFinance = () => (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        {[['CA du mois','12 400 €','↑ +23%','text-green-400'],['Marge totale','4 200 €','↑ +18%','text-green-400'],['Véhicules vendus','5','Ce mois','text-blue-400'],['Objectif','78%','Atteint','text-orange-400']].map(([l,v,s,c]) => (
+          <div key={l} className="rounded-lg bg-[#060912] border border-[#1a1f2e] p-2.5">
+            <p className="text-[9px] text-gray-600 mb-0.5">{l}</p>
+            <p className="text-base font-bold text-gray-100">{v}</p>
+            <p className={`text-[10px] font-medium ${c}`}>{s}</p>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-1">
+        <div className="flex justify-between text-[10px] text-gray-500 mb-1">
+          <span>Objectif mensuel : 15 000€ de CA</span><span className="text-orange-400">78%</span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-[#1a1f2e]">
+          <div className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-400" style={{ width: '78%' }} />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <p className="text-[9px] text-gray-600 uppercase tracking-wide">Marge par mois</p>
+        {[['Mars','4 200€',78],['Fév.','3 100€',57],['Jan.','2 800€',52]].map(([m,v,pct]) => (
+          <div key={m} className="flex items-center gap-2 text-[10px]">
+            <span className="text-gray-600 w-7">{m}</span>
+            <div className="flex-1 h-1.5 rounded-full bg-[#1a1f2e]">
+              <div className="h-1.5 rounded-full bg-orange-500/70" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-gray-400 w-12 text-right">{v}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const DEMO_MOCK: Record<string, React.ReactNode> = {
+    import: <MockImport />, extension: <MockExtension />, clients: <MockClients />,
+    marge: <MockMarge />, partage: <MockPartage />, gamos: <MockGamos />, finance: <MockFinance />,
+  }
+
+  // ── STATS section (animated counters) ─────────────────────────────────────
+  const { ref: statsRef, inView: statsInView } = useInView(0.3)
+  const c1 = useCountUp(500, statsInView)
+  const c2 = useCountUp(16, statsInView)
+  const c3 = useCountUp(10000, statsInView)
+  const c4 = useCountUp(98, statsInView)
+
+  // ── RENDER ─────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="bg-[#06090f] text-gray-100 min-h-screen font-sans">
+
+      {/* ── 1. NAVBAR ──────────────────────────────────────────────────────── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#06090f]/90 backdrop-blur-lg border-b border-[#1a1f2e]' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shadow-[0_0_14px_rgba(249,115,22,0.45)]">
+              <Car className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-white text-base">CarTracker<span className="text-orange-400 ml-0.5">Pro</span></span>
+          </Link>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-6">
+            {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
+              <button
+                key={l}
+                onClick={() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h}
+                className="text-sm text-gray-400 hover:text-gray-100 transition-colors"
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <Link href="/auth/login" className="px-4 py-2 rounded-lg border border-[#2a2f3e] text-sm text-gray-300 hover:text-white hover:border-[#3a3f4e] transition-colors">Se connecter</Link>
+            <Link href="/auth/register" className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-sm text-white font-medium transition-all hover:scale-[1.02] shadow-[0_0_14px_rgba(249,115,22,0.3)]">Essayer gratuitement</Link>
+          </div>
+
+          <button className="md:hidden p-2 text-gray-400 hover:text-white" onClick={() => setMobileOpen(true)}>
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#0a0d14] border-b border-[#1a1f2e] px-5 py-4 space-y-3">
-          {[['Fonctionnalités','#fonctionnalites'],['Tarifs','#tarifs'],['À propos','#a-propos']].map(([label, href]) => (
-            <a key={label} href={href} className="block text-sm text-gray-400 hover:text-white py-1" onClick={() => setMobileOpen(false)}>
-              {label}
-            </a>
-          ))}
-          <div className="pt-2 flex flex-col gap-2">
-            <Link href="/auth/login" className="block text-center py-2 text-sm border border-[#2a2f3e] rounded-lg text-gray-200">
-              Se connecter
-            </Link>
-            <Link href="/auth/register" className="block text-center py-2 text-sm font-medium bg-orange-500 rounded-lg text-white">
-              Essayer gratuitement
-            </Link>
+        <div className="fixed inset-0 z-[60]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 bg-[#0a0d14] border-l border-[#1a1f2e] flex flex-col p-6 gap-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-bold text-white">Menu</span>
+              <button onClick={() => setMobileOpen(false)} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
+              <button key={l} onClick={() => { setMobileOpen(false); setTimeout(() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h, 100) }}
+                className="text-left text-gray-300 hover:text-white py-2 border-b border-[#1a1f2e] transition-colors text-sm">{l}</button>
+            ))}
+            <div className="flex flex-col gap-2 mt-4">
+              <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-2.5 rounded-lg border border-[#2a2f3e] text-sm text-gray-300">Se connecter</Link>
+              <Link href="/auth/register" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-2.5 rounded-lg bg-orange-500 text-sm text-white font-medium">Essayer gratuitement</Link>
+            </div>
           </div>
         </div>
       )}
-    </nav>
-  )
-}
 
-// ─── Data ────────────────────────────────────────────────────────────────────
-
-const FEATURES = [
-  { icon: Zap,        color: 'text-yellow-400', bg: 'bg-yellow-900/20', glow: 'group-hover:border-yellow-500/40', title: 'Import Intelligent IA',      desc: 'Copiez une annonce depuis n\'importe quel site européen, notre IA remplit tout en 5 secondes.' },
-  { icon: Calculator, color: 'text-green-400',  bg: 'bg-green-900/20',  glow: 'group-hover:border-green-500/40',  title: 'Calcul de marge instantané', desc: 'Prix d\'achat, transport, immat, CT... Votre marge nette calculée à l\'euro près.' },
-  { icon: Share2,     color: 'text-blue-400',   bg: 'bg-blue-900/20',   glow: 'group-hover:border-blue-500/40',   title: 'Partage client premium',     desc: 'Envoyez une sélection personnalisée par lien. Votre client voit les voitures, pas la source.' },
-  { icon: Globe,      color: 'text-purple-400', bg: 'bg-purple-900/20', glow: 'group-hover:border-purple-500/40', title: '16 pays européens',           desc: 'Allemagne, Belgique, Pologne, Espagne... Toute l\'Europe dans un seul outil.' },
-  { icon: Bot,        color: 'text-orange-400', bg: 'bg-orange-900/20', glow: 'group-hover:border-orange-500/40', title: 'Gamos, votre assistant IA',   desc: 'Conseils d\'import, aide à la rédaction, guide de l\'outil. Disponible 24h/24.' },
-  { icon: BarChart3,  color: 'text-teal-400',   bg: 'bg-teal-900/20',   glow: 'group-hover:border-teal-500/40',   title: 'Statistiques Finance',       desc: 'Suivez vos ventes, marges et performances mois après mois comme un vrai business.' },
-]
-
-const COMPARE = [
-  { feature: 'Import IA depuis sites européens',       us: true,      them: false },
-  { feature: 'Partage client sans révéler la source',  us: true,      them: false },
-  { feature: 'Assistant IA intégré',                   us: true,      them: false },
-  { feature: '16 pays européens',                      us: true,      them: false },
-  { feature: 'Calcul de marge complet',                us: true,      them: 'Partiel' },
-  { feature: 'Prix accessible',                        us: 'Dès 0€',  them: '50–200€/mois' },
-]
-
-const PLANS = [
-  {
-    name: 'Starter', price: '0€',  period: '/mois', popular: false,
-    features: ['10 annonces max', '5 clients max', 'Import IA', 'Fonctionnalités de base'],
-    cta: 'Commencer gratuitement', href: '/auth/register',
-  },
-  {
-    name: 'Pro', price: '49€', period: '/mois', popular: true,
-    features: ['Annonces illimitées', 'Clients illimités', 'Partage client par lien', 'Gamos assistant IA', 'Stats Finance', 'Export CSV'],
-    cta: 'Essayer 14 jours gratuits', href: '/auth/register',
-  },
-  {
-    name: 'Agence', price: '99€', period: '/mois', popular: false,
-    features: ['Tout le Plan Pro', '3 utilisateurs', 'Support prioritaire', 'Rapport mensuel auto'],
-    cta: 'Nous contacter', href: '/auth/register',
-  },
-]
-
-const TESTIMONIALS = [
-  { text: 'Avant CarTracker, je perdais 3h par semaine à chercher sur les sites allemands. Maintenant j\'importe une annonce en 10 secondes.', author: 'Thomas D.', role: 'Mandataire automobile, Lyon', stars: 5 },
-  { text: 'Le partage client par lien a changé ma relation avec mes clients. Ils reçoivent une vraie sélection pro sans voir d\'où je source.', author: 'Marie L.', role: 'Courtière auto, Paris', stars: 5 },
-  { text: 'Gamos m\'a aidé à calculer les frais d\'import polonais que je ne maîtrisais pas. L\'outil apprend avec moi.', author: 'Karim B.', role: 'Négociant VO, Marseille', stars: 5 },
-]
-
-// ─── Page ────────────────────────────────────────────────────────────────────
-
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen bg-[#06090f] text-white antialiased overflow-x-hidden">
-      <Navbar />
-
-      {/* ── HERO ── */}
-      <section className="relative pt-32 pb-24 px-5 flex flex-col items-center text-center overflow-hidden">
-        {/* Grid */}
+      {/* ── 2. HERO ───────────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-24 pb-16 overflow-hidden">
+        {/* Grid background */}
         <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: `linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px)`,
-          backgroundSize: '64px 64px',
+          backgroundImage: 'linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
         }} />
-        {/* Radial glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-orange-500/6 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-orange-500/5 blur-[100px] pointer-events-none" />
 
-        {/* Badge */}
-        <div className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/8 text-sm text-orange-300 mb-8">
-          <span>✨</span>
-          L&apos;outil n°1 des mandataires auto en Europe
-          <ChevronRight className="w-3.5 h-3.5" />
-        </div>
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/8 text-sm text-orange-300 animate-pulse-slow">
+            <span>✨</span>
+            <span>L'outil n°1 des mandataires auto en Europe</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </div>
 
-        {/* H1 */}
-        <h1 className="relative max-w-4xl text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
-          Trouvez, suivez et vendez
-          <br />
-          <span className="bg-gradient-to-r from-orange-400 via-orange-300 to-orange-500 bg-clip-text text-transparent">
-            les meilleures voitures
-          </span>
-          <br />
-          d&apos;Europe.
-        </h1>
+          {/* H1 */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+            <span className="text-gray-100">Trouvez, suivez et vendez</span><br />
+            <span className="bg-gradient-to-r from-orange-400 via-orange-300 to-orange-500 bg-clip-text text-transparent">les meilleures voitures</span><br />
+            <span className="text-gray-100">d'Europe.</span>
+          </h1>
 
-        <p className="relative max-w-2xl text-lg md:text-xl text-gray-400 leading-relaxed mb-10">
-          CarTracker Pro centralise vos recherches d&apos;annonces européennes, calcule vos marges en temps réel et impressionne vos clients avec des sélections personnalisées.
-        </p>
+          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            L'outil tout-en-un pour les mandataires, courtiers et négociants auto. Importez des annonces en 1 clic depuis toute l'Europe, calculez vos marges, partagez des sélections pro à vos clients.
+          </p>
 
-        <div className="relative flex flex-col sm:flex-row items-center gap-3 mb-10">
-          <Link
-            href="/auth/register"
-            className="group flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-orange-500 rounded-xl hover:bg-orange-400 transition-all hover:scale-[1.02] shadow-[0_0_30px_rgba(249,115,22,0.25)] hover:shadow-[0_0_50px_rgba(249,115,22,0.4)]"
-          >
-            Démarrer gratuitement
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-          <a
-            href="#demo"
-            className="flex items-center gap-2 px-7 py-3.5 text-base font-medium text-gray-200 border border-[#2a2f3e] rounded-xl hover:border-gray-500 hover:text-white transition-all hover:scale-[1.02]"
-          >
-            Voir la démo ↓
-          </a>
-        </div>
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link href="/auth/register" className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base transition-all hover:scale-[1.02] shadow-[0_0_28px_rgba(249,115,22,0.45)] flex items-center justify-center gap-2">
+              Démarrer gratuitement <ArrowRight className="w-4 h-4" />
+            </Link>
+            <button onClick={() => scrollTo('demo')} className="w-full sm:w-auto px-7 py-3.5 rounded-xl border border-gray-600 text-white font-semibold text-base hover:border-gray-400 transition-colors flex items-center justify-center gap-2">
+              Voir la démo <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
 
-        {/* Social proof */}
-        <div className="relative flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-sm text-gray-500">
-          <span className="flex items-center gap-2">
-            <span className="flex -space-x-1.5">
-              {['T','M','K','A','L'].map(l => (
-                <span key={l} className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500/40 to-orange-700/40 border-2 border-[#06090f] flex items-center justify-center text-[10px] font-bold text-orange-300">
-                  {l}
-                </span>
-              ))}
-            </span>
-            <span className="text-gray-400 font-medium">500+ pros actifs</span>
-          </span>
-          <span className="text-gray-700">•</span>
-          <span>16 pays couverts</span>
-          <span className="text-gray-700">•</span>
-          <span>0€ pour commencer</span>
-        </div>
-      </section>
+          {/* Stats */}
+          <p className="text-sm text-gray-500">500+ pros actifs &nbsp;•&nbsp; 16 pays couverts &nbsp;•&nbsp; 0€ pour commencer</p>
 
-      {/* ── DEMO ── */}
-      <section id="demo" className="py-20 px-5">
-        <div className="max-w-6xl mx-auto">
-          <FadeUp className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tout ce dont vous avez besoin,{' '}
-              <span className="text-orange-400">au même endroit</span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Regardez comment CarTracker Pro transforme votre quotidien
-            </p>
-          </FadeUp>
-          <FadeUp delay={100}>
-            <DemoMockup />
-          </FadeUp>
-        </div>
-      </section>
-
-      {/* ── FONCTIONNALITÉS ── */}
-      <section id="fonctionnalites" className="py-20 px-5 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/[0.015] to-transparent pointer-events-none" />
-        <div className="max-w-6xl mx-auto">
-          <FadeUp className="text-center mb-14">
-            <p className="text-orange-400 text-sm font-semibold uppercase tracking-widest mb-3">Fonctionnalités</p>
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Tout ce qu&apos;il vous faut pour{' '}
-              <span className="text-orange-400">dominer le marché</span>
-            </h2>
-          </FadeUp>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map((f, i) => (
-              <FadeUp key={f.title} delay={i * 70}>
-                <div className={`group h-full p-6 rounded-xl border border-[#1a1f2e] bg-[#0a0d14] hover:bg-[#0d1117] transition-all duration-300 ${f.glow} cursor-default`}>
-                  <div className={`w-10 h-10 rounded-lg ${f.bg} flex items-center justify-center mb-4`}>
-                    <f.icon className={`w-5 h-5 ${f.color}`} />
-                  </div>
-                  <h3 className="font-semibold text-gray-100 mb-2">{f.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
-                </div>
-              </FadeUp>
+          {/* Site badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {['AutoScout24','La Centrale','LeBonCoin','mobile.de','Le Parking'].map(s => (
+              <span key={s} className="px-2.5 py-1 rounded-full bg-[#0a0d14] border border-[#1a1f2e] text-xs text-gray-600 font-medium">{s}</span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── COMPARAISON ── */}
-      <section className="py-20 px-5">
-        <div className="max-w-3xl mx-auto">
-          <FadeUp className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Pourquoi les pros choisissent{' '}
-              <span className="text-orange-400">CarTracker Pro</span>
-            </h2>
+      {/* ── 3. PROBLÈME / SOLUTION ─────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <FadeUp className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100">Avant CarTracker Pro <span className="text-orange-400">vs</span> Après</h2>
           </FadeUp>
-          <FadeUp delay={100}>
-            <div className="rounded-xl border border-[#1a1f2e] overflow-hidden">
-              <div className="grid grid-cols-3 bg-[#0a0d14] border-b border-[#1a1f2e]">
-                <div className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Fonctionnalité</div>
-                <div className="px-5 py-3 text-xs font-medium text-orange-400 uppercase tracking-wider text-center">CarTracker Pro</div>
-                <div className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Concurrents</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FadeUp delay={70}>
+              <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-6 space-y-3">
+                <p className="text-sm font-bold text-red-400 mb-4 uppercase tracking-wide">😤 Sans CarTracker Pro</p>
+                {[
+                  "3h par jour à scroller AutoScout24, La Centrale, mobile.de",
+                  "Copier-coller les infos dans Excel ou un carnet",
+                  "Calculer les frais d'import à la main",
+                  "Envoyer 15 screenshots WhatsApp au client",
+                  "Perdre le fil entre 5 clients différents",
+                  "Aucune visibilité sur vos marges réelles",
+                ].map(t => (
+                  <div key={t} className="flex items-start gap-3 text-sm text-gray-400">
+                    <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    {t}
+                  </div>
+                ))}
               </div>
-              {COMPARE.map((row, i) => (
-                <div key={i} className={`grid grid-cols-3 border-b border-[#1a1f2e] last:border-0 ${i % 2 === 0 ? 'bg-[#06090f]' : 'bg-[#0a0d14]/50'}`}>
-                  <div className="px-5 py-3.5 text-sm text-gray-300">{row.feature}</div>
-                  <div className="px-5 py-3.5 flex items-center justify-center">
-                    {row.us === true
-                      ? <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-900/40"><Check className="w-3.5 h-3.5 text-green-400" /></span>
-                      : <span className="text-sm font-medium text-orange-400">{row.us}</span>
-                    }
+            </FadeUp>
+            <FadeUp delay={140}>
+              <div className="rounded-2xl border border-green-500/20 bg-green-900/10 p-6 space-y-3">
+                <p className="text-sm font-bold text-green-400 mb-4 uppercase tracking-wide">🚀 Avec CarTracker Pro</p>
+                {[
+                  "Import en 1 clic avec l'extension Chrome",
+                  "Toutes les annonces organisées par client",
+                  "Marge nette calculée automatiquement",
+                  "Partage client par lien pro (sans révéler la source)",
+                  "Dashboard avec KPIs et suivi financier",
+                  "Assistant IA intégré 24h/24",
+                ].map(t => (
+                  <div key={t} className="flex items-start gap-3 text-sm text-gray-300">
+                    <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                    {t}
                   </div>
-                  <div className="px-5 py-3.5 flex items-center justify-center">
-                    {row.them === false
-                      ? <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-900/30"><X className="w-3.5 h-3.5 text-red-400" /></span>
-                      : <span className="text-sm text-gray-400">{row.them}</span>
-                    }
-                  </div>
-                </div>
+                ))}
+              </div>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. DÉMO INTERACTIVE ────────────────────────────────────────────── */}
+      <section id="demo" className="py-20 px-4 bg-[#080b10]">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Découvrez CarTracker Pro en action</h2>
+            <p className="text-gray-400">Cliquez sur chaque fonctionnalité pour la voir en détail</p>
+          </FadeUp>
+
+          {/* Tabs */}
+          <FadeUp delay={70}>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 mb-6 scrollbar-none">
+              {DEMO_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => changeTab(tab.id)}
+                  className={`shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'bg-orange-500/15 text-orange-400 border border-orange-500/40'
+                      : 'bg-[#0a0d14] border border-[#1a1f2e] text-gray-500 hover:text-gray-300 hover:border-[#2a2f3e]'
+                  }`}
+                >
+                  {tab.label}
+                </button>
               ))}
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={140}>
+            <div className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] overflow-hidden">
+              <div className="p-5 md:p-6 border-b border-[#1a1f2e]">
+                <p className="text-sm text-gray-400 leading-relaxed">{DEMO_DESC[activeTab]}</p>
+              </div>
+              <div
+                className="p-5 md:p-6"
+                style={{
+                  opacity: tabVisible ? 1 : 0,
+                  transform: tabVisible ? 'translateY(0)' : 'translateY(8px)',
+                  transition: 'opacity 0.2s ease, transform 0.2s ease',
+                }}
+              >
+                <div className="max-w-lg mx-auto">
+                  {DEMO_MOCK[activeTab]}
+                </div>
+              </div>
             </div>
           </FadeUp>
         </div>
       </section>
 
-      {/* ── TARIFS ── */}
-      <section id="tarifs" className="py-20 px-5 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/[0.015] to-transparent pointer-events-none" />
+      {/* ── 5. EXTENSION CHROME ────────────────────────────────────────────── */}
+      <section id="extension" className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <FadeUp className="text-center mb-14">
-            <p className="text-orange-400 text-sm font-semibold uppercase tracking-widest mb-3">Tarifs</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Simple, transparent, sans surprise</h2>
-            <p className="text-gray-400">Commencez gratuitement, évoluez quand vous êtes prêt.</p>
-          </FadeUp>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {PLANS.map((plan, i) => (
-              <FadeUp key={plan.name} delay={i * 90}>
-                <div className={`relative h-full flex flex-col p-6 rounded-xl border transition-all ${
-                  plan.popular
-                    ? 'border-orange-500/50 bg-orange-500/5 shadow-[0_0_50px_rgba(249,115,22,0.08)]'
-                    : 'border-[#1a1f2e] bg-[#0a0d14]'
-                }`}>
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-3 py-1 text-xs font-bold text-white bg-orange-500 rounded-full">
-                        Le plus populaire
-                      </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <FadeUp>
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-2">🔌 Extension Chrome</p>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 leading-tight">Importez depuis n'importe quel site auto en 1 clic</h2>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    "Naviguez comme d'habitude sur vos sites préférés",
+                    "Un clic sur l'icône CarTracker Pro dans votre navigateur",
+                    "L'annonce complète avec les photos est importée instantanément",
+                    "Fonctionne sur AutoScout24, La Centrale, LeBonCoin, mobile.de, Le Parking, AutoHero et +50 autres sites grâce à l'IA",
+                  ].map((t, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-orange-400" />
+                      </div>
+                      <span className="text-sm text-gray-300">{t}</span>
                     </div>
-                  )}
-                  <div className="mb-6">
-                    <h3 className="font-bold text-lg text-gray-100 mb-1">{plan.name}</h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-4xl font-extrabold ${plan.popular ? 'text-orange-400' : 'text-gray-100'}`}>{plan.price}</span>
-                      <span className="text-gray-500 text-sm">{plan.period}</span>
+                  ))}
+                </div>
+                <a href="#extension" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                  <Puzzle className="w-4 h-4" /> Installer l'extension Chrome
+                </a>
+              </div>
+            </FadeUp>
+
+            <FadeUp delay={140}>
+              <div className="space-y-4">
+                {[
+                  { icon: Globe, step: '1', title: "Naviguez sur AutoScout24.de", sub: "Trouvez l'annonce qui vous intéresse" },
+                  { icon: Puzzle, step: '2', title: "Cliquez sur l'extension", sub: "Un clic sur l'icône CarTracker dans le navigateur" },
+                  { icon: CheckCircle, step: '3', title: "Annonce importée avec photos", sub: "Toutes les infos + photos directement dans votre liste" },
+                ].map((s, i) => (
+                  <div key={i}>
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0a0d14] border border-[#1a1f2e]">
+                      <div className="relative shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-orange-500/15 flex items-center justify-center">
+                          <s.icon className="w-5 h-5 text-orange-400" />
+                        </div>
+                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-500 text-[9px] text-white font-bold flex items-center justify-center">{s.step}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-200">{s.title}</p>
+                        <p className="text-xs text-gray-500">{s.sub}</p>
+                      </div>
                     </div>
+                    {i < 2 && <div className="flex justify-center py-1"><div className="w-0.5 h-4 bg-orange-500/30 rounded-full" /></div>}
                   </div>
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map(feat => (
-                      <li key={feat} className="flex items-center gap-2.5 text-sm text-gray-300">
-                        <Check className="w-4 h-4 text-green-400 shrink-0" />
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={plan.href}
-                    className={`block text-center py-2.5 px-4 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02] ${
-                      plan.popular
-                        ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-[0_0_20px_rgba(249,115,22,0.25)]'
-                        : 'border border-[#2a2f3e] text-gray-200 hover:border-gray-500 hover:text-white'
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
+                ))}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {['AutoScout24','La Centrale','LeBonCoin','mobile.de','Le Parking','AutoHero','+50 sites via IA'].map(s => (
+                    <span key={s} className="text-[10px] text-gray-600 bg-[#0a0d14] border border-[#1a1f2e] px-2 py-0.5 rounded-full">{s}</span>
+                  ))}
                 </div>
-              </FadeUp>
-            ))}
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="py-16 px-5 border-y border-[#1a1f2e]">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { target: 500, suffix: '+', label: 'Pros actifs' },
-              { target: 16,  suffix: '',  label: 'Pays couverts' },
-              { target: 12000, suffix: '+', label: 'Annonces importées' },
-              { target: 98, suffix: '%', label: 'Satisfaction client' },
-            ].map(stat => (
-              <FadeUp key={stat.label}>
-                <div className="text-4xl md:text-5xl font-extrabold text-orange-400 mb-1.5">
-                  <Counter target={stat.target} suffix={stat.suffix} />
-                </div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TÉMOIGNAGES ── */}
-      <section className="py-20 px-5">
+      {/* ── 6. FONCTIONNALITÉS ─────────────────────────────────────────────── */}
+      <section id="fonctionnalites" className="py-20 px-4 bg-[#080b10]">
         <div className="max-w-6xl mx-auto">
           <FadeUp className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Ce que disent les pros</h2>
-            <p className="text-gray-400">Ils ont transformé leur activité avec CarTracker Pro</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Tout ce qu'il vous faut pour dominer le marché</h2>
+            <p className="text-gray-400 max-w-xl mx-auto">9 fonctionnalités pensées pour les professionnels de l'automobile</p>
           </FadeUp>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t, i) => (
-              <FadeUp key={t.author} delay={i * 90}>
-                <div className="h-full p-6 rounded-xl border border-[#1a1f2e] bg-[#0a0d14] flex flex-col">
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.stars }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 text-orange-400 fill-orange-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((f, i) => (
+              <FadeUp key={f.label} delay={i * 60}>
+                <div className={`group p-5 rounded-xl bg-[#0a0d14] border border-[#1a1f2e] transition-all duration-200 ${f.glow} h-full`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${ICON_COLOR[f.color]}`}>
+                    <f.icon className={`w-4.5 h-4.5 ${ICON_COLOR[f.color].split(' ')[0]}`} />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-100 mb-1.5">{f.label}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. COMMENT ÇA MARCHE ──────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">De la recherche à la vente en 4 étapes</h2>
+          </FadeUp>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {STEPS.map((s, i) => (
+              <FadeUp key={s.num} delay={i * 80} className="relative">
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center">
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
+                        <s.icon className="w-6 h-6 text-orange-400" />
+                      </div>
+                      <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-[10px] text-white font-bold flex items-center justify-center">{s.num}</span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-gray-100">{s.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
+                </div>
+                {i < 3 && (
+                  <div className="hidden lg:block absolute top-7 left-full w-6 -translate-x-3 text-orange-500/40 text-lg">→</div>
+                )}
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 8. COMPARAISON ─────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 bg-[#080b10]">
+        <div className="max-w-4xl mx-auto">
+          <FadeUp className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Pourquoi les pros choisissent CarTracker Pro</h2>
+          </FadeUp>
+          <FadeUp delay={70}>
+            <div className="overflow-x-auto rounded-2xl border border-[#1a1f2e]">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-[#1a1f2e]">
+                    <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Fonctionnalité</th>
+                    <th className="p-4 text-xs font-semibold text-orange-400 uppercase tracking-wide bg-orange-500/5">CarTracker Pro</th>
+                    <th className="p-4 text-xs font-semibold text-gray-600 uppercase tracking-wide">AutoCerfa</th>
+                    <th className="p-4 text-xs font-semibold text-gray-600 uppercase tracking-wide">VObiz</th>
+                    <th className="p-4 text-xs font-semibold text-gray-600 uppercase tracking-wide">Optimcar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARE_ROWS.map((row, i) => (
+                    <tr key={row.feature} className={`border-b border-[#1a1f2e] ${i % 2 === 0 ? 'bg-[#0a0d14]' : 'bg-transparent'}`}>
+                      <td className="p-3.5 text-sm text-gray-300">{row.feature}</td>
+                      {[row.ctp, row.a, row.b, row.c].map((v, ci) => (
+                        <td key={ci} className={`p-3.5 text-center ${ci === 0 ? 'bg-orange-500/5' : ''}`}>
+                          {v === true ? <Check className="w-4 h-4 text-green-400 mx-auto" />
+                           : v === false ? <X className="w-4 h-4 text-red-500/60 mx-auto" />
+                           : <span className={`text-xs ${ci === 0 ? 'text-orange-400 font-semibold' : 'text-gray-600'}`}>{v}</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── 9. CHIFFRES CLÉS ───────────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div ref={statsRef} className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { val: c1, suffix: '+', label: 'Pros actifs' },
+              { val: c2, suffix: '', label: 'Pays couverts' },
+              { val: c3, suffix: '+', label: 'Annonces importées', fmt: true },
+              { val: c4, suffix: '%', label: 'Satisfaction client' },
+            ].map(({ val, suffix, label, fmt }) => (
+              <FadeUp key={label}>
+                <div className="space-y-1">
+                  <p className="text-4xl md:text-5xl font-extrabold text-orange-400">
+                    {fmt ? val >= 1000 ? `${Math.floor(val / 1000)} 000` : val : val}{suffix}
+                  </p>
+                  <p className="text-sm text-gray-500">{label}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. TARIFS ─────────────────────────────────────────────────────── */}
+      <section id="tarifs" className="py-20 px-4 bg-[#080b10]">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Simple, transparent, sans surprise</h2>
+            <p className="text-gray-400">Commencez gratuitement, évoluez quand vous êtes prêt.</p>
+          </FadeUp>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Starter */}
+            <FadeUp delay={0}>
+              <div className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] p-6 flex flex-col h-full">
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Starter</p>
+                  <p className="text-4xl font-extrabold text-gray-100">Gratuit</p>
+                  <p className="text-sm text-gray-500 mt-1">Pour commencer</p>
+                </div>
+                <ul className="space-y-2.5 flex-1 mb-6">
+                  {['10 annonces max','5 clients max','Import IA','Score bonne affaire'].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
+                      <Check className="w-3.5 h-3.5 text-gray-500 shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/register" className="block text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
+                  Commencer gratuitement
+                </Link>
+              </div>
+            </FadeUp>
+
+            {/* Pro */}
+            <FadeUp delay={80}>
+              <div className="rounded-2xl border border-orange-500/50 bg-[#0a0d14] p-6 flex flex-col h-full relative shadow-[0_0_40px_rgba(249,115,22,0.12)]">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-orange-500 text-[11px] font-bold text-white whitespace-nowrap">Le plus populaire</div>
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">Pro</p>
+                  <div className="flex items-end gap-1">
+                    <p className="text-4xl font-extrabold text-gray-100">49€</p>
+                    <p className="text-gray-500 text-sm mb-1">/mois</p>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Pour les pros actifs</p>
+                </div>
+                <ul className="space-y-2.5 flex-1 mb-6">
+                  {['Annonces illimitées','Clients illimités','Extension Chrome','Partage client par lien','Gamos assistant IA','Stats Finance + objectifs','Checklist pré-achat','Blog','Export CSV'].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                      <Check className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/register" className="block text-center px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                  Essayer 14 jours gratuits
+                </Link>
+              </div>
+            </FadeUp>
+
+            {/* Agence */}
+            <FadeUp delay={160}>
+              <div className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] p-6 flex flex-col h-full">
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Agence</p>
+                  <div className="flex items-end gap-1">
+                    <p className="text-4xl font-extrabold text-gray-100">99€</p>
+                    <p className="text-gray-500 text-sm mb-1">/mois</p>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Pour les équipes</p>
+                </div>
+                <ul className="space-y-2.5 flex-1 mb-6">
+                  {['Tout le Plan Pro','3 utilisateurs','Support prioritaire','Rapport mensuel automatique'].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
+                      <Check className="w-3.5 h-3.5 text-gray-500 shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/login" className="block text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
+                  Nous contacter
+                </Link>
+              </div>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 11. TÉMOIGNAGES ────────────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Ce que disent nos pros</h2>
+          </FadeUp>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: 'Thomas D.', role: 'Mandataire automobile, Lyon', text: "Avant CarTracker, je perdais 3h par semaine à chercher sur les sites allemands. Maintenant j'importe une annonce en 10 secondes avec l'extension.", init: 'TD', color: 'bg-blue-900/30 text-blue-400' },
+              { name: 'Marie L.', role: 'Courtière auto, Paris', text: "Le partage client par lien a changé ma relation avec mes clients. Ils reçoivent une vraie sélection pro sans voir d'où je source.", init: 'ML', color: 'bg-pink-900/30 text-pink-400' },
+              { name: 'Karim B.', role: 'Négociant VO, Marseille', text: "Gamos m'a aidé à calculer les frais d'import polonais. L'outil fait le travail que je faisais sur Excel en 10x moins de temps.", init: 'KB', color: 'bg-teal-900/30 text-teal-400' },
+            ].map((t, i) => (
+              <FadeUp key={t.name} delay={i * 80}>
+                <div className="p-5 rounded-2xl bg-[#0a0d14] border border-[#1a1f2e] flex flex-col gap-4 h-full">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
                     ))}
                   </div>
-                  <p className="text-gray-300 text-sm leading-relaxed flex-1 mb-5">
-                    &ldquo;{t.text}&rdquo;
-                  </p>
-                  <div>
-                    <p className="font-semibold text-gray-100 text-sm">{t.author}</p>
-                    <p className="text-xs text-gray-500">{t.role}</p>
+                  <p className="text-sm text-gray-300 leading-relaxed flex-1">"{t.text}"</p>
+                  <div className="flex items-center gap-3 pt-1 border-t border-[#1a1f2e]">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${t.color}`}>{t.init}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-200">{t.name}</p>
+                      <p className="text-xs text-gray-500">{t.role}</p>
+                    </div>
                   </div>
                 </div>
               </FadeUp>
@@ -654,84 +885,112 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA FINALE ── */}
-      <section className="py-28 px-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/6 via-transparent to-orange-600/4 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-orange-500/7 rounded-full blur-[120px] pointer-events-none" />
-        <FadeUp className="relative max-w-2xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-5 leading-tight">
-            Prêt à transformer{' '}
-            <span className="text-orange-400">votre activité&nbsp;?</span>
-          </h2>
-          <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-            Rejoignez les pros qui font confiance à CarTracker Pro.
-            Démarrez gratuitement, sans carte bancaire.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/auth/register"
-              className="group flex items-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-orange-500 rounded-xl hover:bg-orange-400 transition-all hover:scale-[1.02] shadow-[0_0_40px_rgba(249,115,22,0.3)]"
-            >
-              Créer mon compte
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <Link
-              href="/auth/login"
-              className="flex items-center gap-2 px-8 py-3.5 text-base font-medium text-gray-200 border border-[#2a2f3e] rounded-xl hover:border-gray-500 hover:text-white transition-all hover:scale-[1.02]"
-            >
-              Se connecter
-            </Link>
+      {/* ── 12. FAQ ────────────────────────────────────────────────────────── */}
+      <section id="faq" className="py-20 px-4 bg-[#080b10]">
+        <div className="max-w-3xl mx-auto">
+          <FadeUp className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100">Questions fréquentes</h2>
+          </FadeUp>
+          <div className="space-y-2">
+            {FAQS.map((faq, i) => (
+              <FadeUp key={i} delay={i * 50}>
+                <div className="rounded-xl border border-[#1a1f2e] bg-[#0a0d14] overflow-hidden">
+                  <button
+                    onClick={() => toggleFaq(i)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-left gap-4"
+                  >
+                    <span className="text-sm font-medium text-gray-200">{faq.q}</span>
+                    <div className="shrink-0 w-5 h-5 rounded-full bg-[#1a1f2e] flex items-center justify-center">
+                      {openFaq === i ? <Minus className="w-3 h-3 text-orange-400" /> : <Plus className="w-3 h-3 text-gray-500" />}
+                    </div>
+                  </button>
+                  <div
+                    className="overflow-hidden transition-all duration-300"
+                    style={{ maxHeight: openFaq === i ? '200px' : '0px', opacity: openFaq === i ? 1 : 0 }}
+                  >
+                    <div className="px-5 pb-4 text-sm text-gray-400 leading-relaxed border-t border-[#1a1f2e] pt-3">
+                      {faq.a}
+                    </div>
+                  </div>
+                </div>
+              </FadeUp>
+            ))}
           </div>
-        </FadeUp>
+        </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer id="a-propos" className="border-t border-[#1a1f2e] py-14 px-5">
+      {/* ── 13. CTA FINALE ─────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-950/10 to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-orange-500/8 blur-[80px]" />
+        </div>
+        <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
+          <FadeUp>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-100 leading-tight">
+              Prêt à transformer<br />votre activité ?
+            </h2>
+          </FadeUp>
+          <FadeUp delay={80}>
+            <p className="text-lg text-gray-400">
+              Rejoignez les pros qui font confiance à CarTracker Pro.<br className="hidden sm:block" />
+              Démarrez gratuitement, sans carte bancaire.
+            </p>
+          </FadeUp>
+          <FadeUp delay={160} className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link href="/auth/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base transition-all hover:scale-[1.02] shadow-[0_0_40px_rgba(249,115,22,0.5)] flex items-center justify-center gap-2">
+              Créer mon compte <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/auth/login" className="w-full sm:w-auto px-8 py-4 rounded-xl border border-gray-600 text-white font-semibold text-base hover:border-gray-400 transition-colors flex items-center justify-center">
+              Se connecter
+            </Link>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── 14. FOOTER ─────────────────────────────────────────────────────── */}
+      <footer className="bg-[#06090f] border-t border-[#1a1f2e] px-4 py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-10 mb-10">
-            <div>
-              <div className="flex items-center gap-2.5 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            {/* Brand */}
+            <div className="space-y-3">
+              <Link href="/" className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
                   <Car className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-white">CarTracker <span className="text-orange-400">Pro</span></span>
-              </div>
-              <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-                L&apos;outil des mandataires auto modernes.<br />Simple, puissant, européen.
-              </p>
+                <span className="font-bold text-white">CarTracker<span className="text-orange-400">Pro</span></span>
+              </Link>
+              <p className="text-xs text-gray-500 leading-relaxed">L'outil des mandataires auto modernes</p>
             </div>
-            <div className="flex flex-wrap gap-10">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Produit</p>
-                <div className="space-y-2.5">
-                  {['Fonctionnalités', 'Tarifs', 'Démo'].map(l => (
-                    <a key={l} href="#" className="block text-sm text-gray-500 hover:text-gray-200 transition-colors">{l}</a>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Légal</p>
-                <div className="space-y-2.5">
-                  {['Contact', 'Mentions légales', 'CGU'].map(l => (
-                    <a key={l} href="#" className="block text-sm text-gray-500 hover:text-gray-200 transition-colors">{l}</a>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Compte</p>
-                <div className="space-y-2.5">
-                  <Link href="/auth/login" className="block text-sm text-gray-500 hover:text-gray-200 transition-colors">Se connecter</Link>
-                  <Link href="/auth/register" className="block text-sm text-orange-400 hover:text-orange-300 transition-colors">Créer un compte</Link>
-                </div>
-              </div>
+            {/* Produit */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Produit</p>
+              {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
+                <button key={l} onClick={() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h}
+                  className="block text-sm text-gray-500 hover:text-gray-300 transition-colors text-left">{l}</button>
+              ))}
+            </div>
+            {/* Légal */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Légal</p>
+              {['Contact','Mentions légales','CGU','Politique de confidentialité'].map(l => (
+                <span key={l} className="block text-sm text-gray-600">{l}</span>
+              ))}
+            </div>
+            {/* Compte */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Compte</p>
+              <Link href="/auth/login" className="block text-sm text-gray-500 hover:text-gray-300 transition-colors">Se connecter</Link>
+              <Link href="/auth/register" className="block text-sm text-gray-500 hover:text-gray-300 transition-colors">Créer un compte</Link>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 border-t border-[#1a1f2e]">
-            <p className="text-xs text-gray-600">© 2026 CarTracker Pro — Tous droits réservés</p>
-            <p className="text-xs text-gray-600">Fait avec ❤️ pour les pros de l&apos;auto</p>
+          <div className="border-t border-[#1a1f2e] pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+            <span>© 2026 CarTracker Pro — Tous droits réservés</span>
+            <span>Fait avec ❤️ pour les pros de l'auto</span>
           </div>
         </div>
       </footer>
+
     </div>
   )
 }
