@@ -6,7 +6,7 @@ import {
   Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
   Puzzle, CheckCircle, Sparkles, Users, Euro, FileText,
   TrendingUp, Newspaper, ClipboardList, Search, Minus, Plus,
-  MessageSquare,
+  MessageSquare, Pause, Play,
 } from 'lucide-react'
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
@@ -163,8 +163,16 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('import')
-  const [tabVisible, setTabVisible] = useState(true)
+  const [tabTransition, setTabTransition] = useState<'idle' | 'out' | 'in'>('idle')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  // Auto-play state
+  const [isPlaying, setIsPlaying] = useState(true)
+  const [isPaused, setIsPaused] = useState(false)  // hover pause
+  const [progressKey, setProgressKey] = useState(0) // bump to restart CSS animation
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const INTERVAL_MS = 4000
+  const TAB_IDS = DEMO_TABS.map(t => t.id)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -172,10 +180,50 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const changeTab = useCallback((id: string) => {
-    setTabVisible(false)
-    setTimeout(() => { setActiveTab(id); setTabVisible(true) }, 180)
+  // Animated tab switch (out → swap → in)
+  const switchTab = useCallback((id: string) => {
+    setTabTransition('out')
+    setTimeout(() => {
+      setActiveTab(id)
+      setProgressKey(k => k + 1)
+      setTabTransition('in')
+      setTimeout(() => setTabTransition('idle'), 320)
+    }, 200)
   }, [])
+
+  // Manual click: reset timer then switch
+  const changeTab = useCallback((id: string) => {
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current)
+    switchTab(id)
+    // Restart interval after manual click
+    if (isPlaying) {
+      autoPlayRef.current = setInterval(() => {
+        setActiveTab(prev => {
+          const idx = TAB_IDS.indexOf(prev)
+          const next = TAB_IDS[(idx + 1) % TAB_IDS.length]
+          switchTab(next)
+          return prev // state is updated inside switchTab
+        })
+      }, INTERVAL_MS)
+    }
+  }, [isPlaying, switchTab, TAB_IDS])
+
+  // Auto-play effect
+  useEffect(() => {
+    if (!isPlaying || isPaused) {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current)
+      return
+    }
+    autoPlayRef.current = setInterval(() => {
+      setActiveTab(prev => {
+        const idx = TAB_IDS.indexOf(prev)
+        const next = TAB_IDS[(idx + 1) % TAB_IDS.length]
+        switchTab(next)
+        return prev
+      })
+    }, INTERVAL_MS)
+    return () => { if (autoPlayRef.current) clearInterval(autoPlayRef.current) }
+  }, [isPlaying, isPaused, switchTab, TAB_IDS])
 
   const toggleFaq = (i: number) => setOpenFaq(prev => prev === i ? null : i)
 
@@ -552,34 +600,86 @@ export default function LandingPage() {
 
           {/* Tabs */}
           <FadeUp delay={70}>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 mb-6 scrollbar-none">
-              {DEMO_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => changeTab(tab.id)}
-                  className={`shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'bg-orange-500/15 text-orange-400 border border-orange-500/40'
-                      : 'bg-[#0a0d14] border border-[#1a1f2e] text-gray-500 hover:text-gray-300 hover:border-[#2a2f3e]'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* Tabs row + play/pause button */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 flex-1 scrollbar-none">
+                {DEMO_TABS.map(tab => {
+                  const active = activeTab === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => changeTab(tab.id)}
+                      className={`relative shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap overflow-hidden ${
+                        active
+                          ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.3)]'
+                          : 'bg-[#0a0d14] border border-[#1a1f2e] text-gray-500 hover:text-gray-300 hover:border-[#2a2f3e]'
+                      }`}
+                    >
+                      {tab.label}
+                      {/* Progress bar */}
+                      {active && isPlaying && !isPaused && (
+                        <span
+                          key={progressKey}
+                          className="absolute bottom-0 left-0 h-0.5 bg-white/50 rounded-full"
+                          style={{
+                            width: '0%',
+                            animation: `demoProgress ${INTERVAL_MS}ms linear forwards`,
+                          }}
+                        />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              {/* Play/Pause toggle */}
+              <button
+                onClick={() => setIsPlaying(p => !p)}
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-[#2a2f3e] bg-[#0a0d14] text-gray-500 hover:text-gray-300 hover:border-[#3a3f4e] transition-colors"
+                title={isPlaying ? 'Mettre en pause' : 'Reprendre'}
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </button>
             </div>
           </FadeUp>
 
+          {/* Keyframes injected once */}
+          <style>{`
+            @keyframes demoProgress {
+              from { width: 0% }
+              to   { width: 100% }
+            }
+          `}</style>
+
           <FadeUp delay={140}>
-            <div className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] overflow-hidden">
+            <div
+              className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] overflow-hidden"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
               <div className="p-5 md:p-6 border-b border-[#1a1f2e]">
-                <p className="text-sm text-gray-400 leading-relaxed">{DEMO_DESC[activeTab]}</p>
+                <p
+                  className="text-sm text-gray-400 leading-relaxed"
+                  style={{
+                    opacity: tabTransition === 'out' ? 0 : 1,
+                    transform: tabTransition === 'out' ? 'translateX(-12px)' : tabTransition === 'in' ? 'translateX(0)' : 'none',
+                    transition: tabTransition === 'out' ? 'opacity 0.2s ease, transform 0.2s ease' : 'opacity 0.3s ease, transform 0.3s ease',
+                  }}
+                >
+                  {DEMO_DESC[activeTab]}
+                </p>
               </div>
               <div
                 className="p-5 md:p-6"
                 style={{
-                  opacity: tabVisible ? 1 : 0,
-                  transform: tabVisible ? 'translateY(0)' : 'translateY(8px)',
-                  transition: 'opacity 0.2s ease, transform 0.2s ease',
+                  opacity: tabTransition === 'out' ? 0 : 1,
+                  transform: tabTransition === 'out'
+                    ? 'translateX(-20px)'
+                    : tabTransition === 'in'
+                    ? 'translateX(0)'
+                    : 'none',
+                  transition: tabTransition === 'out'
+                    ? 'opacity 0.2s ease, transform 0.2s ease'
+                    : 'opacity 0.3s ease, transform 0.3s ease',
                 }}
               >
                 <div className="max-w-lg mx-auto">
