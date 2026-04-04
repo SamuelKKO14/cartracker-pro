@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  ArrowRight, ChevronDown,
+  Car, X, ArrowRight, ChevronDown,
   Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
   Puzzle, CheckCircle, Sparkles, Users, Euro, FileText,
   TrendingUp, Newspaper, ClipboardList, Search, Minus, Plus,
