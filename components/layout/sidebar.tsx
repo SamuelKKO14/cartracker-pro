@@ -2,13 +2,13 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Car, Users, Search, List, BarChart3, CalendarDays, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X } from 'lucide-react'
+import { Car, Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', icon: CalendarDays, label: 'Ma journée', key: '1' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', key: '1' },
   { href: '/clients', icon: Users, label: 'Clients', key: '2' },
   { href: '/recherche', icon: Search, label: 'Recherche', key: '3' },
   { href: '/annonces', icon: List, label: 'Annonces', key: '4' },
