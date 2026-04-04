@@ -2,12 +2,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Car, Menu, X, ArrowRight, ChevronDown,
+  ArrowRight, ChevronDown,
   Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
   Puzzle, CheckCircle, Sparkles, Users, Euro, FileText,
   TrendingUp, Newspaper, ClipboardList, Search, Minus, Plus,
   MessageSquare, Pause, Play,
 } from 'lucide-react'
+import { Navbar } from '@/components/landing/Navbar'
+import { Footer } from '@/components/landing/Footer'
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 
@@ -160,8 +162,6 @@ const DEMO_DESC: Record<string, string> = {
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('import')
   const [tabTransition, setTabTransition] = useState<'idle' | 'out' | 'in'>('idle')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -173,12 +173,6 @@ export default function LandingPage() {
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const INTERVAL_MS = 4000
   const TAB_IDS = DEMO_TABS.map(t => t.id)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   // Animated tab switch (out → swap → in)
   const switchTab = useCallback((id: string) => {
@@ -439,59 +433,7 @@ export default function LandingPage() {
     <div className="bg-[#06090f] text-gray-100 min-h-screen font-sans">
 
       {/* ── 1. NAVBAR ──────────────────────────────────────────────────────── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#06090f]/90 backdrop-blur-lg border-b border-[#1a1f2e]' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shadow-[0_0_14px_rgba(249,115,22,0.45)]">
-              <Car className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-white text-base">CarTracker<span className="text-orange-400 ml-0.5">Pro</span></span>
-          </Link>
-
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
-            {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
-              <button
-                key={l}
-                onClick={() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h}
-                className="text-sm text-gray-400 hover:text-gray-100 transition-colors"
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-2">
-            <Link href="/auth/login" className="px-4 py-2 rounded-lg border border-[#2a2f3e] text-sm text-gray-300 hover:text-white hover:border-[#3a3f4e] transition-colors">Se connecter</Link>
-            <Link href="/auth/register" className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-sm text-white font-medium transition-all hover:scale-[1.02] shadow-[0_0_14px_rgba(249,115,22,0.3)]">Essayer gratuitement</Link>
-          </div>
-
-          <button className="md:hidden p-2 text-gray-400 hover:text-white" onClick={() => setMobileOpen(true)}>
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-[60]">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-72 bg-[#0a0d14] border-l border-[#1a1f2e] flex flex-col p-6 gap-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-white">Menu</span>
-              <button onClick={() => setMobileOpen(false)} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
-            </div>
-            {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
-              <button key={l} onClick={() => { setMobileOpen(false); setTimeout(() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h, 100) }}
-                className="text-left text-gray-300 hover:text-white py-2 border-b border-[#1a1f2e] transition-colors text-sm">{l}</button>
-            ))}
-            <div className="flex flex-col gap-2 mt-4">
-              <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-2.5 rounded-lg border border-[#2a2f3e] text-sm text-gray-300">Se connecter</Link>
-              <Link href="/auth/register" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-2.5 rounded-lg bg-orange-500 text-sm text-white font-medium">Essayer gratuitement</Link>
-            </div>
-          </div>
-        </div>
-      )}
+      <Navbar />
 
       {/* ── 2. HERO ───────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-24 pb-16 overflow-hidden">
@@ -1049,47 +991,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 14. FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className="bg-[#06090f] border-t border-[#1a1f2e] px-4 py-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
-            <div className="space-y-3">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                  <Car className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold text-white">CarTracker<span className="text-orange-400">Pro</span></span>
-              </Link>
-              <p className="text-xs text-gray-500 leading-relaxed">L'outil des mandataires auto modernes</p>
-            </div>
-            {/* Produit */}
-            <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Produit</p>
-              {[['Fonctionnalités','#fonctionnalites'],['Extension Chrome','#extension'],['Tarifs','#tarifs'],['Blog','/blog']].map(([l,h]) => (
-                <button key={l} onClick={() => h.startsWith('#') ? scrollTo(h.slice(1)) : window.location.href = h}
-                  className="block text-sm text-gray-500 hover:text-gray-300 transition-colors text-left">{l}</button>
-              ))}
-            </div>
-            {/* Légal */}
-            <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Légal</p>
-              {['Contact','Mentions légales','CGU','Politique de confidentialité'].map(l => (
-                <span key={l} className="block text-sm text-gray-600">{l}</span>
-              ))}
-            </div>
-            {/* Compte */}
-            <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Compte</p>
-              <Link href="/auth/login" className="block text-sm text-gray-500 hover:text-gray-300 transition-colors">Se connecter</Link>
-              <Link href="/auth/register" className="block text-sm text-gray-500 hover:text-gray-300 transition-colors">Créer un compte</Link>
-            </div>
-          </div>
-          <div className="border-t border-[#1a1f2e] pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
-            <span>© 2026 CarTracker Pro — Tous droits réservés</span>
-            <span>Fait avec ❤️ pour les pros de l'auto</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   )
