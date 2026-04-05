@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Car } from 'lucide-react'
+import { LogoFull } from '@/components/ui/logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,12 +37,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#06090f]">
       <div className="w-full max-w-md space-y-8 p-8">
         {/* Logo */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 mb-4">
-            <Car className="w-7 h-7 text-orange-400" />
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <LogoFull className="h-10" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-100">CarTracker Pro</h1>
-          <p className="text-gray-400 text-sm mt-1">Connectez-vous à votre espace</p>
+          <p className="text-gray-400 text-sm">Connectez-vous à votre espace</p>
         </div>
 
         {/* Form */}

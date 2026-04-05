@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Car } from 'lucide-react'
+import { LogoFull } from '@/components/ui/logo'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -38,8 +38,8 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#06090f]">
         <div className="text-center space-y-4 p-8 max-w-md">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 mb-4">
-            <Car className="w-7 h-7 text-green-400" />
+          <div className="flex justify-center">
+            <LogoFull className="h-10" />
           </div>
           <h2 className="text-xl font-bold text-gray-100">Compte créé !</h2>
           <p className="text-gray-400 text-sm">
@@ -56,12 +56,11 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#06090f]">
       <div className="w-full max-w-md space-y-8 p-8">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 mb-4">
-            <Car className="w-7 h-7 text-orange-400" />
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <LogoFull className="h-10" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-100">Créer un compte</h1>
-          <p className="text-gray-400 text-sm mt-1">CarTracker Pro</p>
+          <p className="text-gray-400 text-sm">Créer votre compte</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
