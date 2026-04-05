@@ -2,8 +2,9 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Car, Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X } from 'lucide-react'
+import { Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { LogoIcon, LogoFull } from '@/components/ui/logo'
 import { cn } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
@@ -74,7 +75,7 @@ export function Sidebar() {
       <aside className="hidden md:flex fixed left-0 top-0 h-full w-16 flex-col bg-[#0a0d14] border-r border-[#1a1f2e] z-40">
         {/* Logo */}
         <div className="flex items-center justify-center h-14 border-b border-[#1a1f2e]">
-          <img src="/icon-cartracker.svg" alt="CarTracker Pro" className="w-8 h-8" />
+          <LogoIcon className="w-8 h-8" />
         </div>
 
         {/* Nav */}
@@ -164,7 +165,7 @@ export function Sidebar() {
         {/* Drawer header */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-[#1a1f2e]">
           <div className="flex items-center gap-2">
-            <img src="/logo-cartracker.svg" alt="CarTracker Pro" className="h-7 w-auto" />
+            <LogoFull className="h-7" />
           </div>
           <button
             onClick={() => setIsOpen(false)}
