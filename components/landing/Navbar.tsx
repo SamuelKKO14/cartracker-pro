@@ -22,10 +22,7 @@ export function Navbar() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#06090f]/90 backdrop-blur-lg border-b border-[#1a1f2e]' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shadow-[0_0_14px_rgba(249,115,22,0.45)]">
-              <Car className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-white text-base">CarTracker<span className="text-orange-400 ml-0.5">Pro</span></span>
+            <img src="/logo-cartracker.png" alt="CarTracker Pro" className="h-7 w-auto" />
           </Link>
 
           {/* Desktop nav */}

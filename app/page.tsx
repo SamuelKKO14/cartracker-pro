@@ -251,7 +251,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-2 px-3 py-2 bg-[#0d1117] border-b border-[#1a1f2e]">
           <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></div>
           <div className="flex-1 mx-2 px-2 py-0.5 rounded bg-[#060912] border border-[#2a2f3e] text-[10px] text-gray-500 truncate">autoscout24.de/bmw-320d-touring-2021...</div>
-          <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center flex-shrink-0"><Car className="w-3 h-3 text-white" /></div>
+          <img src="/logo-cartracker.png" alt="" className="h-5 w-auto" />
         </div>
         <div className="p-3 space-y-2">
           <div className="rounded-lg border border-orange-500/30 bg-[#0a0d14] p-3 space-y-2">

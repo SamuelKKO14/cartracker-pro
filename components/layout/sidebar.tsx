@@ -74,9 +74,7 @@ export function Sidebar() {
       <aside className="hidden md:flex fixed left-0 top-0 h-full w-16 flex-col bg-[#0a0d14] border-r border-[#1a1f2e] z-40">
         {/* Logo */}
         <div className="flex items-center justify-center h-14 border-b border-[#1a1f2e]">
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-            <Car className="w-4 h-4 text-white" />
-          </div>
+          <img src="/logo-cartracker.png" alt="CarTracker Pro" className="h-7 w-auto" />
         </div>
 
         {/* Nav */}
@@ -166,10 +164,7 @@ export function Sidebar() {
         {/* Drawer header */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-[#1a1f2e]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center">
-              <Car className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-semibold text-white">CarTracker Pro</span>
+            <img src="/logo-cartracker.png" alt="CarTracker Pro" className="h-6 w-auto" />
           </div>
           <button
             onClick={() => setIsOpen(false)}
