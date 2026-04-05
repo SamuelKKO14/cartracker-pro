@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Car } from 'lucide-react'
+import { LogoFull } from '@/components/ui/logo'
 
 function scrollTo(id: string) {
   if (typeof document !== 'undefined') {
@@ -22,12 +22,7 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
           <div className="space-y-3">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                <Car className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-white">CarTracker<span className="text-orange-400">Pro</span></span>
-            </Link>
+            <Link href="/"><LogoFull /></Link>
             <p className="text-xs text-gray-500 leading-relaxed">L'outil des mandataires auto modernes</p>
           </div>
           {/* Produit */}
