@@ -364,6 +364,8 @@ export interface Database {
           goal_monthly_margin: number
           goal_annual_revenue: number
           goal_margin_per_vehicle: number
+          onboarding_completed: boolean
+          onboarding_progress: Json | null
           created_at: string
           updated_at: string
         }
@@ -378,6 +380,8 @@ export interface Database {
           goal_monthly_margin?: number
           goal_annual_revenue?: number
           goal_margin_per_vehicle?: number
+          onboarding_completed?: boolean
+          onboarding_progress?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -391,6 +395,8 @@ export interface Database {
           goal_monthly_margin?: number
           goal_annual_revenue?: number
           goal_margin_per_vehicle?: number
+          onboarding_completed?: boolean
+          onboarding_progress?: Json | null
           updated_at?: string
         }
         Relationships: []

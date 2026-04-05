@@ -2,11 +2,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X } from 'lucide-react'
+import { Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X, HelpCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { LogoIcon, LogoFull } from '@/components/ui/logo'
 import { cn } from '@/lib/utils'
 import type { Profile } from '@/types/database'
+import { useOnboarding } from '@/components/onboarding/onboarding-provider'
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', key: '1' },
@@ -56,6 +57,7 @@ export function Sidebar() {
     : userEmail.charAt(0).toUpperCase()
 
   const isCompteActive = pathname.startsWith('/compte')
+  const { completed: onboardingDone, progress, reopenPanel } = useOnboarding()
 
   const Avatar = () => (
     profile?.avatar_url ? (
@@ -124,6 +126,26 @@ export function Sidebar() {
               {displayName || 'Mon compte'}
             </span>
           </Link>
+
+          {/* Guide de démarrage */}
+          <button
+            onClick={reopenPanel}
+            title="Guide de démarrage"
+            className={cn(
+              'group relative flex items-center justify-center w-10 h-10 rounded-lg transition-colors',
+              onboardingDone
+                ? 'text-gray-600 hover:text-gray-400 hover:bg-[#1a1f2e]'
+                : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10'
+            )}
+          >
+            <HelpCircle className="w-5 h-5" />
+            {!onboardingDone && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-orange-500" />
+            )}
+            <span className="absolute left-full ml-2 px-2 py-1 text-xs bg-[#1a1f2e] text-gray-200 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap border border-[#2a2f3e] transition-opacity z-50">
+              Guide de démarrage {!onboardingDone ? `(${progress.length}/6)` : '✓'}
+            </span>
+          </button>
 
           <button
             onClick={handleLogout}
@@ -212,6 +234,18 @@ export function Sidebar() {
             <Avatar />
             <span className="truncate">{displayName || 'Mon compte'}</span>
           </Link>
+          <button
+            onClick={() => { setIsOpen(false); reopenPanel() }}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm w-full text-left',
+              onboardingDone
+                ? 'text-gray-500 hover:text-gray-300 hover:bg-[#1a1f2e]'
+                : 'text-orange-400/80 hover:text-orange-400 hover:bg-orange-500/10'
+            )}
+          >
+            <HelpCircle className="w-4 h-4 flex-shrink-0" />
+            Guide de démarrage {!onboardingDone ? `(${progress.length}/6)` : '✓'}
+          </button>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-red-400 hover:bg-red-900/20 transition-colors w-full text-left"
