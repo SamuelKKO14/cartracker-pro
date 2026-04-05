@@ -61,11 +61,12 @@ function ListingDetailView({
 
   async function refetchListing() {
     const supabase = createClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('listings')
       .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*), listing_photos(*)')
       .eq('id', listing.id)
       .single()
+    if (error) console.error('Erreur refetch:', error.message)
     if (data) setListing(data as ListingWithDetails)
     onRefresh()
   }
@@ -81,12 +82,13 @@ function ListingDetailView({
 
       const soldAt = new Date().toISOString()
 
-      await supabase.from('listings').update({
+      const { error: updateErr } = await supabase.from('listings').update({
         status: 'resold',
         sold_price: price,
         sold_at: soldAt,
         updated_at: soldAt,
       }).eq('id', listing.id)
+      if (updateErr) { console.error('Erreur update listing:', updateErr.message); return }
 
       const marginData = listing.listing_margins?.[0] ?? null
       const totalCost = marginData?.total_cost ?? marginData?.buy_price ?? null
@@ -95,7 +97,7 @@ function ListingDetailView({
         ? parseFloat(((margin / marginData.buy_price) * 100).toFixed(2))
         : null
 
-      await supabase.from('transactions').insert({
+      const { error: insertErr } = await supabase.from('transactions').insert({
         user_id: user.id,
         listing_id: listing.id,
         brand: listing.brand,
@@ -108,6 +110,7 @@ function ListingDetailView({
         margin_pct: marginPct,
         sold_at: soldAt,
       })
+      if (insertErr) console.error('Erreur insert transaction:', insertErr.message)
 
       onRefresh()
       onBack()
@@ -407,7 +410,8 @@ export default function AnnoncesPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase.from('clients').select('*').eq('user_id', user.id).order('name')
+    const { data, error } = await supabase.from('clients').select('*').eq('user_id', user.id).order('name')
+    if (error) console.error('Erreur fetch clients:', error.message)
     setClients((data as Client[]) ?? [])
   }, [])
 

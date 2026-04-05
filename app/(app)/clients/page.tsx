@@ -39,11 +39,12 @@ export default function ClientsPage() {
       if (!clientsData) return
 
       // Get listing counts
-      const { data: rawListings } = await supabase
+      const { data: rawListings, error: listingsErr } = await supabase
         .from('listings')
         .select('client_id, status')
         .eq('user_id', user.id)
         .not('client_id', 'is', null)
+      if (listingsErr) { console.error('Erreur:', listingsErr.message); setErrorMsg(listingsErr.message) }
 
       const listings = rawListings as Array<{ client_id: string; status: string }> | null
 
@@ -73,7 +74,8 @@ export default function ClientsPage() {
   async function handleDelete(id: string) {
     if (!confirm('Supprimer ce client et toutes ses notes ?')) return
     const supabase = createClient()
-    await supabase.from('clients').delete().eq('id', id)
+    const { error } = await supabase.from('clients').delete().eq('id', id)
+    if (error) { console.error('Erreur suppression:', error.message); setErrorMsg(error.message); return }
     fetchClients()
   }
 

@@ -46,10 +46,11 @@ export default function PartagesPage() {
       const clientIds = [...new Set(sharesData.map(s => s.client_id).filter(Boolean))] as string[]
       const clientMap: Record<string, string> = {}
       if (clientIds.length > 0) {
-        const { data: clients } = await supabase
+        const { data: clients, error: clientsErr } = await supabase
           .from('clients')
           .select('id, name')
           .in('id', clientIds)
+        if (clientsErr) console.error('Erreur clients:', clientsErr.message)
         ;(clients as Array<{ id: string; name: string }> | null)?.forEach(c => { clientMap[c.id] = c.name })
       }
 
@@ -57,10 +58,11 @@ export default function PartagesPage() {
       const shareIds = sharesData.map(s => s.id)
       const responsesMap: Record<string, ClientShareResponse[]> = {}
       if (shareIds.length > 0) {
-        const { data: responses } = await supabase
+        const { data: responses, error: responsesErr } = await supabase
           .from('client_share_responses')
           .select('*')
           .in('share_id', shareIds)
+        if (responsesErr) console.error('Erreur responses:', responsesErr.message)
         ;(responses as ClientShareResponse[] | null)?.forEach(r => {
           if (!responsesMap[r.share_id]) responsesMap[r.share_id] = []
           responsesMap[r.share_id].push(r)
@@ -99,7 +101,8 @@ export default function PartagesPage() {
   async function handleDelete(id: string) {
     if (!confirm('Supprimer ce partage ? Le lien ne sera plus accessible.')) return
     const supabase = createClient()
-    await supabase.from('client_shares').delete().eq('id', id)
+    const { error } = await supabase.from('client_shares').delete().eq('id', id)
+    if (error) { console.error('Erreur suppression:', error.message); setErrorMsg(error.message); return }
     fetchShares()
   }
 

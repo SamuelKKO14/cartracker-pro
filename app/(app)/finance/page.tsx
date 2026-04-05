@@ -488,7 +488,7 @@ export default function FinancePage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: resold, error: resoldErr }, { data: nego }, { data: profile }, { data: goalsData }] = await Promise.all([
+      const [{ data: resold, error: resoldErr }, { data: nego, error: negoErr }, { data: profile, error: profileErr }, { data: goalsData, error: goalsErr }] = await Promise.all([
         supabase
           .from('listings')
           .select('id, brand, model, year, km, price, sold_price, sold_at, status, listing_margins(*), clients(*)')
@@ -512,6 +512,9 @@ export default function FinancePage() {
       ])
 
       if (resoldErr) { console.error('Erreur:', resoldErr.message); setErrorMsg(resoldErr.message) }
+      if (negoErr) console.error('Erreur nego:', negoErr.message)
+      if (profileErr) console.error('Erreur profile:', profileErr.message)
+      if (goalsErr) console.error('Erreur goals:', goalsErr.message)
       setAllResold((resold as ResoldListing[]) ?? [])
       setNegoListings((nego as NegoListing[]) ?? [])
       if (profile) {
@@ -530,7 +533,8 @@ export default function FinancePage() {
   async function saveGoal(key: keyof Goals, val: number) {
     if (!userId) return
     const supabase = createClient()
-    await supabase.from('profiles').update({ [key]: val }).eq('id', userId)
+    const { error } = await supabase.from('profiles').update({ [key]: val }).eq('id', userId)
+    if (error) { console.error('Erreur saveGoal:', error.message); return }
     setGoals(prev => ({ ...prev, [key]: val }))
   }
 
@@ -541,12 +545,13 @@ export default function FinancePage() {
     if (isNaN(target) || target <= 0) return
     setGoalSaving(true)
     const supabase = createClient()
-    const { data } = await supabase.from('goals').insert({
+    const { data, error } = await supabase.from('goals').insert({
       user_id: userId,
       type: goalForm.type,
       period: goalForm.period,
       target,
     }).select().single()
+    if (error) { console.error('Erreur ajout objectif:', error.message); setGoalSaving(false); return }
     if (data) setUserGoals(prev => [...prev, data as Goal])
     setGoalForm({ type: 'ca', period: 'month', target: '' })
     setShowGoalForm(false)
@@ -555,7 +560,8 @@ export default function FinancePage() {
 
   async function handleDeleteGoal(id: string) {
     const supabase = createClient()
-    await supabase.from('goals').delete().eq('id', id)
+    const { error } = await supabase.from('goals').delete().eq('id', id)
+    if (error) { console.error('Erreur suppression objectif:', error.message); return }
     setUserGoals(prev => prev.filter(g => g.id !== id))
   }
 
