@@ -181,13 +181,59 @@ export async function POST(request: NextRequest) {
 
     // Insert photos if provided
     if (Array.isArray(photos) && photos.length > 0) {
-      const photoRows = photos.map((photoUrl: string, index: number) => ({
-        user_id: user.id,
-        listing_id: listing.id,
-        url: photoUrl,
-        position: index,
-      }))
-      await supabase.from('listing_photos').insert(photoRows)
+      // Filtrer et upgrader les photos
+      const cleanPhotos = photos
+        .filter((photoUrl: string) => {
+          if (!photoUrl || !photoUrl.startsWith('http')) return false
+          // Exclure les images du header/footer/pub des sites
+          const junk = [
+            'logo', 'icon', 'banner', 'avatar', 'placeholder', 'sprite',
+            'favicon', '.svg', '1x1', 'pixel', 'spacer', 'blank',
+            'fragment-header', 'static/fragment', 'promoneuve', 'conseil',
+            'media/ia', 'media/conseil', 'media/promo',
+            'googleads', 'doubleclick', 'facebook', 'analytics',
+            'tracker', 'widget', 'badge', 'btn-', 'button',
+          ]
+          const lower = photoUrl.toLowerCase()
+          return !junk.some(j => lower.includes(j))
+        })
+        .map((photoUrl: string) => {
+          let url = photoUrl
+          // La Centrale : upgrader les miniatures vers HD
+          url = url.replace(/\/103x77\//g, '/1096x829/')
+          url = url.replace(/\/260x195\//g, '/1096x829/')
+          url = url.replace(/\/92x69\//g, '/1096x829/')
+          url = url.replace(/&size=92x69/g, '&size=1096x829')
+          url = url.replace(/&size=103x77/g, '&size=1096x829')
+          url = url.replace(/&size=260x195/g, '&size=1096x829')
+          // AutoScout24 : upgrader les tailles
+          url = url.replace(/\/\d{2,3}x\d{2,3}\//g, '/1920x1080/')
+          url = url.replace(/\/400x300\//g, '/1920x1080/')
+          url = url.replace(/[?&]w=\d+/g, (m) => m[0] + 'w=1920')
+          // LeBonCoin : upgrader les tailles
+          url = url.replace(/ad-small/g, 'ad-large')
+          url = url.replace(/ad-medium/g, 'ad-large')
+          url = url.replace(/ad-thumb/g, 'ad-large')
+          // mobile.de : upgrader
+          url = url.replace(/\/vn\d+\//g, '/vi/')
+          // Général : thumbnails vers full
+          url = url.replace(/_small\./g, '_large.')
+          url = url.replace(/_thumb\./g, '_large.')
+          url = url.replace(/_medium\./g, '_large.')
+          return url
+        })
+        // Dédupliquer
+        .filter((url: string, i: number, arr: string[]) => arr.indexOf(url) === i)
+
+      if (cleanPhotos.length > 0) {
+        const photoRows = cleanPhotos.map((photoUrl: string, index: number) => ({
+          user_id: user.id,
+          listing_id: listing.id,
+          url: photoUrl,
+          position: index,
+        }))
+        await supabase.from('listing_photos').insert(photoRows)
+      }
     }
 
     return Response.json(
