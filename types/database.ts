@@ -189,8 +189,6 @@ export interface Database {
           registration?: number
           other_costs?: number
           sell_price?: number | null
-          total_cost?: number | null
-          margin?: number | null
           created_at?: string
         }
         Update: {
@@ -201,8 +199,6 @@ export interface Database {
           registration?: number
           other_costs?: number
           sell_price?: number | null
-          total_cost?: number | null
-          margin?: number | null
         }
         Relationships: []
       }
@@ -470,6 +466,70 @@ export interface Database {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          id: string
+          user_id: string | null
+          title: string
+          slug: string
+          content: string
+          excerpt: string | null
+          category: string | null
+          cover_image: string | null
+          sources: Json | null
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          title: string
+          slug: string
+          content: string
+          excerpt?: string | null
+          category?: string | null
+          cover_image?: string | null
+          sources?: Json | null
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string | null
+          title?: string
+          slug?: string
+          content?: string
+          excerpt?: string | null
+          category?: string | null
+          cover_image?: string | null
+          sources?: Json | null
+          published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_trends: {
+        Row: {
+          id: string
+          user_id: string
+          trends_data: Json
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          trends_data: Json
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          trends_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_history: {
         Row: {
           id: string
@@ -513,6 +573,9 @@ export type ListingStatus = 'new' | 'viewed' | 'contacted' | 'negotiation' | 'bo
 export type ListingPhoto = Database['public']['Tables']['listing_photos']['Row']
 export type Transaction = Database['public']['Tables']['transactions']['Row']
 export type Goal = Database['public']['Tables']['goals']['Row']
+
+export type BlogPost = Database['public']['Tables']['blog_posts']['Row']
+export type MarketTrend = Database['public']['Tables']['market_trends']['Row']
 
 export type ListingWithDetails = Listing & {
   client?: Client | null

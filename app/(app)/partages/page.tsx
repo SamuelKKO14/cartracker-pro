@@ -23,6 +23,7 @@ export default function PartagesPage() {
   const [shares, setShares] = useState<ShareWithMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fetchShares = useCallback(async () => {
     setLoading(true)
@@ -31,12 +32,13 @@ export default function PartagesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: rawShares } = await supabase
+      const { data: rawShares, error } = await supabase
         .from('client_shares')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
+      if (error) { console.error('Erreur:', error.message); setErrorMsg(error.message) }
       if (!rawShares) return
       const sharesData = rawShares as ClientShare[]
 
@@ -111,6 +113,7 @@ export default function PartagesPage() {
       <Header title="Mes partages" />
 
       <div className="flex-1 overflow-y-auto pt-14">
+        {errorMsg && <div className="mx-4 mt-3 px-4 py-2 rounded-lg bg-red-900/30 border border-red-700/40 text-sm text-red-400">{errorMsg}</div>}
         <div className="p-6 max-w-4xl mx-auto space-y-4">
 
           {loading ? (

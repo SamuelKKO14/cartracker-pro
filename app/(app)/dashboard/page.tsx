@@ -31,21 +31,28 @@ export default async function DashboardPage() {
       .select('id')
       .eq('user_id', user.id)
       .eq('status', 'resold'),
-    supabase.from('blog_posts' as string)
+    supabase.from('blog_posts')
       .select('id, title, slug, excerpt, content, created_at, category')
       .eq('published', true)
       .order('created_at', { ascending: false })
       .limit(2),
   ])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allListings = (listingsRes.data ?? []) as any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allClients = (clientsRes.data ?? []) as any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const positiveMargins = (marginsRes.data ?? []) as any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const blogPosts = (blogRes.data ?? []) as any[]
+  const allListings = (listingsRes.data ?? []) as Array<{
+    id: string; brand: string; model: string | null; year: number | null; km: number | null
+    price: number | null; status: string; fuel: string | null; auto_score: number | null
+    manual_score: number | null; created_at: string; client_id: string | null; source: string | null
+    clients: { name: string } | null
+    listing_margins: Array<{ margin: number | null }> | null
+  }>
+  const allClients = (clientsRes.data ?? []) as Array<{
+    id: string; name: string; budget: number | null; notes: string | null; updated_at: string
+  }>
+  const positiveMargins = (marginsRes.data ?? []) as Array<{ margin: number }>
+  const blogPosts = (blogRes.data ?? []) as Array<{
+    id: string; title: string; slug: string; excerpt: string | null
+    content: string; created_at: string; category: string | null
+  }>
   const resoldCount = (resoldRes.data ?? []).length
 
   // Count listings per client

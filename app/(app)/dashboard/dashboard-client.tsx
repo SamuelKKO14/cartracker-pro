@@ -34,16 +34,31 @@ interface Finance {
   avgMargin: number
 }
 
+interface DashboardListing {
+  id: string; brand: string; model: string | null; year: number | null; km: number | null
+  price: number | null; status: string; fuel: string | null; auto_score: number | null
+  manual_score: number | null; created_at: string; client_id: string | null; source: string | null
+  clients: { name: string } | null
+  listing_margins: Array<{ margin: number | null }> | null
+}
+
+interface DashboardClientRow {
+  id: string; name: string; budget: number | null; notes: string | null
+  updated_at: string; listingCount: number
+}
+
+interface DashboardBlogPost {
+  id: string; title: string; slug: string; excerpt: string | null
+  content: string; created_at: string; category: string | null
+}
+
 interface DashboardProps {
   firstName: string | null
   kpis: KPIs
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recentListings: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recentClients: any[]
+  recentListings: DashboardListing[]
+  recentClients: DashboardClientRow[]
   finance: Finance
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  blogPosts: any[]
+  blogPosts: DashboardBlogPost[]
   allClients: { id: string; name: string }[]
 }
 

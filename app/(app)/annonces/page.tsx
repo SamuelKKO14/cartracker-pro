@@ -371,6 +371,7 @@ export default function AnnoncesPage() {
     filterClient: searchParams.get('client') ?? '',
   })
   const [sortBy, setSortBy] = useState('date_desc')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Modals (still used from list view action buttons)
   const [showNewListing, setShowNewListing] = useState(false)
@@ -390,11 +391,12 @@ export default function AnnoncesPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('listings')
         .select('*, clients(id, name, budget, criteria), listing_margins(*), listing_checklist(*), listing_photos(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
+      if (error) { console.error('Erreur:', error.message); setErrorMsg(error.message) }
       setListings((data as ListingWithDetails[]) ?? [])
     } finally {
       setLoading(false)
@@ -494,6 +496,7 @@ export default function AnnoncesPage() {
       />
 
       <div className="flex-1 overflow-y-auto pt-14">
+        {errorMsg && <div className="mx-4 mt-3 px-4 py-2 rounded-lg bg-red-900/30 border border-red-700/40 text-sm text-red-400">{errorMsg}</div>}
         <div className="p-4 space-y-3">
 
           {/* ─── BARRE PRINCIPALE ─── */}

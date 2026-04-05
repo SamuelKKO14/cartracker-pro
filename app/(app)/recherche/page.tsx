@@ -51,12 +51,13 @@ export default function RecherchePage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
-        .from('market_trends' as string)
+      const { data, error } = await supabase
+        .from('market_trends')
         .select('trends_data, updated_at')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
-        .limit(1) as unknown as { data: Array<{ trends_data: TrendsData; updated_at: string }> | null }
+        .limit(1) as unknown as { data: Array<{ trends_data: TrendsData; updated_at: string }> | null; error: { message: string } | null }
+      if (error) console.error('Erreur:', error.message)
       if (data && data.length > 0 && data[0].trends_data) {
         setTrends(data[0].trends_data as TrendsData)
         setTrendsUpdatedAt(data[0].updated_at)

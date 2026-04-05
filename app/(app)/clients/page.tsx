@@ -20,6 +20,7 @@ export default function ClientsPage() {
   const [showNewClient, setShowNewClient] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [editClient, setEditClient] = useState<Client | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -28,12 +29,13 @@ export default function ClientsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: clientsData } = await supabase
+      const { data: clientsData, error } = await supabase
         .from('clients')
         .select('*')
         .eq('user_id', user.id)
         .order('name')
 
+      if (error) { console.error('Erreur:', error.message); setErrorMsg(error.message) }
       if (!clientsData) return
 
       // Get listing counts
@@ -85,6 +87,7 @@ export default function ClientsPage() {
       <Header title="Clients" />
 
       <div className="flex-1 overflow-y-auto pt-14">
+        {errorMsg && <div className="mx-4 mt-3 px-4 py-2 rounded-lg bg-red-900/30 border border-red-700/40 text-sm text-red-400">{errorMsg}</div>}
         <div className="p-6 space-y-4 max-w-5xl mx-auto">
           {/* Toolbar */}
           <div className="flex items-center gap-3">

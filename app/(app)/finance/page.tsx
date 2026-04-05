@@ -468,6 +468,7 @@ export default function FinancePage() {
     goal_margin_per_vehicle: 2500,
   })
   const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [selectedSale, setSelectedSale] = useState<ResoldListing | null>(null)
   const [marginListing, setMarginListing] = useState<ResoldListing | null>(null)
@@ -487,7 +488,7 @@ export default function FinancePage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: resold }, { data: nego }, { data: profile }, { data: goalsData }] = await Promise.all([
+      const [{ data: resold, error: resoldErr }, { data: nego }, { data: profile }, { data: goalsData }] = await Promise.all([
         supabase
           .from('listings')
           .select('id, brand, model, year, km, price, sold_price, sold_at, status, listing_margins(*), clients(*)')
@@ -510,6 +511,7 @@ export default function FinancePage() {
           .order('created_at', { ascending: true }),
       ])
 
+      if (resoldErr) { console.error('Erreur:', resoldErr.message); setErrorMsg(resoldErr.message) }
       setAllResold((resold as ResoldListing[]) ?? [])
       setNegoListings((nego as NegoListing[]) ?? [])
       if (profile) {
@@ -713,6 +715,7 @@ export default function FinancePage() {
       )}
 
       <div className="flex-1 overflow-y-auto pt-14">
+        {errorMsg && <div className="mx-4 mt-3 px-4 py-2 rounded-lg bg-red-900/30 border border-red-700/40 text-sm text-red-400">{errorMsg}</div>}
         <div className="p-6 max-w-6xl mx-auto space-y-6">
 
           {/* ── Toggles ── */}

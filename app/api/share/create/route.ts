@@ -11,8 +11,14 @@ export async function POST(request: NextRequest) {
 
     const { listing_ids, client_id, title, message } = await request.json()
 
-    if (!listing_ids?.length) {
+    if (!Array.isArray(listing_ids) || listing_ids.length === 0) {
       return NextResponse.json({ error: 'Aucune annonce sélectionnée' }, { status: 400 })
+    }
+    if (listing_ids.length > 50) {
+      return NextResponse.json({ error: 'Maximum 50 annonces par partage' }, { status: 400 })
+    }
+    if (!listing_ids.every((id: unknown) => typeof id === 'string')) {
+      return NextResponse.json({ error: 'listing_ids invalide' }, { status: 400 })
     }
 
     const { data, error } = await supabase
