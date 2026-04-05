@@ -11,12 +11,12 @@ import { useOnboarding } from '@/components/onboarding/onboarding-provider'
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', key: '1' },
-  { href: '/clients', icon: Users, label: 'Clients', key: '2' },
+  { href: '/finance', icon: TrendingUp, label: 'Finance', key: '2' },
   { href: '/recherche', icon: Search, label: 'Recherche', key: '3' },
   { href: '/annonces', icon: List, label: 'Annonces', key: '4' },
   { href: '/stats', icon: BarChart3, label: 'Statistiques', key: '5' },
-  { href: '/partages', icon: Share2, label: 'Partages', key: '6' },
-  { href: '/finance', icon: TrendingUp, label: 'Finance', key: '7' },
+  { href: '/clients', icon: Users, label: 'Clients', key: '6' },
+  { href: '/partages', icon: Share2, label: 'Partages', key: '7' },
   { href: '/blog', icon: Newspaper, label: 'Blog', key: '8' },
 ]
 
