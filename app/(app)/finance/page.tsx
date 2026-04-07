@@ -8,7 +8,7 @@ import { Pencil, Check, X, Plus, Trash2 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
-import type { Client, Listing, ListingMargin, Goal } from '@/types/database'
+import type { Client, Listing, ListingMargin, Goal, Transaction } from '@/types/database'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +58,11 @@ const MONTHS_FR = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v)
 
+function fmtGoal(type: string, value: number): string {
+  if (type === 'vehicles_sold') return String(Math.round(value))
+  return fmt(value)
+}
+
 function getPeriodBounds(period: Period): { start: Date | null; end: Date } {
   const now = new Date()
 
@@ -95,6 +100,14 @@ function filterResold(listings: ResoldListing[], start: Date | null, end: Date):
   return listings.filter(l => {
     if (!l.sold_at) return false
     const d = new Date(l.sold_at)
+    return d >= start && d <= end
+  })
+}
+
+function filterTransactions(txns: Transaction[], start: Date | null, end: Date): Transaction[] {
+  if (start === null) return txns
+  return txns.filter(t => {
+    const d = new Date(t.sold_at)
     return d >= start && d <= end
   })
 }
@@ -382,7 +395,11 @@ function SaleDetailModal({
 
 // ─── Goal progress helpers ────────────────────────────────────────────────────
 
-const GOAL_TYPE_LABELS: Record<string, string> = { ca: "Chiffre d'affaires", margin: 'Marge nette' }
+const GOAL_TYPE_LABELS: Record<string, string> = {
+  ca: "Chiffre d'affaires",
+  margin: 'Marge nette',
+  vehicles_sold: 'Véhicules vendus',
+}
 const GOAL_PERIOD_LABELS: Record<string, string> = { week: 'Semaine', month: 'Mois', year: 'Année' }
 
 function getGoalPeriodBounds(period: string): { start: Date; end: Date } {
@@ -409,23 +426,15 @@ function getGoalPeriodBounds(period: string): { start: Date; end: Date } {
   return { start, end }
 }
 
-function computeGoalProgress(goal: Goal, allResold: ResoldListing[]): number {
+function computeGoalProgress(goal: Goal, txns: Transaction[]): number {
   const { start, end } = getGoalPeriodBounds(goal.period)
-  const sales = allResold.filter(l => {
-    if (!l.sold_at) return false
-    const d = new Date(l.sold_at)
+  const filtered = txns.filter(t => {
+    const d = new Date(t.sold_at)
     return d >= start && d <= end
   })
-  if (goal.type === 'ca') {
-    return sales.reduce((s, l) => s + (l.sold_price ?? 0), 0)
-  }
-  // margin
-  let total = 0
-  for (const l of sales) {
-    const mg = getListingMargin(l)
-    if (mg !== null) total += mg
-  }
-  return total
+  if (goal.type === 'ca') return filtered.reduce((s, t) => s + (t.sell_price ?? 0), 0)
+  if (goal.type === 'vehicles_sold') return filtered.length
+  return filtered.reduce((s, t) => s + (t.margin ?? 0), 0)
 }
 
 // Pct restant de la période (0-1) pour juger si on est en retard
@@ -461,6 +470,7 @@ export default function FinancePage() {
   const [view, setView] = useState<ViewMode>('current')
   const [period, setPeriod] = useState<Period>('month')
   const [allResold, setAllResold] = useState<ResoldListing[]>([])
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [negoListings, setNegoListings] = useState<NegoListing[]>([])
   const [goals, setGoals] = useState<Goals>({
     goal_monthly_margin: 5000,
@@ -488,7 +498,7 @@ export default function FinancePage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: resold, error: resoldErr }, { data: nego, error: negoErr }, { data: profile, error: profileErr }, { data: goalsData, error: goalsErr }] = await Promise.all([
+      const [{ data: resold, error: resoldErr }, { data: nego, error: negoErr }, { data: profile, error: profileErr }, { data: goalsData, error: goalsErr }, { data: txData, error: txErr }] = await Promise.all([
         supabase
           .from('listings')
           .select('id, brand, model, year, km, price, sold_price, sold_at, status, listing_margins(*), clients(*)')
@@ -509,13 +519,20 @@ export default function FinancePage() {
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: true }),
+        supabase
+          .from('transactions')
+          .select('id, user_id, listing_id, brand, model, year, buy_price, sell_price, total_cost, margin, sold_at')
+          .eq('user_id', user.id)
+          .order('sold_at', { ascending: false }),
       ])
 
       if (resoldErr) { console.error('Erreur:', resoldErr.message); setErrorMsg(resoldErr.message) }
       if (negoErr) console.error('Erreur nego:', negoErr.message)
       if (profileErr) console.error('Erreur profile:', profileErr.message)
       if (goalsErr) console.error('Erreur goals:', goalsErr.message)
+      if (txErr) console.error('Erreur transactions:', txErr.message)
       setAllResold((resold as ResoldListing[]) ?? [])
+      setAllTransactions((txData as Transaction[]) ?? [])
       setNegoListings((nego as NegoListing[]) ?? [])
       if (profile) {
         setGoals({
@@ -570,49 +587,36 @@ export default function FinancePage() {
   const filtered = useMemo(() => filterResold(allResold, start, end), [allResold, start, end])
 
   // ── KPIs période sélectionnée ──
+  const filteredTx = useMemo(() => filterTransactions(allTransactions, start, end), [allTransactions, start, end])
   const kpis = useMemo(() => {
-    let revenue = 0, charges = 0, marginTotal = 0, marginCount = 0
-    for (const l of filtered) {
-      revenue += l.sold_price ?? 0
-      const m = l.listing_margins?.[0]
-      if (m?.total_cost) charges += m.total_cost
-      const mg = getListingMargin(l)
-      if (mg !== null) { marginTotal += mg; marginCount++ }
-    }
+    const revenue = filteredTx.reduce((s, t) => s + (t.sell_price ?? 0), 0)
+    const charges = filteredTx.reduce((s, t) => s + (t.total_cost ?? 0), 0)
+    const withMargin = filteredTx.filter(t => t.margin !== null)
+    const marginTotal = withMargin.reduce((s, t) => s + (t.margin ?? 0), 0)
     return {
       revenue,
       charges,
       marginTotal,
-      avgMargin: marginCount > 0 ? marginTotal / marginCount : 0,
-      soldCount: filtered.length,
-      marginCount,
+      avgMargin: withMargin.length > 0 ? marginTotal / withMargin.length : 0,
+      soldCount: filteredTx.length,
+      marginCount: withMargin.length,
     }
-  }, [filtered])
+  }, [filteredTx])
 
   // ── Objectif marge mensuelle (toujours mois courant) ──
   const monthBounds = useMemo(() => getPeriodBounds('month'), [])
-  const monthFiltered = useMemo(
-    () => filterResold(allResold, monthBounds.start, monthBounds.end),
-    [allResold, monthBounds],
+  const monthMargin = useMemo(
+    () => filterTransactions(allTransactions, monthBounds.start, monthBounds.end)
+      .reduce((s, t) => s + (t.margin ?? 0), 0),
+    [allTransactions, monthBounds],
   )
-  const monthMargin = useMemo(() => {
-    let total = 0
-    for (const l of monthFiltered) {
-      const mg = getListingMargin(l)
-      if (mg !== null) total += mg
-    }
-    return total
-  }, [monthFiltered])
 
   // ── Objectif CA annuel (YTD) ──
   const yearBounds = useMemo(() => getPeriodBounds('year'), [])
-  const yearFiltered = useMemo(
-    () => filterResold(allResold, yearBounds.start, yearBounds.end),
-    [allResold, yearBounds],
-  )
   const yearRevenue = useMemo(
-    () => yearFiltered.reduce((s, l) => s + (l.sold_price ?? 0), 0),
-    [yearFiltered],
+    () => filterTransactions(allTransactions, yearBounds.start, yearBounds.end)
+      .reduce((s, t) => s + (t.sell_price ?? 0), 0),
+    [allTransactions, yearBounds],
   )
   const monthsElapsed = new Date().getMonth() + 1
   const projectedAnnual = monthsElapsed > 0 ? Math.round((yearRevenue / monthsElapsed) * 12) : 0
@@ -620,15 +624,14 @@ export default function FinancePage() {
   // ── Objectif marge / véhicule (toutes périodes) ──
   const vehicleGoalStats = useMemo(() => {
     let total = 0, count = 0, reached = 0
-    for (const l of allResold) {
-      const mg = getListingMargin(l)
-      if (mg !== null) {
-        total += mg; count++
-        if (mg >= goals.goal_margin_per_vehicle) reached++
+    for (const t of allTransactions) {
+      if (t.margin !== null) {
+        total += t.margin; count++
+        if (t.margin >= goals.goal_margin_per_vehicle) reached++
       }
     }
     return { avg: count > 0 ? total / count : 0, total: count, reached }
-  }, [allResold, goals.goal_margin_per_vehicle])
+  }, [allTransactions, goals.goal_margin_per_vehicle])
 
   // ── Projection fin de mois ──
   const negoMarginsTotal = useMemo(() => {
@@ -661,26 +664,22 @@ export default function FinancePage() {
     return Array.from({ length: 12 }, (_, i) => {
       const date = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
       const mEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
-      const sales = filterResold(allResold, date, mEnd)
-      let revenue = 0, charges = 0, margin = 0, marginCount = 0
-      for (const l of sales) {
-        revenue += l.sold_price ?? 0
-        const mc = l.listing_margins?.[0]
-        if (mc?.total_cost) charges += mc.total_cost
-        const mg = getListingMargin(l)
-        if (mg !== null) { margin += mg; marginCount++ }
-      }
+      const txns = filterTransactions(allTransactions, date, mEnd)
+      const revenue = txns.reduce((s, t) => s + (t.sell_price ?? 0), 0)
+      const charges = txns.reduce((s, t) => s + (t.total_cost ?? 0), 0)
+      const withMargin = txns.filter(t => t.margin !== null)
+      const margin = withMargin.reduce((s, t) => s + (t.margin ?? 0), 0)
       return {
         label: `${MONTHS_FR[date.getMonth()]} ${date.getFullYear().toString().slice(2)}`,
         margin: Math.round(margin),
         revenue: Math.round(revenue),
         charges: Math.round(charges),
-        avgMargin: marginCount > 0 ? Math.round(margin / marginCount) : 0,
-        soldCount: sales.length,
+        avgMargin: withMargin.length > 0 ? Math.round(margin / withMargin.length) : 0,
+        soldCount: txns.length,
         isAboveGoal: margin > 0 && margin >= goals.goal_monthly_margin,
       }
     })
-  }, [allResold, goals.goal_monthly_margin])
+  }, [allTransactions, goals.goal_monthly_margin])
 
   // ── Totaux historique ──
   const historyTotals = useMemo(() => ({
@@ -898,6 +897,7 @@ export default function FinancePage() {
                       >
                         <option value="ca">Chiffre d'affaires</option>
                         <option value="margin">Marge nette</option>
+                        <option value="vehicles_sold">Véhicules vendus</option>
                       </select>
                       <select
                         value={goalForm.period}
@@ -910,7 +910,7 @@ export default function FinancePage() {
                       </select>
                       <input
                         type="number"
-                        placeholder="Montant cible (€)"
+                        placeholder={goalForm.type === 'vehicles_sold' ? 'Nombre cible' : 'Montant cible (€)'}
                         value={goalForm.target}
                         onChange={e => setGoalForm(f => ({ ...f, target: e.target.value }))}
                         className="bg-[#0d1117] border border-[#2a2f3e] rounded-lg px-3 py-1.5 text-sm text-gray-200 outline-none focus:border-orange-500 w-44"
@@ -938,7 +938,7 @@ export default function FinancePage() {
                 ) : (
                   <div className="space-y-3">
                     {userGoals.map(goal => {
-                      const realized = computeGoalProgress(goal, allResold)
+                      const realized = computeGoalProgress(goal, allTransactions)
                       const pct = goal.target > 0 ? Math.min((realized / goal.target) * 100, 100) : 0
                       const elapsed = getPeriodElapsedFraction(goal.period)
                       const isLate = elapsed > 0.5 && pct < 50
@@ -955,7 +955,7 @@ export default function FinancePage() {
                                 {GOAL_PERIOD_LABELS[goal.period] ?? goal.period}
                               </span>
                               <span className="text-xs text-gray-500 bg-[#1a1f2e] px-2 py-0.5 rounded-full">
-                                objectif {fmt(goal.target)}
+                                objectif {fmtGoal(goal.type, goal.target)}
                               </span>
                             </div>
                             <button
@@ -967,8 +967,8 @@ export default function FinancePage() {
                           </div>
 
                           <div className="flex items-baseline gap-1 mb-2">
-                            <span className="text-xl font-bold text-gray-100">{fmt(realized)}</span>
-                            <span className="text-xs text-gray-500">/ {fmt(goal.target)}</span>
+                            <span className="text-xl font-bold text-gray-100">{fmtGoal(goal.type, realized)}</span>
+                            <span className="text-xs text-gray-500">/ {fmtGoal(goal.type, goal.target)}</span>
                           </div>
 
                           <div className="h-2 rounded-full bg-[#1a1f2e] overflow-hidden mb-1.5">
@@ -982,8 +982,8 @@ export default function FinancePage() {
                             {reached
                               ? 'Objectif atteint ✓'
                               : isLate
-                              ? `⚠ En retard — ${Math.round(pct)}% atteint, il manque ${fmt(goal.target - realized)}`
-                              : `${Math.round(pct)}% — il manque ${fmt(goal.target - realized)}`}
+                              ? `⚠ En retard — ${Math.round(pct)}% atteint, il manque ${fmtGoal(goal.type, goal.target - realized)}`
+                              : `${Math.round(pct)}% — il manque ${fmtGoal(goal.type, goal.target - realized)}`}
                           </p>
                         </div>
                       )
