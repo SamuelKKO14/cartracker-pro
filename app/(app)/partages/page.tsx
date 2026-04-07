@@ -1,12 +1,15 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/utils'
 import type { ClientShare, ClientShareResponse } from '@/types/database'
-import { Check, ChevronDown, ChevronUp, Copy, Eye, Link2, MessageSquare, Share2, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Eye, Link2, Lock, MessageSquare, Share2, Trash2 } from 'lucide-react'
+
+const ADMIN_ID = 'f0c6e539-b1e3-4b33-842f-68a38532745b'
 
 interface ShareWithMeta extends ClientShare {
   client_name?: string | null
@@ -20,10 +23,12 @@ const REACTION_LABELS: Record<string, string> = {
 }
 
 export default function PartagesPage() {
+  const router = useRouter()
   const [shares, setShares] = useState<ShareWithMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const fetchShares = useCallback(async () => {
     setLoading(true)
@@ -31,6 +36,8 @@ export default function PartagesPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setUserId(user.id)
+      if (user.id !== ADMIN_ID) { setLoading(false); return }
 
       const { data: rawShares, error } = await supabase
         .from('client_shares')
@@ -108,6 +115,33 @@ export default function PartagesPage() {
 
   function toggleExpand(id: string) {
     setShares(prev => prev.map(s => s.id === id ? { ...s, expanded: !s.expanded } : s))
+  }
+
+  if (!loading && userId && userId !== ADMIN_ID) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+        <div className="flex flex-col items-center text-center max-w-md px-6">
+          <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-6">
+            <Lock size={40} className="text-orange-400" />
+          </div>
+          <span className="inline-block mb-4 px-3 py-1 text-xs font-semibold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full tracking-wide">
+            Prochainement
+          </span>
+          <h1 className="text-xl font-bold text-gray-100 mb-3">
+            Fonctionnalité en cours de développement
+          </h1>
+          <p className="text-sm text-gray-400 leading-relaxed mb-8">
+            La gestion des partages clients sera bientôt disponible. Notre équipe travaille activement sur cette fonctionnalité pour vous offrir la meilleure expérience possible.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-5 py-2.5 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors"
+          >
+            Retour au Dashboard
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
