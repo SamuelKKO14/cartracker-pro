@@ -19,15 +19,15 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'Aucune image fournie' }, { status: 400 })
     }
-    if (images.length > 10) {
-      return NextResponse.json({ error: 'Maximum 10 images autorisées' }, { status: 400 })
+    if (images.length > 30) {
+      return NextResponse.json({ error: 'Maximum 30 images autorisées' }, { status: 400 })
     }
 
-    // Build multi-image content blocks
+    // Build multi-image content blocks — send only first 5 to Claude to avoid large payloads
     type ImageMediaType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
     const content: Anthropic.MessageParam['content'] = []
 
-    for (const dataUrl of images) {
+    for (const dataUrl of images.slice(0, 5)) {
       if (typeof dataUrl !== 'string') continue
       const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/)
       if (!match) continue

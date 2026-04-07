@@ -105,7 +105,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
 
   function addPhotos(newFiles: FileList | File[]) {
     const arr = Array.from(newFiles).filter(f => f.type.startsWith('image/'))
-    setPhotoFiles(prev => [...prev, ...arr].slice(0, 10))
+    setPhotoFiles(prev => [...prev, ...arr].slice(0, 30))
   }
 
   function removePhoto(idx: number) {
@@ -382,7 +382,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                   <p className="text-xs text-gray-500 mb-1 text-center">
                     Screenshots d'annonces, photos de caractéristiques, photos du véhicule
                   </p>
-                  <p className="text-xs text-gray-600">JPG, PNG, WEBP — jusqu'à 10 photos</p>
+                  <p className="text-xs text-gray-600">JPG, PNG, WEBP — jusqu'à 30 photos</p>
                   <input
                     ref={photoInputRef}
                     type="file"
@@ -396,7 +396,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                 {/* Miniatures */}
                 {photoFiles.length > 0 && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-2">{photoFiles.length}/10 photos</p>
+                    <p className="text-xs text-gray-500 mb-2">{photoFiles.length}/30 photos</p>
                     <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
                       {photoPreviewUrls.map((url, i) => (
                         <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
