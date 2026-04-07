@@ -1,6 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import { Lock } from 'lucide-react'
+
+const ADMIN_ID = 'f0c6e539-b1e3-4b33-842f-68a38532745b'
 
 async function getBlogPosts() {
   const cookieStore = await cookies()
@@ -50,6 +53,41 @@ function formatDate(dateStr: string) {
 }
 
 export default async function BlogPage() {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll() } }
+  )
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.id !== ADMIN_ID) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+        <div className="flex flex-col items-center text-center max-w-md px-6">
+          <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-6">
+            <Lock size={40} className="text-orange-400" />
+          </div>
+          <span className="inline-block mb-4 px-3 py-1 text-xs font-semibold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full tracking-wide">
+            Prochainement
+          </span>
+          <h1 className="text-xl font-bold text-gray-100 mb-3">
+            Fonctionnalité en cours de développement
+          </h1>
+          <p className="text-sm text-gray-400 leading-relaxed mb-8">
+            Le magazine auto intelligent sera bientôt disponible. Notre équipe travaille activement sur cette fonctionnalité pour vous offrir du contenu exclusif sur le marché automobile.
+          </p>
+          <Link
+            href="/dashboard"
+            className="px-5 py-2.5 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors"
+          >
+            Retour au Dashboard
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const posts = await getBlogPosts()
   const featured = posts.find(p => p.featured)
   const rest = posts.filter(p => !p.featured)
