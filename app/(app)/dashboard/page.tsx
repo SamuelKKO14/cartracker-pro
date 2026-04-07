@@ -6,13 +6,15 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+
   const [
     profileRes,
     clientsRes,
     listingsRes,
     marginsRes,
     resoldRes,
-    blogRes,
+    monthTransactionsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).single(),
     supabase.from('clients')
@@ -31,11 +33,10 @@ export default async function DashboardPage() {
       .select('id')
       .eq('user_id', user.id)
       .eq('status', 'resold'),
-    supabase.from('blog_posts')
-      .select('id, title, slug, excerpt, content, created_at, category')
-      .eq('published', true)
-      .order('created_at', { ascending: false })
-      .limit(2),
+    supabase.from('transactions')
+      .select('sell_price')
+      .eq('user_id', user.id)
+      .gte('sold_at', monthStart),
   ])
 
   const allListings = (listingsRes.data ?? []) as Array<{
@@ -49,11 +50,8 @@ export default async function DashboardPage() {
     id: string; name: string; budget: number | null; notes: string | null; updated_at: string
   }>
   const positiveMargins = (marginsRes.data ?? []) as Array<{ margin: number }>
-  const blogPosts = (blogRes.data ?? []) as Array<{
-    id: string; title: string; slug: string; excerpt: string | null
-    content: string; created_at: string; category: string | null
-  }>
   const resoldCount = (resoldRes.data ?? []).length
+  const monthCA = (monthTransactionsRes.data ?? []).reduce((s, t) => s + ((t as { sell_price: number | null }).sell_price ?? 0), 0)
 
   // Count listings per client
   const countPerClient: Record<string, number> = {}
@@ -78,7 +76,7 @@ export default async function DashboardPage() {
         totalListings: allListings.length,
         negotiationCount: allListings.filter(l => l.status === 'negotiation').length,
         totalPositiveMargin,
-        blogCount: blogPosts.length,
+        resoldCount,
       }}
       recentListings={allListings.slice(0, 5)}
       recentClients={allClients.slice(0, 5).map(c => ({
@@ -89,8 +87,8 @@ export default async function DashboardPage() {
         totalMargin: totalPositiveMargin,
         resoldCount,
         avgMargin,
+        monthCA,
       }}
-      blogPosts={blogPosts}
       allClients={allClients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))}
     />
   )

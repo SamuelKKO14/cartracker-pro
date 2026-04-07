@@ -12,7 +12,7 @@ import {
   STATUS_LABELS, STATUS_COLORS
 } from '@/lib/utils'
 import {
-  Users, Car, TrendingUp, Euro, Newspaper,
+  Users, Car, TrendingUp, Euro, ShoppingCart,
   ArrowRight, Sparkles,
   BarChart3, Plus, ExternalLink, Calculator, GripVertical,
 } from 'lucide-react'
@@ -24,13 +24,14 @@ interface KPIs {
   totalListings: number
   negotiationCount: number
   totalPositiveMargin: number
-  blogCount: number
+  resoldCount: number
 }
 
 interface Finance {
   totalMargin: number
   resoldCount: number
   avgMargin: number
+  monthCA: number
 }
 
 interface DashboardListing {
@@ -46,24 +47,18 @@ interface DashboardClientRow {
   updated_at: string; listingCount: number
 }
 
-interface DashboardBlogPost {
-  id: string; title: string; slug: string; excerpt: string | null
-  content: string; created_at: string; category: string | null
-}
-
 interface DashboardProps {
   firstName: string | null
   kpis: KPIs
   recentListings: DashboardListing[]
   recentClients: DashboardClientRow[]
   finance: Finance
-  blogPosts: DashboardBlogPost[]
   allClients: { id: string; name: string }[]
 }
 
-type SectionId = 'import' | 'listingsClients' | 'financeBlog'
+type SectionId = 'import' | 'listingsClients' | 'finance'
 
-const DEFAULT_ORDER: SectionId[] = ['import', 'listingsClients', 'financeBlog']
+const DEFAULT_ORDER: SectionId[] = ['import', 'listingsClients', 'finance']
 const LS_KEY = 'dashboard_section_order'
 
 
@@ -84,7 +79,7 @@ function loadOrder(): SectionId[] {
 // ── Component ────────────────────────────────────────────────
 
 export function DashboardClient({
-  firstName, kpis, recentListings, recentClients, finance, blogPosts, allClients
+  firstName, kpis, recentListings, recentClients, finance, allClients
 }: DashboardProps) {
   const router = useRouter()
 
@@ -269,68 +264,49 @@ export function DashboardClient({
     )
   }
 
-  function renderFinanceBlog() {
+  function renderFinance() {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Finance */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2">
-              <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> Finance
-            </span>
-            <Link href="/finance">
-              <button className="text-xs text-gray-500 hover:text-orange-400 flex items-center gap-1 transition-colors">
-                Statistiques <ArrowRight className="w-3 h-3" />
-              </button>
-            </Link>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <FinanceCard label="Marge totale" value={formatPrice(finance.totalMargin)} color="text-green-400" />
-            <FinanceCard label="Revendus" value={String(finance.resoldCount)} color="text-blue-400" />
-            <FinanceCard label="Marge moy." value={finance.resoldCount > 0 ? formatPrice(finance.avgMargin) : '—'} color="text-orange-400" />
-          </div>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2">
+            <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> Finance
+          </span>
+          <Link href="/finance">
+            <button className="text-xs text-gray-500 hover:text-orange-400 flex items-center gap-1 transition-colors">
+              Statistiques <ArrowRight className="w-3 h-3" />
+            </button>
+          </Link>
         </div>
 
-        {/* Blog */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2">
-              <Newspaper className="w-3.5 h-3.5 text-pink-400" /> Blog
-            </span>
-            <div className="flex items-center gap-3">
-              <Link href="/blog/nouveau">
-                <button className="text-xs text-gray-500 hover:text-orange-400 flex items-center gap-1 transition-colors">
-                  <Plus className="w-3 h-3" /> Nouvel article
-                </button>
-              </Link>
-              <Link href="/blog">
-                <button className="text-xs text-gray-500 hover:text-orange-400 flex items-center gap-1 transition-colors">
-                  Voir le blog <ArrowRight className="w-3 h-3" />
-                </button>
-              </Link>
+        {/* Main finance cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <FinanceCard label="Marge totale" value={formatPrice(finance.totalMargin)} color="text-green-400" />
+          <FinanceCard label="Revendus" value={String(finance.resoldCount)} color="text-blue-400" />
+          <FinanceCard label="Marge moy." value={finance.resoldCount > 0 ? formatPrice(finance.avgMargin) : '—'} color="text-orange-400" />
+        </div>
+
+        {/* Mini récap band */}
+        <div className="bg-[#0d1117] border border-[#1a1f2e] rounded-xl p-4 space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">CA mois en cours</p>
+              <p className="text-lg font-bold text-white">{formatPrice(finance.monthCA)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Marge moy./véhicule</p>
+              <p className="text-lg font-bold text-white">{finance.resoldCount > 0 ? formatPrice(finance.avgMargin) : '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Véhicules vendus</p>
+              <p className="text-lg font-bold text-white">{finance.resoldCount}</p>
             </div>
           </div>
-          {blogPosts.length === 0 ? (
-            <EmptyState message="Aucun article publié" action={{ label: 'Écrire un article', href: '/blog/nouveau' }} />
-          ) : (
-            <div className="space-y-2">
-              {blogPosts.map(post => {
-                const excerpt = post.excerpt || (post.content ?? '').replace(/<[^>]*>/g, '').slice(0, 150)
-                const date = new Date(post.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-                return (
-                  <Link key={post.id} href={`/blog/${post.slug}`}>
-                    <div className="p-3 rounded-lg border border-[#1a1f2e] bg-[#080b10] hover:border-[#2a2f3e] transition-colors">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <p className="text-sm font-medium text-gray-200 truncate">{post.title}</p>
-                        <span className="text-[10px] text-gray-600 shrink-0">{date}</span>
-                      </div>
-                      {excerpt && <p className="text-xs text-gray-500 line-clamp-2">{excerpt}</p>}
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+          <Link href="/finance">
+            <button className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[#2a2f3e] text-xs text-gray-400 hover:text-orange-400 hover:border-orange-500/40 transition-colors">
+              Voir les finances <ArrowRight className="w-3 h-3" />
+            </button>
+          </Link>
         </div>
       </div>
     )
@@ -339,13 +315,13 @@ export function DashboardClient({
   const SECTION_META: Record<SectionId, { title: string; icon: React.ReactNode }> = {
     import: { title: 'Import Intelligent', icon: <Sparkles className="w-3.5 h-3.5 text-orange-400" /> },
     listingsClients: { title: 'Annonces & Clients', icon: <Car className="w-3.5 h-3.5 text-purple-400" /> },
-    financeBlog: { title: 'Finance & Blog', icon: <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> },
+    finance: { title: 'Finance', icon: <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> },
   }
 
   const SECTION_RENDER: Record<SectionId, () => React.ReactNode> = {
     import: renderImport,
     listingsClients: renderListingsClients,
-    financeBlog: renderFinanceBlog,
+    finance: renderFinance,
   }
 
   return (
@@ -370,7 +346,7 @@ export function DashboardClient({
             <KPICard icon={<Car className="w-4 h-4" />} label="Annonces" value={kpis.totalListings} color="purple" href="/annonces" />
             <KPICard icon={<TrendingUp className="w-4 h-4" />} label="En négociation" value={kpis.negotiationCount} color="orange" href="/annonces?status=negotiation" />
             <KPICard icon={<Euro className="w-4 h-4" />} label="Marge potentielle" value={formatPrice(kpis.totalPositiveMargin)} color="teal" isText href="/finance" />
-            <KPICard icon={<Newspaper className="w-4 h-4" />} label="Articles publiés" value={kpis.blogCount} color="pink" href="/blog" />
+            <KPICard icon={<ShoppingCart className="w-4 h-4" />} label="Véhicules vendus" value={kpis.resoldCount} color="green" href="/finance" />
           </div>
 
           {/* ── DRAGGABLE SECTIONS ── */}
