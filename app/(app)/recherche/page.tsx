@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
 import { SmartImport } from '@/components/import/smart-import'
+import { LogoIcon } from '@/components/ui/logo'
 import { AlertCircle, Sparkles, Loader2, RefreshCw } from 'lucide-react'
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -136,18 +137,33 @@ export default function RecherchePage() {
               </div>
             )}
 
-            {/* Loading skeleton */}
+            {/* Loading state */}
             {loadingTrends && !trends && (
-              <div className="space-y-4 animate-pulse">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-24 rounded-xl bg-[#0d1117] border border-[#1a1f2e]" />
-                  ))}
+              <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
+                <style>{`
+                  @keyframes logoPulse {
+                    0%, 100% { opacity: 0.3; transform: scale(0.95); }
+                    50% { opacity: 1; transform: scale(1.05); }
+                  }
+                  @keyframes dotPulse {
+                    0%, 100% { opacity: 0.2; }
+                    50% { opacity: 1; }
+                  }
+                `}</style>
+                <div style={{ animation: 'logoPulse 1.5s ease-in-out infinite' }}>
+                  <LogoIcon className="w-12 h-12" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-40 rounded-xl bg-[#0d1117] border border-[#1a1f2e]" />
-                  ))}
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-xs text-gray-500">Actualisation des tendances...</p>
+                  <div className="flex items-center gap-1.5">
+                    {[0, 0.2, 0.4].map((delay, i) => (
+                      <span
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full bg-orange-500"
+                        style={{ animation: `dotPulse 1.2s ease-in-out ${delay}s infinite` }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
