@@ -113,7 +113,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
     setPhotoFiles(prev => prev.filter((_, i) => i !== idx))
   }
 
-  async function resizeImage(file: File, maxWidth = 1200): Promise<string> {
+  async function resizeImage(file: File, maxWidth = 800): Promise<string> {
     return new Promise(resolve => {
       const img = new Image()
       const objectUrl = URL.createObjectURL(file)
@@ -124,7 +124,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
         canvas.height = Math.round(img.height * scale)
         canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
         URL.revokeObjectURL(objectUrl)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
+        resolve(canvas.toDataURL('image/jpeg', 0.7))
       }
       img.src = objectUrl
     })
@@ -146,7 +146,8 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
     }, 2000)
 
     try {
-      const base64Images = await Promise.all(photoFiles.map(f => resizeImage(f)))
+      // Only send first 5 photos to avoid exceeding Vercel's 4.5 MB body limit
+      const base64Images = await Promise.all(photoFiles.slice(0, 5).map(f => resizeImage(f)))
       const res = await fetch('/api/analyze-photos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,8 +158,13 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
         setPhotoError(json.error ?? 'Erreur inconnue')
       } else {
         const r = json.data as Record<string, unknown>
-        const classification = r.photo_classification as Array<{ index: number; type: 'vehicle' | 'specs' }> | undefined
-        setPhotoClassification(classification ?? null)
+        // AI only classifies the first 5 images — default remaining to "vehicle"
+        const aiClassification = (r.photo_classification as Array<{ index: number; type: 'vehicle' | 'specs' }>) ?? []
+        const fullClassification = [...aiClassification]
+        for (let i = aiClassification.length; i < photoFiles.length; i++) {
+          fullClassification.push({ index: i, type: 'vehicle' })
+        }
+        setPhotoClassification(fullClassification)
         setPhotoResult(r as ListingInitialData)
         const editable: Record<string, string> = {}
         for (const k of Object.keys(r)) {
