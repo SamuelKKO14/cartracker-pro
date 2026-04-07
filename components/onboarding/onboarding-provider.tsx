@@ -210,7 +210,15 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     check()
   }, [pathname, userId, completed, completeStep])
 
-  const dismissPanel = useCallback(() => setPanelOpen(false), [])
+  const dismissPanel = useCallback(() => {
+    setPanelOpen(false)
+    // Persist dismissal so the panel never auto-opens again on future logins
+    fetch('/api/onboarding', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: true }),
+    })
+  }, [])
   const reopenPanel = useCallback(() => setPanelOpen(true), [])
 
   return (
