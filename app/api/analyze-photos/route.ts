@@ -52,8 +52,10 @@ export async function POST(request: NextRequest) {
 
     const message = await anthropicClient.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      system: `Tu es un expert automobile. Analyse ces photos d'annonce automobile et extrais TOUTES les informations visibles. Retourne UNIQUEMENT un objet JSON valide, sans texte autour, avec ces champs exactement :
+      max_tokens: 1200,
+      system: `Tu es un expert automobile. Analyse ces photos d'annonce automobile et extrais TOUTES les informations visibles.
+
+Retourne UNIQUEMENT un objet JSON valide, sans texte autour, avec ces champs exactement :
 {
   "brand": string | null,
   "model": string | null,
@@ -67,14 +69,22 @@ export async function POST(request: NextRequest) {
   "seller": "particulier" | "professionnel" | null,
   "horsepower": number | null,
   "color": string | null,
-  "notes": string | null
+  "notes": string | null,
+  "photo_classification": [{ "index": 0, "type": "vehicle" | "specs" }]
 }
-Règles :
+
+Règles générales :
 - country : code ISO 2 lettres (FR, DE, BE, NL, ES, IT, PL, PT, RO, AT, CH, SE, NO, LT, CZ, HU…)
 - km, price, horsepower : entiers sans unité ni séparateurs
-- Si une information n'est pas visible sur les photos, mets null
+- Si une information n'est pas visible, mets null
 - Pour le prix, mets le nombre entier en euros sans symbole ni espace
-- notes : équipements, options, état visible, historique mentionné (concis)`,
+- notes : équipements, options, état visible, historique mentionné (concis)
+
+Règles pour photo_classification :
+- Classe CHAQUE image reçue avec son index (0 = première image)
+- "vehicle" : photo réelle du véhicule — extérieur, intérieur, roues, moteur, coffre, tableau de bord, détails carrosserie
+- "specs" : tout ce qui est texte ou données — capture d'écran d'annonce, tableau de caractéristiques, fiche technique, liste d'équipements, prix affiché, description textuelle, kilométrage affiché en texte
+- En cas de doute, préfère "vehicle"`,
       messages: [{ role: 'user', content }],
     })
 

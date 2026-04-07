@@ -59,6 +59,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
   const [photoEditedResult, setPhotoEditedResult] = useState<Record<string, string>>({})
   const [photoCreating, setPhotoCreating] = useState(false)
   const [photoSuccess, setPhotoSuccess] = useState(false)
+  const [photoClassification, setPhotoClassification] = useState<Array<{ index: number; type: 'vehicle' | 'specs' }> | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Sync object URLs with photoFiles (with cleanup)
@@ -134,6 +135,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
     setPhotoLoading(true)
     setPhotoError(null)
     setPhotoResult(null)
+    setPhotoClassification(null)
 
     const msgs = ['Lecture des photos...', 'Identification du véhicule...', 'Extraction des caractéristiques...']
     let msgIdx = 0
@@ -155,10 +157,12 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
         setPhotoError(json.error ?? 'Erreur inconnue')
       } else {
         const r = json.data as Record<string, unknown>
+        const classification = r.photo_classification as Array<{ index: number; type: 'vehicle' | 'specs' }> | undefined
+        setPhotoClassification(classification ?? null)
         setPhotoResult(r as ListingInitialData)
         const editable: Record<string, string> = {}
         for (const k of Object.keys(r)) {
-          editable[k] = r[k] != null ? String(r[k]) : ''
+          if (k !== 'photo_classification') editable[k] = r[k] != null ? String(r[k]) : ''
         }
         setPhotoEditedResult(editable)
       }
@@ -207,16 +211,24 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
 
       if (listingErr || !listing) throw new Error(listingErr?.message ?? 'Erreur création annonce')
 
+      // Only upload vehicle photos — filter out specs screenshots
+      const vehicleFiles = photoClassification
+        ? photoFiles.filter((_, idx) => {
+            const cl = photoClassification.find(c => c.index === idx)
+            return !cl || cl.type === 'vehicle'
+          })
+        : photoFiles
+
       const uploadResults = await Promise.all(
-        photoFiles.map(async (file, idx) => {
+        vehicleFiles.map(async (file, position) => {
           const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-          const path = `${user.id}/${listing.id}/${idx}.${ext}`
+          const path = `${user.id}/${listing.id}/${position}.${ext}`
           const { error: upErr } = await supabase.storage
             .from('listing-photos')
             .upload(path, file, { contentType: file.type, upsert: true })
           if (upErr) return null
           const { data: { publicUrl } } = supabase.storage.from('listing-photos').getPublicUrl(path)
-          return { url: publicUrl, position: idx }
+          return { url: publicUrl, position }
         })
       )
 
@@ -232,6 +244,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
         setPhotoFiles([])
         setPhotoResult(null)
         setPhotoEditedResult({})
+        setPhotoClassification(null)
         setPhotoSuccess(false)
         onListingCreated?.()
         router.refresh()
@@ -451,6 +464,39 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                 <p className="text-xs text-gray-500">
                   Vérifiez et corrigez les informations extraites par l'IA avant de créer l'annonce.
                 </p>
+
+                {/* Photo classification badges */}
+                {photoPreviewUrls.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
+                      {photoPreviewUrls.map((url, i) => {
+                        const cl = photoClassification?.find(c => c.index === i)
+                        const isSpecs = cl?.type === 'specs'
+                        return (
+                          <div key={i} className={`relative aspect-square rounded-lg overflow-hidden ${isSpecs ? 'opacity-50' : ''}`}>
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                            <span className={`absolute bottom-1 left-1 text-[10px] px-1 py-0.5 rounded-full leading-none ${isSpecs ? 'bg-gray-800/90 text-gray-300' : 'bg-green-800/90 text-green-200'}`}>
+                              {isSpecs ? '📋' : '🚗'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {photoClassification && (() => {
+                      const vehicleCount = photoFiles.filter((_, i) => {
+                        const cl = photoClassification.find(c => c.index === i)
+                        return !cl || cl.type === 'vehicle'
+                      }).length
+                      const specsCount = photoFiles.length - vehicleCount
+                      return specsCount > 0 ? (
+                        <p className="text-xs text-gray-500">
+                          <span className="text-green-400 font-medium">{vehicleCount} photo{vehicleCount > 1 ? 's' : ''} du véhicule</span> seront conservées · <span className="text-gray-400">{specsCount} photo{specsCount > 1 ? 's' : ''} de caractéristiques</span> utilisées pour l'extraction uniquement
+                        </p>
+                      ) : null
+                    })()}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {([
                     { key: 'brand', label: 'Marque', type: 'text' },
@@ -510,7 +556,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setPhotoResult(null); setPhotoEditedResult({}); setPhotoError(null) }}
+                    onClick={() => { setPhotoResult(null); setPhotoEditedResult({}); setPhotoClassification(null); setPhotoError(null) }}
                     className="px-4 h-9 rounded-md border border-[#2a2f3e] text-gray-400 hover:text-gray-200 hover:border-[#3a3f4e] text-sm transition-colors"
                   >
                     ↩ Recommencer
