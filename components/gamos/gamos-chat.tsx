@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { Send, X, MessageCircle } from 'lucide-react'
+import { LogoIcon } from '@/components/ui/logo'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
@@ -47,7 +48,7 @@ export function GamosChat() {
         className="gamos-btn"
         title="Gamos - Assistant CarTracker"
       >
-        {open ? '✕' : '🚗'}
+        {open ? <X className="w-5 h-5 text-gray-400" /> : <LogoIcon className="w-6 h-6 sm:w-7 sm:h-7" />}
         {/* Badge pulsant */}
         <span style={{
           position: 'absolute', top: 4, right: 4,
@@ -153,17 +154,21 @@ export function GamosChat() {
         }
         .gamos-btn {
           position: fixed; bottom: 80px; right: 16px; z-index: 9999;
-          width: 44px; height: 44px; border-radius: 50%;
-          background: linear-gradient(135deg, #f97316, #ea580c);
-          border: none; cursor: pointer; font-size: 20px;
-          box-shadow: 0 4px 24px rgba(249,115,22,0.4);
+          width: 44px; height: 44px; border-radius: 16px;
+          background: #0a0d14;
+          border: 2px solid rgba(249, 115, 22, 0.3); cursor: pointer;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
           display: flex; align-items: center; justify-content: center;
-          transition: transform 0.2s;
+          transition: border-color 0.2s, transform 0.2s;
+        }
+        .gamos-btn:hover {
+          border-color: rgba(249, 115, 22, 0.6);
+          transform: scale(1.05);
         }
         @media (min-width: 640px) {
           .gamos-btn {
             bottom: 24px; right: 24px;
-            width: 56px; height: 56px; font-size: 24px;
+            width: 56px; height: 56px;
           }
         }
       `}</style>
