@@ -44,15 +44,7 @@ export function GamosChat() {
       {/* Bouton flottant */}
       <button
         onClick={() => setOpen(o => !o)}
-        style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #f97316, #ea580c)',
-          border: 'none', cursor: 'pointer', fontSize: 24,
-          boxShadow: '0 4px 24px rgba(249,115,22,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'transform 0.2s',
-        }}
+        className="gamos-btn"
         title="Gamos - Assistant CarTracker"
       >
         {open ? '✕' : '🚗'}
@@ -68,8 +60,8 @@ export function GamosChat() {
       {/* Fenêtre de chat */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 92, right: 24, zIndex: 9998,
-          width: 350, height: 500,
+          position: 'fixed', bottom: 92, right: 16, zIndex: 9998,
+          width: 'min(350px, calc(100vw - 32px))', height: 500,
           background: '#06090f', border: '1px solid #1a1f2e',
           borderRadius: 16, display: 'flex', flexDirection: 'column',
           boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
@@ -158,6 +150,21 @@ export function GamosChat() {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(1.3); }
+        }
+        .gamos-btn {
+          position: fixed; bottom: 80px; right: 16px; z-index: 9999;
+          width: 44px; height: 44px; border-radius: 50%;
+          background: linear-gradient(135deg, #f97316, #ea580c);
+          border: none; cursor: pointer; font-size: 20px;
+          box-shadow: 0 4px 24px rgba(249,115,22,0.4);
+          display: flex; align-items: center; justify-content: center;
+          transition: transform 0.2s;
+        }
+        @media (min-width: 640px) {
+          .gamos-btn {
+            bottom: 24px; right: 24px;
+            width: 56px; height: 56px; font-size: 24px;
+          }
         }
       `}</style>
     </>

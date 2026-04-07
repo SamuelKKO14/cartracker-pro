@@ -65,28 +65,28 @@ export function Header({ title, onNewListing, onShare }: HeaderProps) {
   }
 
   return (
-    <header className="fixed top-0 left-16 right-0 h-14 bg-[#0a0d14]/90 backdrop-blur border-b border-[#1a1f2e] z-30 flex items-center justify-between px-5">
-      <h1 className="text-base font-semibold text-gray-100">
+    <header className="fixed top-0 left-0 md:left-16 right-0 h-14 bg-[#0a0d14]/90 backdrop-blur border-b border-[#1a1f2e] z-30 flex items-center justify-between pl-14 pr-4 md:px-5">
+      <h1 className="text-sm md:text-base font-semibold text-gray-100 truncate">
         <span className="text-orange-400 mr-2">CarTracker</span>
         <span className="text-gray-400 font-normal">/</span>
         <span className="ml-2">{title}</span>
       </h1>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         {onNewListing && (
           <Button size="sm" onClick={onNewListing}>
             <Plus className="w-4 h-4" />
-            Ajouter
+            <span className="hidden sm:inline">Ajouter</span>
           </Button>
         )}
         <Button size="sm" variant="secondary" onClick={handleExportCSV} disabled={exporting}>
           <Download className="w-4 h-4" />
-          CSV
+          <span className="hidden sm:inline">CSV</span>
         </Button>
         {onShare && (
           <Button size="sm" variant="secondary" onClick={onShare}>
             <Share2 className="w-4 h-4" />
-            Partager
+            <span className="hidden sm:inline">Partager</span>
           </Button>
         )}
       </div>

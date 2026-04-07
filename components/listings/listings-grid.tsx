@@ -97,7 +97,7 @@ export function ListingsGrid({
             }`}
           >
             {/* Cover photo or placeholder */}
-            <div className="relative h-[260px] bg-[#0a0d14] overflow-hidden">
+            <div className="relative h-[200px] sm:h-[260px] bg-[#0a0d14] overflow-hidden">
               {coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

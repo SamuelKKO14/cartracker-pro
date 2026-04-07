@@ -350,7 +350,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
               </div>
             )}
             {aiResult && (
-              <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-x-4 gap-y-1.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-9 gap-x-4 gap-y-1.5 pt-1">
                 {AI_PREVIEW_FIELDS.map(({ key, label, format }) => {
                   const raw = aiResult[key]
                   const value = format ? format(raw) : (raw != null ? String(raw) : '')

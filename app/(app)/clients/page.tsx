@@ -13,6 +13,13 @@ import type { Client } from '@/types/database'
 import { Download, Plus, Search, Users, Phone, Mail, Euro, Pencil, Trash2, FileText, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
+const AVATAR_COLORS = ['bg-orange-600', 'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-pink-600', 'bg-red-600', 'bg-teal-600', 'bg-indigo-600', 'bg-cyan-600', 'bg-amber-600']
+function getAvatarColor(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<(Client & { listing_count?: number; negotiation_count?: number; bought_count?: number })[]>([])
   const [search, setSearch] = useState('')
@@ -92,8 +99,8 @@ export default function ClientsPage() {
         {errorMsg && <div className="mx-4 mt-3 px-4 py-2 rounded-lg bg-red-900/30 border border-red-700/40 text-sm text-red-400">{errorMsg}</div>}
         <div className="p-6 space-y-4 max-w-5xl mx-auto">
           {/* Toolbar */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[160px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <Input
                 placeholder="Rechercher un client…"
@@ -103,10 +110,10 @@ export default function ClientsPage() {
               />
             </div>
             <Button variant="secondary" onClick={() => setShowImport(true)}>
-              <Download className="w-4 h-4" /> Importer
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Importer</span>
             </Button>
             <Button onClick={() => setShowNewClient(true)}>
-              <Plus className="w-4 h-4" /> Nouveau client
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Nouveau client</span>
             </Button>
           </div>
 
@@ -121,23 +128,27 @@ export default function ClientsPage() {
           ) : (
             <div className="space-y-2">
               {filtered.map(client => (
-                <div key={client.id} className="group flex items-center gap-4 p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] hover:border-[#2a2f3e] transition-colors">
+                <div key={client.id} className="group flex items-center gap-3 p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] hover:border-[#2a2f3e] transition-colors">
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-orange-500/15 flex items-center justify-center text-orange-400 font-semibold text-sm shrink-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 ${getAvatarColor(client.name)}`}>
                     {client.name[0]?.toUpperCase()}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-200">{client.name}</p>
+                      <p className="font-semibold text-gray-200 truncate">{client.name}</p>
+                      {/* Inline counter badge on mobile */}
+                      <span className="sm:hidden text-xs px-1.5 py-0.5 rounded bg-[#1a1f2e] text-gray-400 shrink-0">
+                        {client.listing_count} ann.
+                      </span>
                       {client.billing_type === 'monthly' && (
                         <Badge variant="secondary" className="text-xs">Forfait mensuel</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500 flex-wrap">
                       {client.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{client.phone}</span>}
-                      {client.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{client.email}</span>}
+                      {client.email && <span className="hidden sm:flex items-center gap-1"><Mail className="w-3 h-3" />{client.email}</span>}
                       {client.budget && <span className="flex items-center gap-1"><Euro className="w-3 h-3" />{formatPrice(client.budget)}</span>}
                     </div>
                     {client.criteria && (
@@ -147,8 +158,8 @@ export default function ClientsPage() {
                     )}
                   </div>
 
-                  {/* Counters */}
-                  <div className="flex items-center gap-3 shrink-0">
+                  {/* Counters — desktop only */}
+                  <div className="hidden sm:flex items-center gap-3 shrink-0">
                     <div className="text-center">
                       <p className="text-base font-bold text-gray-200">{client.listing_count}</p>
                       <p className="text-xs text-gray-500">annonces</p>
@@ -167,19 +178,21 @@ export default function ClientsPage() {
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <Link href={`/clients/${client.id}`}>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <FileText className="w-4 h-4" />
+                  {/* Actions — on mobile show only ChevronRight, on desktop full set */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link href={`/clients/${client.id}`}>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <FileText className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditClient(client)}>
+                        <Pencil className="w-4 h-4" />
                       </Button>
-                    </Link>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditClient(client)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500" onClick={() => handleDelete(client.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500" onClick={() => handleDelete(client.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <Link href={`/annonces?client=${client.id}`}>
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                         <ChevronRight className="w-4 h-4" />
