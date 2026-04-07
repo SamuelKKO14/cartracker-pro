@@ -658,19 +658,43 @@ export default function FinancePage() {
     [filtered],
   )
 
-  // ── Historique 12 mois ──
+  // ── Historique : du premier mois avec une transaction jusqu'à décembre de l'année en cours ──
   const historyData = useMemo(() => {
     const now = new Date()
-    return Array.from({ length: 12 }, (_, i) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
-      const mEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
+    const currentYear = now.getFullYear()
+
+    // Trouver le mois de la première transaction
+    let startYear = currentYear
+    let startMonth = now.getMonth()
+    if (allTransactions.length > 0) {
+      const oldest = allTransactions.reduce(
+        (min, t) => (t.sold_at < min ? t.sold_at : min),
+        allTransactions[0].sold_at,
+      )
+      const d = new Date(oldest)
+      startYear = d.getFullYear()
+      startMonth = d.getMonth()
+    }
+
+    // Générer tous les mois de startYear/startMonth → décembre currentYear
+    const months: { year: number; month: number }[] = []
+    let y = startYear, m = startMonth
+    while (y < currentYear || (y === currentYear && m <= 11)) {
+      months.push({ year: y, month: m })
+      m++
+      if (m > 11) { m = 0; y++ }
+    }
+
+    return months.map(({ year, month }) => {
+      const date = new Date(year, month, 1)
+      const mEnd = new Date(year, month + 1, 0, 23, 59, 59, 999)
       const txns = filterTransactions(allTransactions, date, mEnd)
       const revenue = txns.reduce((s, t) => s + (t.sell_price ?? 0), 0)
       const charges = txns.reduce((s, t) => s + (t.total_cost ?? 0), 0)
       const withMargin = txns.filter(t => t.margin !== null)
       const margin = withMargin.reduce((s, t) => s + (t.margin ?? 0), 0)
       return {
-        label: `${MONTHS_FR[date.getMonth()]} ${date.getFullYear().toString().slice(2)}`,
+        label: `${MONTHS_FR[month]} ${year.toString().slice(2)}`,
         margin: Math.round(margin),
         revenue: Math.round(revenue),
         charges: Math.round(charges),
@@ -1078,7 +1102,7 @@ export default function FinancePage() {
               {/* Graphique barres */}
               <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0d1117]">
                 <h3 className="text-sm font-semibold text-gray-300 mb-1">
-                  Marge nette par mois — 12 derniers mois
+                  Marge nette par mois — {new Date().getFullYear()}
                 </h3>
                 <p className="text-xs text-gray-500 mb-4">
                   <span className="inline-block w-2 h-2 rounded-sm bg-[#1D9E75] mr-1" />
