@@ -133,7 +133,11 @@ export default function RecherchePage() {
             {trendsError && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                {trendsError}
+                {trendsError.includes('529') || /overloaded/i.test(trendsError) || trendsError.includes('overloaded_error')
+                  ? "⏳ L'IA est temporairement surchargée. Réessayez dans quelques minutes."
+                  : trendsError.startsWith('{') || trendsError.startsWith('[')
+                  ? "Une erreur est survenue lors de la récupération des tendances."
+                  : trendsError}
               </div>
             )}
 

@@ -48,6 +48,7 @@ interface NegoListing {
   brand: string
   model: string | null
   year: number | null
+  price: number | null
   listing_margins: ListingMargin[] | null
 }
 
@@ -112,13 +113,17 @@ function filterTransactions(txns: Transaction[], start: Date | null, end: Date):
   })
 }
 
-function getListingMargin(l: ResoldListing | NegoListing): number | null {
+function getListingMargin(l: ResoldListing | NegoListing, useListingPriceFallback = false): { value: number; estimated: boolean } | null {
   const m = l.listing_margins?.[0]
   if (!m) return null
-  if (m.margin !== null && m.margin !== undefined) return m.margin
+  if (m.margin !== null && m.margin !== undefined) return { value: m.margin, estimated: false }
   const sellP = 'sold_price' in l ? (l.sold_price ?? m.sell_price) : m.sell_price
-  if (sellP == null || m.total_cost == null) return null
-  return sellP - m.total_cost
+  if (sellP != null && m.total_cost != null) return { value: sellP - m.total_cost, estimated: false }
+  // Fallback: use listing.price as estimated sell price for projection
+  if (useListingPriceFallback && 'price' in l && l.price != null && m.total_cost != null) {
+    return { value: l.price - m.total_cost, estimated: true }
+  }
+  return null
 }
 
 function progressColor(pct: number): string {
@@ -272,7 +277,8 @@ function SaleDetailModal({
   onClose: () => void
 }) {
   const m = listing.listing_margins?.[0]
-  const margin = getListingMargin(listing)
+  const marginResult = getListingMargin(listing)
+  const margin = marginResult?.value ?? null
   const goalPct = goals.goal_margin_per_vehicle > 0 && margin !== null
     ? Math.min((margin / goals.goal_margin_per_vehicle) * 100, 100)
     : 0
@@ -399,6 +405,8 @@ const GOAL_TYPE_LABELS: Record<string, string> = {
   ca: "Chiffre d'affaires",
   margin: 'Marge nette',
   vehicles_sold: 'Véhicules vendus',
+  annual_revenue: "Chiffre d'affaires annuel",
+  monthly_margin: 'Marge mensuelle',
 }
 const GOAL_PERIOD_LABELS: Record<string, string> = { week: 'Semaine', month: 'Mois', year: 'Année' }
 
@@ -506,7 +514,7 @@ export default function FinancePage() {
           .eq('status', 'resold'),
         supabase
           .from('listings')
-          .select('id, brand, model, year, listing_margins(*)')
+          .select('id, brand, model, year, price, listing_margins(*)')
           .eq('user_id', user.id)
           .eq('status', 'negotiation'),
         supabase
@@ -634,13 +642,17 @@ export default function FinancePage() {
   }, [allTransactions, goals.goal_margin_per_vehicle])
 
   // ── Projection fin de mois ──
-  const negoMarginsTotal = useMemo(() => {
+  const { negoMarginsTotal, negoHasEstimated } = useMemo(() => {
     let total = 0
+    let hasEstimated = false
     for (const l of negoListings) {
-      const mg = getListingMargin(l)
-      if (mg !== null) total += mg
+      const mg = getListingMargin(l, true)
+      if (mg !== null) {
+        total += mg.value
+        if (mg.estimated) hasEstimated = true
+      }
     }
-    return total
+    return { negoMarginsTotal: total, negoHasEstimated: hasEstimated }
   }, [negoListings])
 
   const projectedMonth = monthMargin + negoMarginsTotal
@@ -874,7 +886,9 @@ export default function FinancePage() {
                   <MetricCard
                     label="Marge potentielle"
                     value={negoMarginsTotal > 0 ? fmt(negoMarginsTotal) : '—'}
-                    sub="négociations en cours"
+                    sub={negoMarginsTotal > 0
+                      ? negoHasEstimated ? 'estimé sur prix annonce' : 'négociations en cours'
+                      : 'négociations en cours'}
                   />
                   <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
                     <p className="text-xs text-gray-500 mb-2">Marge projetée (mois)</p>
@@ -1033,7 +1047,8 @@ export default function FinancePage() {
                 ) : (
                   <div className="rounded-xl border border-[#1a1f2e] overflow-hidden divide-y divide-[#1a1f2e]">
                     {sortedSales.map(l => {
-                      const margin = getListingMargin(l)
+                      const marginResult = getListingMargin(l)
+                      const margin = marginResult?.value ?? null
                       const hasMarginData = !!l.listing_margins?.[0]
                       return (
                         <div

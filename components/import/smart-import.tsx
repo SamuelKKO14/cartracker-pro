@@ -433,11 +433,11 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                 )}
 
                 {/* Client + Bouton analyser */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3">
                   <select
                     value={photoClientId}
                     onChange={e => setPhotoClientId(e.target.value)}
-                    className="h-9 rounded-md border border-[#2a2f3e] bg-[#0a0d14] px-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500 sm:w-56"
+                    className="w-full h-9 rounded-md border border-[#2a2f3e] bg-[#0a0d14] px-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500"
                   >
                     <option value="">— Aucun client (import libre) —</option>
                     {allClients.map(c => (
@@ -447,11 +447,11 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                   <button
                     onClick={handleAnalyzePhotos}
                     disabled={photoLoading || photoFiles.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 h-9 rounded-md bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-3 px-6 h-12 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-semibold transition-colors shadow-lg shadow-orange-500/20"
                   >
                     {photoLoading
-                      ? <><Loader2 className="w-4 h-4 animate-spin" />{photoLoadingMsg}</>
-                      : <><Camera className="w-4 h-4" />🔍 Analyser les photos avec l'IA</>
+                      ? <><Loader2 className="w-5 h-5 animate-spin" />{photoLoadingMsg}</>
+                      : <><Camera className="w-5 h-5" /><Sparkles className="w-4 h-4" />📸 Analyser {photoFiles.length} photo{photoFiles.length > 1 ? 's' : ''} avec l'IA</>
                     }
                   </button>
                 </div>

@@ -3,6 +3,10 @@
     {
       "path": "/api/blog/rotate",
       "schedule": "0 8 5 * *"
+    },
+    {
+      "path": "/api/trends/cron",
+      "schedule": "0 6 * * 1"
     }
   ]
 }
