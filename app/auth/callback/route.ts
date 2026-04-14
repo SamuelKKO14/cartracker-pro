@@ -26,9 +26,13 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Forcer la redirection vers next (ex: /auth/reset-password)
+      const redirectUrl = new URL(next, origin)
+      return NextResponse.redirect(redirectUrl)
     }
+    console.error('Auth callback error:', error.message)
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=invalid_code`)
+  // Pas de code ou erreur → login
+  return NextResponse.redirect(new URL('/auth/login?error=invalid_code', origin))
 }
