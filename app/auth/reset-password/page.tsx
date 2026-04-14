@@ -21,21 +21,27 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Listen for the PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    // Vérifier si on a déjà une session (l'event a pu fire avant le montage)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         setSessionReady(true)
       }
     })
 
-    // If no PASSWORD_RECOVERY event fires within 5s, mark as expired
+    // Écouter l'event PASSWORD_RECOVERY
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        setSessionReady(true)
+      }
+    })
+
+    // Si après 8 secondes toujours pas de session, marquer comme expiré
     const timeout = setTimeout(() => {
       setExpired(prev => {
-        // Only expire if session still not ready
         if (!sessionReady) return true
         return prev
       })
-    }, 5000)
+    }, 8000)
 
     return () => {
       subscription.unsubscribe()
