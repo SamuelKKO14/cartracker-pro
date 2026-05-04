@@ -641,7 +641,7 @@ export default function LandingPage() {
               <div className="space-y-5">
                 <div>
                   <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-2">🔌 Extension Chrome</p>
-                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 leading-tight">Importez depuis n'importe quel site auto en 1 clic</h2>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 leading-tight">Importez depuis n'importe quel site auto en 1 clic <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold border border-orange-500/30 align-middle">Bientôt disponible</span></h2>
                 </div>
                 <div className="space-y-3">
                   {[
@@ -658,8 +658,8 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <a href="#extension" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
-                  <Puzzle className="w-4 h-4" /> Installer l'extension Chrome
+                <a href="/auth/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                  Créer mon compte gratuitement
                 </a>
               </div>
             </FadeUp>
