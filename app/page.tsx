@@ -221,6 +221,17 @@ export default function LandingPage() {
 
   const toggleFaq = (i: number) => setOpenFaq(prev => prev === i ? null : i)
 
+  async function handleProCheckout() {
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO }),
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else window.location.href = '/auth/register'
+  }
+
   // ── DEMO MOCKUPS ──────────────────────────────────────────────────────────
 
   const MockImport = () => (
@@ -860,9 +871,9 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/auth/register" className="block text-center px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                <button onClick={handleProCheckout} className="block w-full text-center px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
                   Essayer 14 jours gratuits
-                </Link>
+                </button>
               </div>
             </FadeUp>
 
