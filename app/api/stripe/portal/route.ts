@@ -7,13 +7,22 @@ export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe()
     const cookieStore = await cookies()
+
+    // Clé anon pour lire la session
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => cookieStore.getAll(), setAll() {} } }
+    )
+
+    // Clé service role pour les opérations admin
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { cookies: { getAll: () => cookieStore.getAll(), setAll() {} } }
     )
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
     const { data: sub } = await supabase
