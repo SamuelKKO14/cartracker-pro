@@ -42,16 +42,28 @@ export default function FacturationPage() {
     ? Math.max(0, Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0
 
+  const PRICE_PRO = 'price_1TTOqXBCWCtMC1OfbfOPzp11'
+  const PRICE_AGENCE = 'price_1TTOqcBCWCtMC1Of7K4ORBO4'
+
   async function handleCheckout(priceId: string) {
     setRedirecting(priceId)
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId }),
-    })
-    const { url } = await res.json()
-    if (url) window.location.href = url
-    else setRedirecting(null)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        console.error('Stripe checkout error:', data.error || data)
+        setRedirecting(null)
+      }
+    } catch (err) {
+      console.error('Stripe checkout fetch failed:', err)
+      setRedirecting(null)
+    }
   }
 
   async function handlePortal() {
@@ -167,11 +179,11 @@ export default function FacturationPage() {
                 ))}
               </ul>
               <button
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO!)}
+                onClick={() => handleCheckout(PRICE_PRO)}
                 disabled={!!redirecting}
                 className="w-full px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {redirecting === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {redirecting === PRICE_PRO ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Passer au Pro
               </button>
             </div>
@@ -197,11 +209,11 @@ export default function FacturationPage() {
                 ))}
               </ul>
               <button
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCE!)}
+                onClick={() => handleCheckout(PRICE_AGENCE)}
                 disabled={!!redirecting}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {redirecting === process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCE ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {redirecting === PRICE_AGENCE ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Passer à Agence
               </button>
             </div>
