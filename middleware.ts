@@ -33,12 +33,14 @@ export async function middleware(request: NextRequest) {
   // Routes API publiques ou avec leur propre auth (extension Chrome)
   if (pathname.startsWith('/api/extension/')) return response
 
-  // Protect API routes (sauf GET /api/share/[token] et /api/blog/*)
+  // Protect API routes (sauf routes publiques)
   if (pathname.startsWith('/api/')) {
     const isPublicShareGet =
       request.method === 'GET' && /^\/api\/share\/[^/]+$/.test(pathname)
     const isPublicBlog = pathname.startsWith('/api/blog/')
-    if (!isPublicShareGet && !isPublicBlog && !user) {
+    const isPublicBooking =
+      request.method === 'POST' && pathname === '/api/booking'
+    if (!isPublicShareGet && !isPublicBlog && !isPublicBooking && !user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
     return response
@@ -52,6 +54,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/cgu' ||
     pathname === '/confidentialite' ||
     pathname === '/contact' ||
+    pathname === '/reserver' ||
     pathname === '/mentions-legales' ||
     pathname.startsWith('/blog')
 
