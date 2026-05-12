@@ -42,8 +42,8 @@ export default function FacturationPage() {
     ? Math.max(0, Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0
 
-  const PRICE_PRO = 'price_1TTOqXBCWCtMC1OfbfOPzp11'
-  const PRICE_AGENCE = 'price_1TTOqcBCWCtMC1Of7K4ORBO4'
+  const PRICE_PRO = 'price_1TTPAdBBs4JvHKkZQOtVFmM5'
+  const PRICE_AGENCE = 'price_1TTPAbBBs4JvHKkZkjACz8Hn'
 
   async function handleCheckout(priceId: string) {
     setRedirecting(priceId)
