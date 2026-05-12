@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { STRIPE_PRICE_DEMARRAGE, STRIPE_PRICE_PRO, STRIPE_PRICE_AGENCE } from '@/lib/subscription'
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,13 +54,13 @@ export async function POST(request: NextRequest) {
       }, { onConflict: 'user_id' })
     }
 
-    const isProPlan = priceId === process.env.STRIPE_PRICE_PRO
+    const isPaidPlan = [STRIPE_PRICE_DEMARRAGE, STRIPE_PRICE_PRO, STRIPE_PRICE_AGENCE].includes(priceId)
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      ...(isProPlan ? { subscription_data: { trial_period_days: 14 } } : {}),
+      ...(isPaidPlan ? { subscription_data: { trial_period_days: 14 } } : {}),
       success_url: 'https://cartrackerpro.fr/dashboard?upgraded=true',
       cancel_url: 'https://cartrackerpro.fr/parametres/facturation',
       metadata: { userId: user.id },

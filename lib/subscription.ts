@@ -1,22 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { PLAN_LIMITS } from './plans'
+import type { Plan, Subscription } from './plans'
 
-export type Plan = 'starter' | 'pro' | 'agence'
-export type SubStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete'
+export * from './plans'
 
-export interface Subscription {
-  id: string
-  user_id: string
-  plan: Plan
-  status: SubStatus
-  stripe_customer_id: string | null
-  stripe_subscription_id: string | null
-  current_period_start: string | null
-  current_period_end: string | null
-  cancel_at_period_end: boolean
-  trial_end: string | null
-  created_at: string
-}
-
+// ── Fonctions server-only (requêtes Supabase) ────────────────
 export async function getUserSubscription(userId: string): Promise<Subscription | null> {
   const supabase = await createClient()
   const { data } = await supabase
@@ -36,7 +24,8 @@ export async function getUserPlan(userId: string): Promise<Plan> {
 
 export async function checkListingLimit(userId: string): Promise<{ allowed: boolean; error?: string }> {
   const plan = await getUserPlan(userId)
-  if (plan !== 'starter') return { allowed: true }
+  const limit = PLAN_LIMITS[plan].maxListings
+  if (limit === null) return { allowed: true }
 
   const supabase = await createClient()
   const { count } = await supabase
@@ -44,15 +33,16 @@ export async function checkListingLimit(userId: string): Promise<{ allowed: bool
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
 
-  if ((count ?? 0) >= 10) {
-    return { allowed: false, error: 'Limite atteinte (10 annonces). Passez au plan Pro.' }
+  if ((count ?? 0) >= limit) {
+    return { allowed: false, error: `Limite atteinte (${limit} annonces). Passez au plan supérieur.` }
   }
   return { allowed: true }
 }
 
 export async function checkClientLimit(userId: string): Promise<{ allowed: boolean; error?: string }> {
   const plan = await getUserPlan(userId)
-  if (plan !== 'starter') return { allowed: true }
+  const limit = PLAN_LIMITS[plan].maxClients
+  if (limit === null) return { allowed: true }
 
   const supabase = await createClient()
   const { count } = await supabase
@@ -60,8 +50,8 @@ export async function checkClientLimit(userId: string): Promise<{ allowed: boole
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
 
-  if ((count ?? 0) >= 5) {
-    return { allowed: false, error: 'Limite atteinte (5 clients). Passez au plan Pro.' }
+  if ((count ?? 0) >= limit) {
+    return { allowed: false, error: `Limite atteinte (${limit} clients). Passez au plan supérieur.` }
   }
   return { allowed: true }
 }

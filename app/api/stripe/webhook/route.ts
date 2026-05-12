@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { priceIdToPlan } from '@/lib/subscription'
 
 export async function POST(request: NextRequest) {
   const stripe = getStripe()
@@ -36,8 +37,7 @@ export async function POST(request: NextRequest) {
 
       const item = sub.items.data[0]
       const priceId = item?.price.id
-      let plan: string = 'pro'
-      if (priceId === process.env.STRIPE_PRICE_AGENCE) plan = 'agence'
+      const plan = priceIdToPlan(priceId)
 
       await supabase.from('subscriptions').upsert({
         user_id: userId,
@@ -66,8 +66,7 @@ export async function POST(request: NextRequest) {
 
       const item = sub.items.data[0]
       const priceId = item?.price.id
-      let plan: string = 'pro'
-      if (priceId === process.env.STRIPE_PRICE_AGENCE) plan = 'agence'
+      const plan = priceIdToPlan(priceId)
 
       await supabase.from('subscriptions').update({
         plan,

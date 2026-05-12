@@ -127,7 +127,7 @@ const FAQS = [
   },
   {
     q: "Je peux essayer gratuitement ?",
-    a: "Oui ! Le plan Starter est gratuit avec 10 annonces et 5 clients. Aucune carte bancaire requise. Le plan Pro offre un essai gratuit de 14 jours."
+    a: "Oui ! Le plan Starter est gratuit (10 annonces, 5 clients), sans carte bancaire. Le plan Démarrage (15€/mois) permet de lancer son activité avec 15 clients et 30 annonces. Les plans Pro et Agence offrent un essai gratuit de 14 jours."
   },
   {
     q: "Qu'est-ce que Gamos ?",
@@ -221,11 +221,11 @@ export default function LandingPage() {
 
   const toggleFaq = (i: number) => setOpenFaq(prev => prev === i ? null : i)
 
-  async function handleProCheckout() {
+  async function handlePlanCheckout(priceId: string) {
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO }),
+      body: JSON.stringify({ priceId }),
     })
     const data = await res.json()
     if (data.url) window.location.href = data.url
@@ -831,24 +831,27 @@ export default function LandingPage() {
             <p className="text-gray-400">Commencez gratuitement, évoluez quand vous êtes prêt.</p>
           </FadeUp>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Starter */}
+            {/* Démarrage */}
             <FadeUp delay={0}>
               <div className="rounded-2xl border border-[#1a1f2e] bg-[#0a0d14] p-6 flex flex-col h-full">
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Starter</p>
-                  <p className="text-4xl font-extrabold text-gray-100">Gratuit</p>
-                  <p className="text-sm text-gray-500 mt-1">Pour commencer</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Démarrage</p>
+                  <div className="flex items-end gap-1">
+                    <p className="text-4xl font-extrabold text-gray-100">15€</p>
+                    <p className="text-gray-500 text-sm mb-1">/mois</p>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Pour démarrer son activité</p>
                 </div>
                 <ul className="space-y-2.5 flex-1 mb-6">
-                  {['10 annonces max','5 clients max','Import IA','Score bonne affaire'].map(f => (
+                  {['15 clients max','30 annonces max','Import IA (10/mois)','4 pays UE','Score bonne affaire','Essai 14 jours gratuit'].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
                       <Check className="w-3.5 h-3.5 text-gray-500 shrink-0" /> {f}
                     </li>
                   ))}
                 </ul>
-                <Link href="/auth/register" className="block text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
-                  Commencer gratuitement
-                </Link>
+                <button onClick={() => handlePlanCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_DEMARRAGE!)} className="block w-full text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
+                  Essayer 14 jours gratuits
+                </button>
               </div>
             </FadeUp>
 
@@ -859,19 +862,19 @@ export default function LandingPage() {
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">Pro</p>
                   <div className="flex items-end gap-1">
-                    <p className="text-4xl font-extrabold text-gray-100">49€</p>
+                    <p className="text-4xl font-extrabold text-gray-100">39€</p>
                     <p className="text-gray-500 text-sm mb-1">/mois</p>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Pour les pros actifs</p>
                 </div>
                 <ul className="space-y-2.5 flex-1 mb-6">
-                  {['Annonces illimitées','Clients illimités','Extension Chrome','Partage client par lien','Gamos assistant IA','Stats Finance + objectifs','Checklist pré-achat','Blog','Export CSV'].map(f => (
+                  {['250 clients','500 annonces','IA illimitée','14 pays UE','Kanban + Tags','Stats & Finance avancées','Export CSV','Essai 14 jours gratuit'].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
                       <Check className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {f}
                     </li>
                   ))}
                 </ul>
-                <button onClick={handleProCheckout} className="block w-full text-center px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                <button onClick={() => handlePlanCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO!)} className="block w-full text-center px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-sm text-white font-semibold transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
                   Essayer 14 jours gratuits
                 </button>
               </div>
@@ -883,24 +886,27 @@ export default function LandingPage() {
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Agence</p>
                   <div className="flex items-end gap-1">
-                    <p className="text-4xl font-extrabold text-gray-100">99€</p>
+                    <p className="text-4xl font-extrabold text-gray-100">79€</p>
                     <p className="text-gray-500 text-sm mb-1">/mois</p>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Pour les équipes</p>
                 </div>
                 <ul className="space-y-2.5 flex-1 mb-6">
-                  {['Tout le Plan Pro','3 utilisateurs','Support prioritaire','Rapport mensuel automatique'].map(f => (
+                  {['Tout du plan Pro','Clients illimités','3 utilisateurs','Support prioritaire 4h','Essai 14 jours gratuit'].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
                       <Check className="w-3.5 h-3.5 text-gray-500 shrink-0" /> {f}
                     </li>
                   ))}
                 </ul>
-                <Link href="/auth/login" className="block text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
-                  Nous contacter
-                </Link>
+                <button onClick={() => handlePlanCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCE!)} className="block w-full text-center px-4 py-2.5 rounded-xl border border-[#2a2f3e] text-sm text-gray-300 hover:border-[#3a3f4e] hover:text-white transition-colors">
+                  Essayer 14 jours gratuits
+                </button>
               </div>
             </FadeUp>
           </div>
+          <p className="text-center text-sm text-gray-500 mt-8">
+            Pas encore prêt ? <Link href="/auth/register" className="text-orange-400 hover:underline">Commencez gratuitement</Link> avec le plan Starter (10 annonces, 5 clients, sans CB).
+          </p>
         </div>
       </section>
 
