@@ -137,44 +137,28 @@ const UPCOMING_FEATURES = [
 
 const FAQS = [
   {
-    q: "Qu'est-ce que CarTracker Pro exactement ?",
-    a: "CarTracker Pro est un SaaS conçu pour les professionnels de l'achat-revente automobile (mandataires, courtiers, garages). Il centralise la recherche d'annonces dans 16 pays européens, organise vos clients et vos suivis, calcule automatiquement vos marges nettes et vous aide à boucler vos ventes plus vite."
+    q: "Je passe déjà 2-3h par jour à sourcer sur LeBonCoin et AutoScout24. En quoi CarTracker me fait gagner du temps ?",
+    a: "C'est exactement le problème qu'on résout. Au lieu de jongler entre 8 onglets, vous centralisez vos annonces de LeBonCoin, AutoScout24, La Centrale, mobile.de et 4 autres sites européens dans un seul tableau de bord. Chaque annonce reçoit automatiquement un score \"bonne affaire\" basé sur le prix marché, le kilométrage et la côte. En 10 minutes vous repérez les pépites au lieu de 2 heures."
   },
   {
-    q: "À qui s'adresse CarTracker Pro ?",
-    a: "Aux mandataires VO, courtiers, négociants et garages indépendants qui font de l'achat-revente automobile à titre professionnel. Que vous gériez 5 mandants ou 50, l'outil s'adapte."
+    q: "Comment je calcule ma marge réelle sans rien oublier (remise en état, carte grise, transport) ?",
+    a: "Le calculateur de marge intégré prend en compte tous les postes : prix d'achat, remise en état, carte grise, transport, frais pro, garantie. Vous entrez vos chiffres une fois, vous voyez immédiatement votre marge nette en € et en %. Fini les calculs au dos d'une enveloppe — vous savez à la seconde si la voiture est rentable ou pas avant même de contacter le vendeur."
   },
   {
-    q: "Combien ça coûte ?",
-    a: "Le plan Starter est gratuit (10 annonces, 5 clients, sans CB). Démarrage à 15€/mois, Pro à 39€/mois, Agence à 79€/mois. Les plans payants offrent 14 jours d'essai gratuit, annulable à tout moment."
+    q: "Je gère plusieurs mandants en parallèle. Comment ne pas perdre le fil ?",
+    a: "Chaque mandant a sa fiche dédiée avec son budget, ses critères, l'historique des échanges et les annonces qu'on lui a partagées. Vous filtrez vos annonces par client en un clic, vous voyez d'un coup d'œil ce qui est en cours, ce qui a été envoyé, ce qui est en négo. Plus de WhatsApp éparpillés ni de tableurs Excel qui se perdent."
   },
   {
-    q: "Comment fonctionne l'import IA ?",
-    a: "Copiez le texte d'une annonce depuis n'importe quel site, collez-le dans CarTracker Pro, et l'IA extrait tout en 5 secondes : marque, modèle, année, km, prix, carburant, boîte, pays."
+    q: "Comment éviter d'acheter une voiture avec vice caché ou kilométrage trafiqué ?",
+    a: "Chaque annonce dispose d'une checklist pré-achat de 12 points : contrôle technique, HistoVec, carnet d'entretien, sinistres, nombre de propriétaires, première main, vérification du VIN, état mécanique... Vous cochez au fur et à mesure de votre due diligence, et vous gardez une trace claire pour chaque véhicule. Aucune étape critique n'est oubliée."
   },
   {
-    q: "L'extension Chrome est-elle disponible ?",
-    a: "Pas encore. L'extension est en développement. Elle permettra d'importer une annonce en un clic. En attendant, l'import IA fonctionne déjà et extrait toutes les infos en secondes."
+    q: "Est-ce que je peux savoir si un modèle prend de la valeur ou décote en ce moment ?",
+    a: "Oui. La section Tendances vous montre en temps réel quels modèles sont en baisse de prix, quels pays sont avantageux pour le sourcing, et quels segments sont en tension. Vous achetez au bon moment, vous revendez avant que la côte chute. C'est la veille marché que vous feriez à la main, mais centralisée."
   },
   {
-    q: "Et le partage client par lien ?",
-    a: "En cours de développement. L'idée : envoyer un lien qui affiche votre sélection (sans révéler vos sources), avec un bouton 'intéressé' pour une réponse directe. En attendant, export CSV disponible."
-  },
-  {
-    q: "Mes données sont-elles sécurisées ?",
-    a: "Oui. Données hébergées sur Supabase (infra européenne) avec chiffrement. Chaque utilisateur n'accède qu'à ses données. Paiements via Stripe. Aucune CB stockée chez nous."
-  },
-  {
-    q: "Comment annuler mon abonnement ?",
-    a: "Depuis Paramètres → Facturation. Annulation immédiate, accès maintenu jusqu'à la fin de la période payée. Aucun engagement, aucun frais caché."
-  },
-  {
-    q: "Y a-t-il un support ?",
-    a: "Oui. contact@cartrackerpro.fr — réponse sous 24h en semaine. Pro : support prioritaire. Agence : support prioritaire sous 4h."
-  },
-  {
-    q: "Quels pays européens sont couverts ?",
-    a: "Démarrage couvre 4 pays. Pro et Agence couvrent 16 pays : France, Allemagne, Belgique, Espagne, Italie, Pays-Bas, Portugal, Pologne, Roumanie, Autriche, Suisse, Suède, Norvège, Lituanie, et plus."
+    q: "Je suis auto-entrepreneur, l'outil est-il adapté à ma structure ?",
+    a: "100% adapté. CarTracker Pro a été conçu pour les petites structures et les indépendants : mandataires solo, négociants VO en auto-entreprise, courtiers, acheteurs-revendeurs. Pas de courbe d'apprentissage compliquée, pas de modules inutiles. Vous payez uniquement pour ce dont vous avez besoin, et vous montez en gamme quand votre activité grossit."
   },
 ]
 
