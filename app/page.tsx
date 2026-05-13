@@ -966,11 +966,16 @@ export default function LandingPage() {
             <p className="text-gray-400">L'histoire derrière l'outil</p>
           </motion.div>
 
-          <Marquee speed={50} pauseOnHover>
-            {TESTIMONIALS.map((t) => (
-              <div
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
                 key={t.name}
-                className="flex-shrink-0 w-[340px] rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 mx-2 space-y-3"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i * 0.1}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 space-y-3"
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center ${t.color}`}>
@@ -979,9 +984,9 @@ export default function LandingPage() {
                   <span className="text-sm font-semibold text-white">{t.name}</span>
                 </div>
                 <p className="text-sm text-gray-400 leading-relaxed">{t.text}</p>
-              </div>
+              </motion.div>
             ))}
-          </Marquee>
+          </div>
         </div>
       </section>
 
