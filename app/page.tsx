@@ -62,6 +62,14 @@ function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
+function SectionDivider() {
+  return (
+    <div className="relative max-w-6xl mx-auto px-4">
+      <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+    </div>
+  )
+}
+
 // ── Mockup illustrations for StickyScroll ─────────────────────────────────────
 
 function MockupClientFiche() {
@@ -478,10 +486,12 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      <SectionDivider />
+
       {/* ══════════════════════════════════════════════════════════════════════
           2. KPIs — NumberTicker
           ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-4 border-t border-white/[0.04]">
+      <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { display: '16', label: 'Pays européens couverts' },
@@ -507,6 +517,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <SectionDivider />
+
       {/* ══════════════════════════════════════════════════════════════════════
           2b. STICKY SCROLL — Parcours détaillé 4 étapes
           ══════════════════════════════════════════════════════════════════════ */}
@@ -528,6 +540,8 @@ export default function LandingPage() {
         </div>
         <StickyScroll items={STICKY_SCROLL_ITEMS} />
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           3. COMMENT ÇA MARCHE — Card3D steps (résumé rapide)
@@ -573,6 +587,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           4. FEATURES — BentoGrid + CardSpotlight
@@ -621,6 +637,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           5. ÉCOSYSTÈME — OrbitingCircles
@@ -692,6 +710,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <SectionDivider />
+
       {/* ══════════════════════════════════════════════════════════════════════
           6. TABLEAU COMPARATIF — Vrais concurrents
           ══════════════════════════════════════════════════════════════════════ */}
@@ -760,6 +780,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <SectionDivider />
+
       {/* ══════════════════════════════════════════════════════════════════════
           6b. EN DÉVELOPPEMENT ACTIF — BentoGrid cards
           ══════════════════════════════════════════════════════════════════════ */}
@@ -808,6 +830,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           7. TARIFS — GlassCards + BorderBeam on Pro
@@ -916,6 +940,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <SectionDivider />
+
       {/* ══════════════════════════════════════════════════════════════════════
           8. POURQUOI — Marquee de cards
           ══════════════════════════════════════════════════════════════════════ */}
@@ -953,6 +979,8 @@ export default function LandingPage() {
           </Marquee>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           9. FAQ — Glassmorphism accordion
@@ -1014,6 +1042,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
           10. CTA FINAL — BackgroundBeams + TextGenerate + ShimmerButton
