@@ -31,7 +31,6 @@ import { FeatureTabs } from '@/components/sections/FeatureTabs'
 
 // Aceternity
 import { GridBackground } from '@/components/ui/aceternity/GridBackground'
-import { Meteors } from '@/components/ui/aceternity/Meteors'
 import { BackgroundBeams } from '@/components/ui/aceternity/BackgroundBeams'
 import { TextGenerateEffect } from '@/components/ui/aceternity/TextGenerateEffect'
 import { CardSpotlight } from '@/components/ui/aceternity/CardSpotlight'
@@ -218,11 +217,10 @@ export default function LandingPage() {
       <Navbar />
 
       {/* ══════════════════════════════════════════════════════════════════════
-          1. HERO — GridBackground + Meteors + TextGenerate + 3D Car
+          1. HERO — GridBackground + TextGenerate + 3D Car
           ══════════════════════════════════════════════════════════════════════ */}
       <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden">
         <GridBackground className="absolute inset-0 z-0" />
-        <Meteors count={12} className="z-[1]" />
 
         <motion.div
           style={{ opacity: heroOpacity, scale: heroScale }}
