@@ -39,7 +39,6 @@ import { BentoGrid, BentoCard } from '@/components/ui/aceternity/BentoGrid'
 // Magic UI
 import { NumberTicker } from '@/components/ui/magicui/NumberTicker'
 import { ShimmerButton } from '@/components/ui/magicui/ShimmerButton'
-import { BorderBeam } from '@/components/ui/magicui/BorderBeam'
 import { Marquee } from '@/components/ui/magicui/Marquee'
 import { AnimatedGradientText } from '@/components/ui/magicui/AnimatedGradientText'
 import { OrbitingCircles } from '@/components/ui/magicui/OrbitingCircles'
@@ -234,7 +233,6 @@ export default function LandingPage() {
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm text-sm"
             >
-              <BorderBeam size={100} duration={4} />
               <Car className="w-4 h-4 text-orange-400" />
               <span className="text-gray-300">L'outil des pros de l'auto</span>
             </motion.div>
@@ -600,7 +598,6 @@ export default function LandingPage() {
                 className={i === 0 ? 'md:col-span-2 lg:col-span-1' : ''}
               >
                 <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full space-y-3 overflow-hidden">
-                  <BorderBeam size={120} duration={6} />
                   <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] font-bold text-orange-400">
                     {feat.badge}
                   </div>
@@ -621,7 +618,7 @@ export default function LandingPage() {
       <SectionDivider />
 
       {/* ══════════════════════════════════════════════════════════════════════
-          7. TARIFS — GlassCards + BorderBeam on Pro
+          7. TARIFS — GlassCards
           ══════════════════════════════════════════════════════════════════════ */}
       <section id="tarifs" className="py-24 px-4 bg-[#06090f]">
         <div className="max-w-5xl mx-auto">
@@ -667,7 +664,6 @@ export default function LandingPage() {
             {/* Pro — highlighted */}
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0.08}>
               <div className="relative rounded-2xl border border-orange-500/40 bg-white/[0.03] backdrop-blur-xl p-6 flex flex-col h-full shadow-[0_0_60px_rgba(249,115,22,0.12)]">
-                <BorderBeam duration={5} size={250} />
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-orange-500 text-[11px] font-bold text-white whitespace-nowrap">
                   Le plus populaire
                 </div>
