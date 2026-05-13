@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
@@ -118,17 +119,32 @@ export default function ClientsPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-20 text-gray-500">Chargement…</div>
+            <div className="flex items-center justify-center py-20">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin" />
+                <span className="text-sm text-gray-500">Chargement...</span>
+              </div>
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20 space-y-3"
+            >
               <Users className="w-12 h-12 text-gray-600 mx-auto" />
               <p className="text-gray-400">Aucun client</p>
               <Button onClick={() => setShowNewClient(true)}>Ajouter un client</Button>
-            </div>
+            </motion.div>
           ) : (
             <div className="space-y-2">
-              {filtered.map(client => (
-                <div key={client.id} className="group flex items-center gap-3 p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] hover:border-[#2a2f3e] transition-colors">
+              {filtered.map((client, i) => (
+                <motion.div
+                  key={client.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="group flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04] transition-all"
+                >
                   {/* Avatar */}
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 ${getAvatarColor(client.name)}`}>
                     {client.name[0]?.toUpperCase()}
@@ -199,7 +215,7 @@ export default function ClientsPage() {
                       </Button>
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
@@ -553,12 +554,12 @@ export default function AnnoncesPage() {
             </Select>
 
             {/* Vue toggle */}
-            <div className="flex items-center gap-1 bg-[#0d1117] border border-[#2a2f3e] rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-lg p-1">
               {([['grid', Grid3X3], ['table', Table], ['kanban', Kanban]] as const).map(([v, Icon]) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
-                  className={`p-1.5 rounded transition-colors ${view === v ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                  className={`relative p-1.5 rounded-md transition-all ${view === v ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.3)]' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.06]'}`}
                 >
                   <Icon className="w-4 h-4" />
                 </button>
@@ -612,9 +613,18 @@ export default function AnnoncesPage() {
           )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-20 text-gray-500 text-sm">Chargement…</div>
+            <div className="flex items-center justify-center py-20">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin" />
+                <span className="text-sm text-gray-500">Chargement...</span>
+              </div>
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-20 text-center gap-3"
+            >
               <p className="text-gray-500">
                 {hasActiveFilters(filters) ? 'Aucune annonce ne correspond aux filtres.' : 'Aucune annonce.'}
               </p>
@@ -622,13 +632,18 @@ export default function AnnoncesPage() {
                 ? <Button variant="secondary" onClick={() => setFilters({ ...INITIAL_FILTERS })}>Effacer les filtres</Button>
                 : <Button onClick={() => setShowNewListing(true)}>Ajouter une annonce</Button>
               }
-            </div>
+            </motion.div>
           ) : (
-            <>
+            <motion.div
+              key={view}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
               {view === 'grid' && <ListingsGrid {...listingProps} />}
               {view === 'table' && <ListingsTable {...listingProps} />}
               {view === 'kanban' && <ListingsKanban {...listingProps} onRefresh={fetchListings} />}
-            </>
+            </motion.div>
           )}
         </div>
       </div>

@@ -53,7 +53,12 @@ export default function StatsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-500 text-sm">Chargement…</div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin" />
+          <span className="text-sm text-gray-500">Chargement...</span>
+        </div>
+      </div>
     )
   }
 
