@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Search, Calculator, Share2, BarChart3 } from 'lucide-react'
+import { Users, Search, Calculator, Car, BarChart3 } from 'lucide-react'
 
 // ── Mockup: Clients ─────────────────────────────────────────────────────────
 
@@ -171,42 +171,61 @@ function MockupFinance() {
   )
 }
 
-// ── Mockup: Partage WhatsApp ─────────────────────────────────────────────────
+// ── Mockup: Annonces ─────────────────────────────────────────────────────────
 
-function MockupPartage() {
+function MockupAnnonces() {
+  const listings = [
+    { flag: '🇩🇪', name: 'BMW 320d xDrive Touring', sub: 'G21 · 2021', info: '45 000 km · Diesel · Auto', price: '28 900 €', score: 94, status: 'En négo', statusColor: 'bg-orange-500/20 text-orange-400', client: 'Jean Dupont', margin: '+3 250 €' },
+    { flag: '🇫🇷', name: 'Tesla Model Y LR', sub: '2023', info: '15 000 km · Élec. · Auto', price: '42 500 €', score: 92, status: 'Vue', statusColor: 'bg-blue-500/20 text-blue-400', client: 'Alexandre Roux', margin: '+2 800 €' },
+    { flag: '🇧🇪', name: 'Audi A6 Avant', sub: '2020', info: '72 000 km · Diesel · Auto', price: '33 000 €', score: 80, status: 'Nouvelle', statusColor: 'bg-gray-500/20 text-gray-400', client: null, margin: null },
+    { flag: '🇳🇱', name: 'Peugeot 3008 GT Hybrid', sub: '2022', info: '38 000 km · Hybride · Auto', price: '26 500 €', score: 88, status: 'Vue', statusColor: 'bg-blue-500/20 text-blue-400', client: 'Karim Benali', margin: '+1 950 €' },
+  ]
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-white">Partager 3 annonces avec Jean Dupont</p>
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs text-gray-500">4 annonces</p>
+        <div className="flex gap-1.5">
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-500 text-white font-semibold">+ Nouvelle annonce</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">CSV</span>
+        </div>
+      </div>
       <div className="flex gap-1.5">
-        {[
-          { icon: '📱', label: 'WhatsApp groupé', active: true },
-          { icon: '📩', label: '1 par annonce', active: false },
-          { icon: '📊', label: 'Tableau', active: false },
-          { icon: '📝', label: 'Résumé', active: false },
-        ].map((m, i) => (
-          <span key={i} className={`text-[9px] px-2 py-1 rounded-lg border ${m.active ? 'bg-orange-500/20 border-orange-500/30 text-orange-400 font-semibold' : 'bg-white/[0.02] border-white/[0.06] text-gray-500'}`}>
-            {m.icon} {m.label}
-          </span>
+        <div className="flex-1 h-6 rounded-md bg-white/[0.03] border border-white/[0.06] flex items-center px-2">
+          <Search className="w-2.5 h-2.5 text-gray-600 mr-1" />
+          <span className="text-[9px] text-gray-600">Rechercher...</span>
+        </div>
+        {['Tous les clients', 'Tous les statuts', 'Tous les pays', 'Score ↓'].map((f, i) => (
+          <span key={i} className="text-[8px] px-1.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06] text-gray-500 whitespace-nowrap">{f}</span>
         ))}
       </div>
-      <div className="rounded-xl bg-[#0b1a14] border border-green-500/10 p-3 space-y-2">
-        <p className="text-[10px] text-green-300 font-medium">Bonjour Jean,</p>
-        <p className="text-[10px] text-green-200/80">Voici 3 sélections pour vous :</p>
-        {[
-          { car: 'Tesla Model Y — 2023', price: '35 000 €', km: '15 000 km', score: '94/100 ✨' },
-          { car: 'BMW i4 — 2022', price: '38 000 €', km: '22 000 km', score: '93/100 ✨' },
-          { car: 'Audi A6 Avant — 2020', price: '33 000 €', km: '72 000 km', score: '80/100' },
-        ].map((v, i) => (
-          <div key={i} className="pl-1">
-            <p className="text-[10px] text-green-200/90 font-medium">🚗 {v.car}</p>
-            <p className="text-[9px] text-green-200/60 pl-4">{v.price} · {v.km}</p>
-            <p className="text-[9px] text-green-200/60 pl-4">Score : {v.score}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {listings.map((l, i) => (
+          <div key={i} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px]">{l.flag}</span>
+                <span className={`text-[8px] px-1.5 py-0.5 rounded ${l.statusColor}`}>{l.status}</span>
+              </div>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${l.score >= 90 ? 'bg-green-500/20 text-green-400' : l.score >= 85 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                {l.score}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-white leading-tight">{l.name}</p>
+              <p className="text-[9px] text-gray-500">{l.sub}</p>
+            </div>
+            <p className="text-[9px] text-gray-500">{l.info}</p>
+            <p className="text-sm font-bold text-orange-400">{l.price}</p>
+            <div className="flex items-center justify-between pt-0.5">
+              {l.margin ? (
+                <span className="text-[8px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 font-medium">Marge : {l.margin}</span>
+              ) : (
+                <span className="text-[8px] text-gray-600">—</span>
+              )}
+              <span className="text-[8px] text-gray-500">{l.client ? `👤 ${l.client}` : 'Non assigné'}</span>
+            </div>
           </div>
         ))}
-      </div>
-      <div className="flex gap-2 justify-end">
-        <span className="text-[10px] px-2.5 py-1 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">📋 Copier</span>
-        <span className="text-[10px] px-2.5 py-1 rounded-md bg-green-600 text-white font-semibold">📲 Ouvrir WhatsApp</span>
       </div>
     </div>
   )
@@ -293,20 +312,20 @@ const tabs = [
     mockup: <MockupRecherche />,
   },
   {
+    id: 'listings',
+    label: 'Annonces',
+    icon: Car,
+    title: 'Toutes vos annonces centralisées',
+    description: 'Scoring auto, filtres multi-critères, marge calculée. Chaque annonce est analysée et prête à être partagée.',
+    mockup: <MockupAnnonces />,
+  },
+  {
     id: 'margin',
     label: 'Finance',
     icon: Calculator,
     title: 'Finance & Objectifs',
     description: 'CA, charges, marge nette en temps réel. Fixez vos objectifs et suivez votre progression.',
     mockup: <MockupFinance />,
-  },
-  {
-    id: 'share',
-    label: 'Partage',
-    icon: Share2,
-    title: 'Partage client WhatsApp',
-    description: 'Envoyez votre sélection en 1 clic. 4 formats au choix : groupé, détaillé, tableau, résumé.',
-    mockup: <MockupPartage />,
   },
   {
     id: 'stats',
