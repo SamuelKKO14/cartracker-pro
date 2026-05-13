@@ -3,6 +3,278 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Search, Calculator, Share2, BarChart3 } from 'lucide-react'
 
+// ── Mockup: Clients ─────────────────────────────────────────────────────────
+
+function MockupClients() {
+  const clients = [
+    { initials: 'AR', color: 'bg-blue-500/20 text-blue-400', name: 'Alexandre Roux', badge: 'Forfait mensuel', phone: '06 12 34 56 78', email: 'a.roux@mail.fr', budget: '30 000 – 45 000 €', criteria: 'Tesla Model 3/Y, max 60k km', count: 3 },
+    { initials: 'JD', color: 'bg-orange-500/20 text-orange-400', name: 'Jean-Pierre Dubois', badge: 'Forfait mensuel', phone: '06 98 76 54 32', email: 'jp.dubois@mail.fr', budget: '20 000 – 30 000 €', criteria: 'SUV diesel, Peugeot/Renault', count: 2 },
+    { initials: 'KB', color: 'bg-green-500/20 text-green-400', name: 'Karim Benali', badge: 'Forfait mensuel', phone: '07 45 67 89 01', email: 'k.benali@mail.fr', budget: '35 000 – 50 000 €', criteria: 'BMW Série 3/4, max 40k km', count: 4 },
+  ]
+  return (
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs text-gray-500">3 clients</p>
+        <div className="flex gap-1.5">
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-500 text-white font-semibold">+ Nouveau client</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">CSV</span>
+        </div>
+      </div>
+      <div className="h-7 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center px-2.5">
+        <Search className="w-3 h-3 text-gray-600 mr-1.5" />
+        <span className="text-[10px] text-gray-600">Rechercher un client...</span>
+      </div>
+      {clients.map((c, i) => (
+        <div key={i} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-start gap-2.5">
+          <div className={`w-8 h-8 rounded-full ${c.color} flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5`}>{c.initials}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-white truncate">{c.name}</p>
+              <span className="text-[8px] px-1.5 py-0.5 rounded bg-white/[0.06] text-gray-500 shrink-0">{c.badge}</span>
+            </div>
+            <p className="text-[10px] text-gray-500 mt-0.5">{c.phone} · {c.email}</p>
+            <p className="text-[10px] text-gray-500">Budget : {c.budget}</p>
+            <p className="text-[10px] text-gray-600 italic truncate">{c.criteria}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-[10px] text-gray-400 font-medium">{c.count} ann.</p>
+            <span className="text-gray-600 text-xs">→</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Mockup: Recherche ────────────────────────────────────────────────────────
+
+function MockupRecherche() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-white">Tendances du moment 🔥</p>
+        <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">Actualiser</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+          <p className="text-[10px] font-semibold text-orange-400">🔥 PRIX EN BAISSE</p>
+          {[
+            { name: 'Tesla Model 3 SR+', pct: '-8%' },
+            { name: 'BMW i4 eDrive40', pct: '-5%' },
+            { name: 'Peugeot 3008 II', pct: '-6%' },
+          ].map((v, i) => (
+            <div key={i} className="flex justify-between items-center">
+              <span className="text-[9px] text-gray-400 truncate mr-1">{v.name}</span>
+              <span className="text-[9px] text-red-400 font-semibold shrink-0">{v.pct}</span>
+            </div>
+          ))}
+        </div>
+        <div className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+          <p className="text-[10px] font-semibold text-blue-400">🌍 PAYS AVANTAGEUX</p>
+          {[
+            { flag: '🇩🇪', name: 'Allemagne', note: '-10 à -15%' },
+            { flag: '🇧🇪', name: 'Belgique', note: '-5 à -10%' },
+            { flag: '🇳🇱', name: 'Pays-Bas', note: '-5 à -8%' },
+          ].map((p, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <span className="text-[10px]">{p.flag}</span>
+              <span className="text-[9px] text-gray-400 truncate">{p.name}</span>
+              <span className="text-[8px] text-green-400 shrink-0 ml-auto">{p.note}</span>
+            </div>
+          ))}
+        </div>
+        <div className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+          <p className="text-[10px] font-semibold text-purple-400">⚡ SEGMENTS CHAUDS</p>
+          {[
+            { name: 'SUV hybrides compacts', trend: '↑' },
+            { name: 'Berlines élec. premium', trend: '↑' },
+            { name: 'Breaks diesel premium', trend: '↓' },
+          ].map((s, i) => (
+            <div key={i} className="flex justify-between items-center">
+              <span className="text-[9px] text-gray-400 truncate mr-1">{s.name}</span>
+              <span className={`text-[9px] font-semibold shrink-0 ${s.trend === '↑' ? 'text-green-400' : 'text-red-400'}`}>{s.trend}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+        <p className="text-[10px] font-semibold text-white mb-1.5">✨ Import intelligent</p>
+        <div className="rounded-md bg-black/30 border border-white/[0.05] p-2 mb-1.5">
+          <p className="text-[9px] text-gray-500 leading-relaxed">BMW 320d xDrive Touring – 2021, 45 000 km · Diesel · Automatique, Prix : 28 900 €</p>
+        </div>
+        <div className="flex justify-end">
+          <span className="text-[10px] px-2.5 py-1 rounded-md bg-orange-500 text-white font-semibold">✨ Analyser</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Mockup: Finance / Marge ──────────────────────────────────────────────────
+
+function MockupFinance() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-semibold">Vue actuelle</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-md text-gray-500">Historique</span>
+        </div>
+        <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">CSV</span>
+      </div>
+      <div className="flex gap-1.5 text-[9px]">
+        {['Ce mois', 'Mois préc.', 'Trimestre'].map((f, i) => (
+          <span key={i} className="px-1.5 py-0.5 rounded bg-white/[0.04] text-gray-500">{f}</span>
+        ))}
+        <span className="px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-semibold">Cette année</span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5">
+        {[
+          { label: "Chiffre d'affaires", value: '516 500 €', color: 'text-white' },
+          { label: 'Total charges', value: '415 350 €', color: 'text-white' },
+          { label: 'Marge nette', value: '59 150 €', color: 'text-green-400' },
+          { label: 'Marge moy./vente', value: '3 943 €', color: 'text-green-400', sub: '17 ventes' },
+        ].map((kpi, i) => (
+          <div key={i} className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            <p className="text-[8px] text-gray-500 mb-0.5">{kpi.label}</p>
+            <p className={`text-xs font-bold ${kpi.color}`}>{kpi.value}</p>
+            {kpi.sub && <p className="text-[8px] text-gray-600">{kpi.sub}</p>}
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="text-[10px] font-semibold text-white mb-2">📊 Objectifs</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            <div className="flex justify-between text-[9px] mb-1">
+              <span className="text-gray-400">Marge mensuelle</span>
+              <span className="text-gray-500">0 € / 5 000 €</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-white/[0.06]">
+              <div className="h-full w-[2%] rounded-full bg-red-500" />
+            </div>
+            <p className="text-[8px] text-red-400 mt-1">0% — il manque 5 000 €</p>
+          </div>
+          <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            <div className="flex justify-between text-[9px] mb-1">
+              <span className="text-gray-400">CA annuel</span>
+              <span className="text-gray-500">516 500 € / 100 000 €</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-white/[0.06]">
+              <div className="h-full w-full rounded-full bg-green-500" />
+            </div>
+            <p className="text-[8px] text-green-400 mt-1">Objectif atteint ✓</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Mockup: Partage WhatsApp ─────────────────────────────────────────────────
+
+function MockupPartage() {
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-white">Partager 3 annonces avec Jean Dupont</p>
+      <div className="flex gap-1.5">
+        {[
+          { icon: '📱', label: 'WhatsApp groupé', active: true },
+          { icon: '📩', label: '1 par annonce', active: false },
+          { icon: '📊', label: 'Tableau', active: false },
+          { icon: '📝', label: 'Résumé', active: false },
+        ].map((m, i) => (
+          <span key={i} className={`text-[9px] px-2 py-1 rounded-lg border ${m.active ? 'bg-orange-500/20 border-orange-500/30 text-orange-400 font-semibold' : 'bg-white/[0.02] border-white/[0.06] text-gray-500'}`}>
+            {m.icon} {m.label}
+          </span>
+        ))}
+      </div>
+      <div className="rounded-xl bg-[#0b1a14] border border-green-500/10 p-3 space-y-2">
+        <p className="text-[10px] text-green-300 font-medium">Bonjour Jean,</p>
+        <p className="text-[10px] text-green-200/80">Voici 3 sélections pour vous :</p>
+        {[
+          { car: 'Tesla Model Y — 2023', price: '35 000 €', km: '15 000 km', score: '94/100 ✨' },
+          { car: 'BMW i4 — 2022', price: '38 000 €', km: '22 000 km', score: '93/100 ✨' },
+          { car: 'Audi A6 Avant — 2020', price: '33 000 €', km: '72 000 km', score: '80/100' },
+        ].map((v, i) => (
+          <div key={i} className="pl-1">
+            <p className="text-[10px] text-green-200/90 font-medium">🚗 {v.car}</p>
+            <p className="text-[9px] text-green-200/60 pl-4">{v.price} · {v.km}</p>
+            <p className="text-[9px] text-green-200/60 pl-4">Score : {v.score}</p>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 justify-end">
+        <span className="text-[10px] px-2.5 py-1 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">📋 Copier</span>
+        <span className="text-[10px] px-2.5 py-1 rounded-md bg-green-600 text-white font-semibold">📲 Ouvrir WhatsApp</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Mockup: Stats ────────────────────────────────────────────────────────────
+
+function MockupStats() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-white">Statistiques</p>
+        <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-gray-400 border border-white/[0.08]">CSV</span>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { label: 'Total annonces', value: '22', color: 'text-white' },
+          { label: 'Prix moyen', value: '26 235 €', color: 'text-white' },
+          { label: 'KM moyen', value: '59 814', color: 'text-white' },
+          { label: 'Score moyen', value: '81/100', color: 'text-green-400' },
+          { label: 'Bonnes affaires', value: '20', color: 'text-green-400' },
+          { label: 'Marge totale', value: '59 150 €', color: 'text-green-400' },
+        ].map((s, i) => (
+          <div key={i} className="p-1.5 rounded-lg bg-white/[0.02] border border-white/[0.06] text-center">
+            <p className="text-[8px] text-gray-500">{s.label}</p>
+            <p className={`text-[11px] font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+        <p className="text-[10px] font-semibold text-white mb-2">📈 Évolution mensuelle (6 mois)</p>
+        <svg viewBox="0 0 240 60" className="w-full h-12" fill="none">
+          <path d="M0,50 L40,42 L80,35 L120,20 L160,15 L200,22 L240,18" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M0,50 L40,42 L80,35 L120,20 L160,15 L200,22 L240,18 L240,60 L0,60Z" fill="url(#grad)" />
+          <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f97316" stopOpacity="0.2" /><stop offset="100%" stopColor="#f97316" stopOpacity="0" /></linearGradient></defs>
+          {['Déc', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'].map((m, i) => (
+            <text key={i} x={i * 40} y="59" className="text-[6px] fill-gray-600">{m}</text>
+          ))}
+        </svg>
+      </div>
+      <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+        <p className="text-[10px] font-semibold text-white mb-1.5">🏆 Top 5 meilleures affaires</p>
+        <div className="space-y-1">
+          <div className="grid grid-cols-[16px_1fr_40px_52px_44px_48px] gap-1 text-[8px] text-gray-600 font-medium pb-0.5 border-b border-white/[0.04]">
+            <span>#</span><span>Véhicule</span><span>Année</span><span className="text-right">Prix</span><span className="text-right">Score</span><span className="text-right">Statut</span>
+          </div>
+          {[
+            { rank: 1, car: 'Tesla Model Y', year: '2023', price: '35 000 €', score: '94', status: 'Vu', statusColor: 'bg-blue-500/20 text-blue-400' },
+            { rank: 2, car: 'BMW i4', year: '2022', price: '38 000 €', score: '93', status: 'Revendu', statusColor: 'bg-green-500/20 text-green-400' },
+            { rank: 3, car: 'Tesla Model 3', year: '2022', price: '27 500 €', score: '92', status: 'Revendu', statusColor: 'bg-green-500/20 text-green-400' },
+          ].map((r) => (
+            <div key={r.rank} className="grid grid-cols-[16px_1fr_40px_52px_44px_48px] gap-1 text-[9px] items-center">
+              <span className="text-orange-400 font-bold">#{r.rank}</span>
+              <span className="text-gray-300 truncate">{r.car}</span>
+              <span className="text-gray-500">{r.year}</span>
+              <span className="text-gray-300 text-right">{r.price}</span>
+              <span className="text-green-400 text-right font-semibold">{r.score}</span>
+              <span className={`text-[8px] px-1 py-0.5 rounded text-center ${r.statusColor}`}>{r.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Tab definitions ──────────────────────────────────────────────────────────
+
 const tabs = [
   {
     id: 'clients',
@@ -10,69 +282,23 @@ const tabs = [
     icon: Users,
     title: 'Gestion clients centralisée',
     description: 'Créez un dossier par client avec budget, critères et timeline complète de vos échanges.',
-    mockup: (
-      <div className="space-y-3">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">JD</div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-white">Jean Dupont</p>
-            <p className="text-xs text-gray-400">Budget : 15-25k€ · SUV diesel</p>
-          </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">Actif</span>
-        </div>
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">ML</div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-white">Marie Leroy</p>
-            <p className="text-xs text-gray-400">Budget : 30-45k€ · Berline</p>
-          </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400">Négo</span>
-        </div>
-      </div>
-    )
+    mockup: <MockupClients />,
   },
   {
     id: 'search',
     label: 'Recherche',
     icon: Search,
-    title: 'Recherche multi-pays IA',
-    description: "Importez depuis 16 pays européens. L'IA analyse, score et calcule la marge nette.",
-    mockup: (
-      <div className="space-y-3">
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-white">BMW X3 xDrive20d</p>
-            <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">87/100</span>
-          </div>
-          <p className="text-xs text-gray-400">2021 · 65k km · DE · 22 900€</p>
-        </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-white">Audi Q5 2.0 TDI</p>
-            <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400">72/100</span>
-          </div>
-          <p className="text-xs text-gray-400">2021 · 65k km · BE · 24 500€</p>
-        </div>
-      </div>
-    )
+    title: 'Tendances & Import IA',
+    description: "Suivez les prix du marché, repérez les pays avantageux et importez n'importe quelle annonce en 5 secondes avec l'IA.",
+    mockup: <MockupRecherche />,
   },
   {
     id: 'margin',
-    label: 'Marge',
+    label: 'Finance',
     icon: Calculator,
-    title: 'Calculateur de marge',
-    description: 'Transport, CT, immatriculation, remise en état. Tout est compté pour la vraie marge nette.',
-    mockup: (
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between text-gray-300"><span>Prix d&apos;achat</span><span className="text-white font-mono">22 900€</span></div>
-        <div className="flex justify-between text-gray-300"><span>Transport DE→FR</span><span className="text-white font-mono">650€</span></div>
-        <div className="flex justify-between text-gray-300"><span>CT + Immat</span><span className="text-white font-mono">350€</span></div>
-        <div className="flex justify-between text-gray-300"><span>Remise en état</span><span className="text-white font-mono">800€</span></div>
-        <div className="h-px bg-white/10 my-2" />
-        <div className="flex justify-between text-gray-300"><span>Prix de revente</span><span className="text-white font-mono">28 000€</span></div>
-        <div className="flex justify-between font-bold pt-2"><span className="text-green-400">Marge nette</span><span className="text-green-400 font-mono">+3 300€</span></div>
-      </div>
-    )
+    title: 'Finance & Objectifs',
+    description: 'CA, charges, marge nette en temps réel. Fixez vos objectifs et suivez votre progression.',
+    mockup: <MockupFinance />,
   },
   {
     id: 'share',
@@ -80,45 +306,19 @@ const tabs = [
     icon: Share2,
     title: 'Partage client WhatsApp',
     description: 'Envoyez votre sélection en 1 clic. 4 formats au choix : groupé, détaillé, tableau, résumé.',
-    mockup: (
-      <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-sm">
-        <p className="text-gray-300 mb-2">Bonjour Jean,</p>
-        <p className="text-gray-300 mb-2">Voici ma sélection :</p>
-        <p className="text-white">• BMW X3 — 22 900€ — DE</p>
-        <p className="text-white">• Audi Q5 — 24 500€ — BE</p>
-        <p className="text-gray-300 mt-2">Dites-moi lequel vous intéresse !</p>
-      </div>
-    )
+    mockup: <MockupPartage />,
   },
   {
     id: 'stats',
     label: 'Stats',
     icon: BarChart3,
-    title: 'Stats & Finance',
-    description: 'CA, marges, objectifs mensuels. Pilotez votre activité comme un vrai business.',
-    mockup: (
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <p className="text-xs text-gray-400">CA du mois</p>
-          <p className="text-xl font-bold text-white">42 580€</p>
-          <p className="text-xs text-green-400">+18% vs avril</p>
-        </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <p className="text-xs text-gray-400">Marge moyenne</p>
-          <p className="text-xl font-bold text-white">2 840€</p>
-          <p className="text-xs text-green-400">+12% vs avril</p>
-        </div>
-        <div className="col-span-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-          <p className="text-xs text-gray-400">Objectif mensuel</p>
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex-1 h-2 rounded-full bg-white/10"><div className="h-full w-3/4 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500" /></div>
-            <span className="text-sm font-bold text-orange-400">76%</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
+    title: 'Statistiques détaillées',
+    description: 'Annonces, scores, prix moyens, top affaires. Pilotez votre activité avec des données concrètes.',
+    mockup: <MockupStats />,
+  },
 ]
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export function FeatureTabs() {
   const [active, setActive] = useState(0)
@@ -189,7 +389,7 @@ export function FeatureTabs() {
           </div>
 
           {/* Tab content */}
-          <div className="p-6 md:p-10 min-h-[400px]">
+          <div className="p-6 md:p-8 h-[480px] overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={tabs[active].id}
@@ -197,17 +397,17 @@ export function FeatureTabs() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="grid md:grid-cols-2 gap-8 items-center"
+                className="grid md:grid-cols-[280px_1fr] gap-6 items-start h-full"
               >
-                <div>
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                <div className="flex flex-col justify-center">
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
                     {tabs[active].title}
                   </h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <p className="text-sm text-gray-400 leading-relaxed">
                     {tabs[active].description}
                   </p>
                 </div>
-                <div className="rounded-xl bg-black/40 border border-white/[0.05] p-5">
+                <div className="rounded-xl bg-black/40 border border-white/[0.05] p-4 overflow-hidden">
                   {tabs[active].mockup}
                 </div>
               </motion.div>
