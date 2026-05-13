@@ -510,7 +510,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           2b. STICKY SCROLL — Parcours détaillé 4 étapes
           ══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#080b10]">
+      <section className="bg-[#06090f]">
         <div className="max-w-6xl mx-auto px-4 pt-20 pb-8">
           <motion.div
             variants={fadeUp}
@@ -532,7 +532,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           3. COMMENT ÇA MARCHE — Card3D steps (résumé rapide)
           ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#080b10]">
+      <section className="py-24 px-4 bg-[#06090f]">
         <div className="max-w-6xl mx-auto">
           <motion.div
             variants={fadeUp}
@@ -625,7 +625,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           5. ÉCOSYSTÈME — OrbitingCircles
           ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#080b10]">
+      <section className="py-24 px-4 bg-[#06090f]">
         <div className="max-w-4xl mx-auto">
           <motion.div
             variants={fadeUp}
@@ -763,7 +763,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           6b. EN DÉVELOPPEMENT ACTIF — BentoGrid cards
           ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-4 bg-[#080b10]">
+      <section className="py-20 px-4 bg-[#06090f]">
         <div className="max-w-6xl mx-auto">
           <motion.div
             variants={fadeUp}
@@ -812,7 +812,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           7. TARIFS — GlassCards + BorderBeam on Pro
           ══════════════════════════════════════════════════════════════════════ */}
-      <section id="tarifs" className="py-24 px-4 bg-[#080b10]">
+      <section id="tarifs" className="py-24 px-4 bg-[#06090f]">
         <div className="max-w-5xl mx-auto">
           <motion.div
             variants={fadeUp}
@@ -957,7 +957,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           9. FAQ — Glassmorphism accordion
           ══════════════════════════════════════════════════════════════════════ */}
-      <section id="faq" className="py-24 px-4 bg-[#080b10]">
+      <section id="faq" className="py-24 px-4 bg-[#06090f]">
         <div className="max-w-3xl mx-auto">
           <motion.div
             variants={fadeUp}
