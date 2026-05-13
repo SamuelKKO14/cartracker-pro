@@ -218,15 +218,42 @@ const SITES_OUTER = [
   { name: 'ParuVendu', short: 'PV' },
 ]
 
-const COMPARE_ROWS = [
-  { feature: "Import IA depuis sites européens", ctp: true, a: false, b: false, c: false },
-  { feature: "Extension Chrome d'import", ctp: 'bientôt', a: false, b: false, c: false },
-  { feature: "Partage client sans source", ctp: 'bientôt', a: false, b: "Partiel", c: false },
-  { feature: "Assistant IA intégré", ctp: true, a: false, b: false, c: false },
-  { feature: "16 pays européens", ctp: true, a: "France seule", b: "4 pays", c: "France seule" },
-  { feature: "Calcul de marge complet", ctp: true, a: "Partiel", b: true, c: "Partiel" },
-  { feature: "Blog intégré", ctp: 'bientôt', a: false, b: false, c: false },
-  { feature: "Prix", ctp: "Dès 0€", a: "50-150€/m.", b: "80-200€/m.", c: "60-120€/m." },
+const COMPETITORS = ['CarTracker Pro', 'AutoCerfa', 'Optimcar', 'eAuto', 'Spider VO']
+
+const COMPARE_ROWS: { feature: string; values: (boolean | string)[] }[] = [
+  { feature: "Import IA depuis 16 pays europeens", values: [true, 'FR seule', 'FR seule', 'FR seule', 'FR seule'] },
+  { feature: "Recherche multi-sites simultanee", values: [true, 'Partiel', false, 'Partiel', 'Partiel'] },
+  { feature: "Score \"bonne affaire\" auto-calcule", values: [true, false, false, false, false] },
+  { feature: "Calculateur de marge complet", values: [true, 'Partiel', true, 'Partiel', 'Partiel'] },
+  { feature: "Checklist pre-achat 12 points", values: [true, false, false, false, false] },
+  { feature: "Vue Kanban drag & drop", values: [true, false, false, false, false] },
+  { feature: "Partage WhatsApp formate", values: [true, false, false, 'Email seul', false] },
+  { feature: "Notes client avec timeline", values: [true, 'Partiel', true, true, true] },
+  { feature: "Tags personnalises illimites", values: [true, false, 'Partiel', false, false] },
+  { feature: "Cout d'import auto-calcule", values: [true, false, false, false, false] },
+  { feature: "Assistant IA integre (Gamos)", values: [true, false, false, 'Partiel', false] },
+  { feature: "Tendances marche temps reel", values: [true, false, false, false, false] },
+  { feature: "Export CSV personnalisable", values: [true, true, true, true, true] },
+  { feature: "Comparaison annonces cote a cote", values: [true, false, false, false, false] },
+  { feature: "Extension Chrome import", values: ['bientot', false, false, false, false] },
+  { feature: "Partage client par lien web", values: ['bientot', false, false, false, false] },
+  { feature: "Blog integre marketing", values: ['bientot', false, false, false, false] },
+  { feature: "Multi-utilisateurs equipe", values: ['Plan Agence', true, true, true, true] },
+  { feature: "Mobile responsive complet", values: [true, 'Partiel', true, true, true] },
+  { feature: "API Anthropic Claude integree", values: [true, false, false, false, false] },
+  { feature: "Recherches sauvegardees", values: [true, false, false, false, false] },
+  { feature: "Alertes prix automatiques", values: ['bientot', false, false, false, false] },
+  { feature: "Historique des prix par annonce", values: [true, false, false, false, false] },
+  { feature: "Prix mensuel", values: ['Des 0€', '49-150€/m', '80-250€/m', '60-180€/m', '70-200€/m'] },
+  { feature: "Essai gratuit", values: [true, '30€ credits', false, false, 'Demo seule'] },
+]
+
+const UPCOMING_FEATURES = [
+  { icon: Puzzle, title: "Extension Chrome d'import en 1 clic", desc: "Importez n'importe quelle annonce directement depuis votre navigateur sans copier-coller. Compatible AutoScout24, La Centrale, LeBonCoin, mobile.de et plus.", badge: 'T1 2026' },
+  { icon: Share2, title: "Partage client par lien web personnalise", desc: "Generez un lien unique a envoyer a votre client. Il consulte les annonces selectionnees sur une page premium a votre nom, peut liker/commenter en temps reel.", badge: 'T1 2026' },
+  { icon: Newspaper, title: "Blog integre marketing automatique", desc: "Notre IA genere pour vous des articles SEO sur les tendances auto, a publier sur votre site pour attirer plus de clients.", badge: 'T2 2026' },
+  { icon: TrendingUp, title: "Alertes prix automatiques", desc: "Soyez prevenu instantanement quand une annonce que vous suivez baisse de prix. Historique complet des variations.", badge: 'T2 2026' },
+  { icon: Users, title: "Mode multi-utilisateurs avance", desc: "Assignez des clients a des collaborateurs, voyez qui travaille sur quoi, statistiques par membre d'equipe.", badge: 'T3 2026' },
 ]
 
 const FAQS = [
@@ -651,10 +678,10 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          6. TABLEAU COMPARATIF
+          6. TABLEAU COMPARATIF — Vrais concurrents
           ══════════════════════════════════════════════════════════════════════ */}
       <section className="py-24 px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -664,8 +691,9 @@ export default function LandingPage() {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
-              CarTracker Pro vs les autres
+              CarTracker Pro vs la concurrence
             </h2>
+            <p className="text-gray-400">Comparaison detaillee avec les principaux outils du marche</p>
           </motion.div>
 
           <motion.div
@@ -677,26 +705,27 @@ export default function LandingPage() {
             className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
+              <table className="w-full text-sm min-w-[700px]">
+                <thead className="sticky top-0 z-10 bg-[#0d1117]/95 backdrop-blur-xl">
                   <tr className="border-b border-white/[0.06]">
-                    <th className="text-left px-5 py-4 text-gray-400 font-medium">Fonctionnalité</th>
-                    <th className="px-4 py-4 text-orange-400 font-semibold">CarTracker Pro</th>
-                    <th className="px-4 py-4 text-gray-500 font-medium">Outil A</th>
-                    <th className="px-4 py-4 text-gray-500 font-medium">Outil B</th>
-                    <th className="px-4 py-4 text-gray-500 font-medium">Outil C</th>
+                    <th className="text-left px-4 py-4 text-gray-400 font-medium min-w-[200px]">Fonctionnalite</th>
+                    {COMPETITORS.map((c, i) => (
+                      <th key={c} className={`px-3 py-4 text-center min-w-[100px] ${i === 0 ? 'text-orange-400 font-semibold' : 'text-gray-500 font-medium text-xs'}`}>
+                        {c}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {COMPARE_ROWS.map((row, ri) => (
                     <tr key={ri} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
-                      <td className="px-5 py-3.5 text-gray-300">{row.feature}</td>
-                      {[row.ctp, row.a, row.b, row.c].map((v, ci) => (
-                        <td key={ci} className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-3 text-gray-300 text-xs">{row.feature}</td>
+                      {row.values.map((v, ci) => (
+                        <td key={ci} className="px-3 py-3 text-center">
                           {v === true ? <Check className="w-4 h-4 text-green-400 mx-auto" />
                            : v === false ? <X className="w-4 h-4 text-red-500/40 mx-auto" />
-                           : v === 'bientôt' ? <span className="inline-flex items-center gap-1"><Check className="w-4 h-4 text-green-400" /><span className="text-[10px] text-gray-500 italic">(bientôt)</span></span>
-                           : <span className={`text-xs ${ci === 0 ? 'text-orange-400 font-semibold' : 'text-gray-600'}`}>{v}</span>}
+                           : v === 'bientot' ? <span className="inline-flex items-center gap-1 text-[10px]"><span className="text-yellow-400">🟡</span><span className="text-gray-500 italic">Bientot</span></span>
+                           : <span className={`text-[11px] ${ci === 0 ? 'text-orange-400 font-semibold' : 'text-gray-600'}`}>{v}</span>}
                         </td>
                       ))}
                     </tr>
@@ -705,6 +734,63 @@ export default function LandingPage() {
               </table>
             </div>
           </motion.div>
+
+          {/* Legende */}
+          <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500 justify-center">
+            <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-400" /> Inclus</span>
+            <span className="flex items-center gap-1"><span className="text-yellow-400">🟡</span> En developpement</span>
+            <span className="flex items-center gap-1"><X className="w-3 h-3 text-red-500/40" /> Non disponible</span>
+            <span>Partiel = Fonctionnalite limitee</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          6b. EN DÉVELOPPEMENT ACTIF — BentoGrid cards
+          ══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-4 bg-[#080b10]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={0}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
+              En developpement actif
+            </h2>
+            <p className="text-gray-400">Les fonctionnalites sur lesquelles on travaille en ce moment</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {UPCOMING_FEATURES.map((feat, i) => (
+              <motion.div
+                key={feat.title}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i * 0.08}
+                className={i === 0 ? 'md:col-span-2 lg:col-span-1' : ''}
+              >
+                <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full space-y-3 overflow-hidden">
+                  <BorderBeam size={120} duration={6} />
+                  <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] font-bold text-orange-400">
+                    {feat.badge}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                      <feat.icon className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-white pr-16">{feat.title}</h3>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">{feat.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
