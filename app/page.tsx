@@ -469,22 +469,22 @@ export default function LandingPage() {
       <section className="py-20 px-4 border-t border-white/[0.04]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { value: 16, suffix: '', label: 'Pays européens couverts' },
-            { value: 5, suffix: 's', label: "Secondes pour importer" },
-            { value: 3, suffix: '', label: 'Plans tarifaires' },
-            { value: 14, suffix: 'j', label: "D'essai gratuit" },
+            { display: '16', label: 'Pays europeens couverts' },
+            { display: '5s', label: 'Secondes pour importer' },
+            { display: '3', label: 'Plans tarifaires' },
+            { display: '14j', label: "D'essai gratuit" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
+              viewport={{ once: true, amount: 0.1 }}
               custom={i * 0.1}
               className="text-center space-y-1"
             >
-              <p className="text-4xl md:text-5xl font-extrabold text-orange-400">
-                <NumberTicker value={stat.value} suffix={stat.suffix} />
+              <p className="text-4xl md:text-5xl font-extrabold text-orange-400 tabular-nums tracking-tight">
+                {stat.display}
               </p>
               <p className="text-sm text-gray-500">{stat.label}</p>
             </motion.div>
