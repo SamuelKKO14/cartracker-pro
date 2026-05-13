@@ -17,6 +17,7 @@ import { Footer } from '@/components/landing/Footer'
 import { GridBackground } from '@/components/ui/aceternity/GridBackground'
 import { Meteors } from '@/components/ui/aceternity/Meteors'
 import { BackgroundBeams } from '@/components/ui/aceternity/BackgroundBeams'
+import { StickyScroll } from '@/components/ui/aceternity/StickyScroll'
 import { TextGenerateEffect } from '@/components/ui/aceternity/TextGenerateEffect'
 import { CardSpotlight } from '@/components/ui/aceternity/CardSpotlight'
 import { BentoGrid, BentoCard } from '@/components/ui/aceternity/BentoGrid'
@@ -45,6 +46,143 @@ const fadeUp = {
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+// ── Mockup illustrations for StickyScroll ─────────────────────────────────────
+
+function MockupClientFiche() {
+  return (
+    <div className="w-full max-w-[340px] rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-sm">JD</div>
+        <div>
+          <p className="text-sm font-semibold text-white">Jean Dupont</p>
+          <p className="text-xs text-gray-500">Budget : 15 000 - 25 000 EUR</p>
+        </div>
+      </div>
+      <div className="text-xs text-gray-400 space-y-1">
+        <p className="font-medium text-gray-300">Criteres : SUV, diesel, &lt;80 000 km</p>
+      </div>
+      <div className="space-y-2">
+        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Timeline</p>
+        {['Appel initial - discussion budget', 'Envoi selection 5 vehicules', 'Retour client - interesse par BMW X3'].map((note, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+            <div>
+              <p className="text-xs text-gray-400">{note}</p>
+              <p className="text-[10px] text-gray-600">{['12 mai', '14 mai', '15 mai'][i]}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MockupAnnonces() {
+  return (
+    <div className="w-full max-w-[340px] space-y-3">
+      {[
+        { marque: 'BMW X3 xDrive20d', prix: '22 900', score: 87, pays: 'DE', marge: '+3 200' },
+        { marque: 'Audi Q5 2.0 TDI', prix: '24 500', score: 72, pays: 'BE', marge: '+1 800' },
+      ].map((a, i) => (
+        <div key={i} className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 space-y-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-sm font-semibold text-white">{a.marque}</p>
+              <p className="text-xs text-gray-500">2021 - 65 000 km - {a.pays}</p>
+            </div>
+            <div className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-bold">{a.score}/100</div>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-400">{a.prix} EUR</span>
+            <span className="text-green-400 font-semibold">Marge {a.marge} EUR</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MockupCalculateur() {
+  return (
+    <div className="w-full max-w-[340px] rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 space-y-3">
+      <p className="text-sm font-semibold text-white">Calculateur de marge</p>
+      {[
+        { label: "Prix d'achat", value: '22 900 EUR', color: 'text-gray-300' },
+        { label: 'Transport DE→FR', value: '650 EUR', color: 'text-gray-400' },
+        { label: 'CT + Immat', value: '350 EUR', color: 'text-gray-400' },
+        { label: 'Remise en etat', value: '800 EUR', color: 'text-gray-400' },
+        { label: 'Prix de revente', value: '28 000 EUR', color: 'text-white' },
+      ].map((row, i) => (
+        <div key={i} className="flex justify-between text-xs">
+          <span className="text-gray-500">{row.label}</span>
+          <span className={row.color}>{row.value}</span>
+        </div>
+      ))}
+      <div className="border-t border-white/[0.06] pt-2 flex justify-between text-sm font-bold">
+        <span className="text-gray-300">Marge nette</span>
+        <span className="text-green-400">+3 300 EUR</span>
+      </div>
+      <div className="flex gap-2 mt-1">
+        {['HistoVec', 'CT OK', 'Pas de gage', 'Carnet OK'].map(c => (
+          <span key={c} className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{c}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MockupWhatsApp() {
+  return (
+    <div className="w-full max-w-[340px] rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 space-y-3">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+          <MessageSquare className="w-4 h-4 text-green-400" />
+        </div>
+        <p className="text-sm font-semibold text-white">Partage WhatsApp</p>
+      </div>
+      <div className="rounded-xl bg-[#0b3d2e]/40 border border-green-500/10 p-3 space-y-2">
+        <p className="text-xs text-green-300 font-medium">Bonjour Jean,</p>
+        <p className="text-xs text-green-200/80">Voici ma selection pour vous :</p>
+        <div className="space-y-1.5">
+          {['BMW X3 - 22 900 EUR - DE', 'Audi Q5 - 24 500 EUR - BE'].map((v, i) => (
+            <p key={i} className="text-xs text-green-200/70">• {v}</p>
+          ))}
+        </div>
+        <p className="text-xs text-green-200/60 italic">Dites-moi lequel vous interesse !</p>
+      </div>
+      <div className="flex items-center justify-center gap-2 pt-1">
+        <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center animate-bounce">
+          <span className="text-lg">🎉</span>
+        </div>
+        <p className="text-xs text-orange-400 font-medium">Vente conclue !</p>
+      </div>
+    </div>
+  )
+}
+
+const STICKY_SCROLL_ITEMS = [
+  {
+    title: 'Centralisez vos clients',
+    description: "Creez un dossier par client avec son budget, ses criteres et l'historique complet de vos echanges. Plus jamais de notes eparpillees sur post-it ou WhatsApp.",
+    content: <MockupClientFiche />,
+  },
+  {
+    title: 'Trouvez les bonnes affaires',
+    description: "Importez des annonces depuis 16 pays europeens (AutoScout24, La Centrale, LeBonCoin, mobile.de...). L'IA analyse, score, calcule le cout d'import et la marge nette.",
+    content: <MockupAnnonces />,
+  },
+  {
+    title: 'Analysez et negociez',
+    description: "Score \"bonne affaire\" auto-calcule sur 100. Calculateur de marge complet (transport, CT, immat, remise en etat). Checklist pre-achat 12 points. Vue Kanban pour suivre chaque dossier.",
+    content: <MockupCalculateur />,
+  },
+  {
+    title: 'Partagez et concluez',
+    description: "Envoyez une selection formatee a votre client par WhatsApp en 1 clic. Tableau comparatif, message groupe ou detaille. Confettis quand vous concluez la vente.",
+    content: <MockupWhatsApp />,
+  },
+]
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -328,7 +466,29 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          3. COMMENT ÇA MARCHE — Card3D steps
+          2b. STICKY SCROLL — Parcours détaillé 4 étapes
+          ══════════════════════════════════════════════════════════════════════ */}
+      <section className="bg-[#080b10]">
+        <div className="max-w-6xl mx-auto px-4 pt-20 pb-8">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={0}
+            className="text-center mb-8"
+          >
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
+              Votre parcours en 4 étapes
+            </h2>
+            <p className="text-gray-400">Découvrez comment CarTracker Pro structure votre activité</p>
+          </motion.div>
+        </div>
+        <StickyScroll items={STICKY_SCROLL_ITEMS} />
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          3. COMMENT ÇA MARCHE — Card3D steps (résumé rapide)
           ══════════════════════════════════════════════════════════════════════ */}
       <section className="py-24 px-4 bg-[#080b10]">
         <div className="max-w-6xl mx-auto">
