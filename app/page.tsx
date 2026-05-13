@@ -75,11 +75,11 @@ function MockupClientFiche() {
         </div>
       </div>
       <div className="text-xs text-gray-400 space-y-1">
-        <p className="font-medium text-gray-300">Criteres : SUV, diesel, &lt;80 000 km</p>
+        <p className="font-medium text-gray-300">Critères : SUV, diesel, &lt;80 000 km</p>
       </div>
       <div className="space-y-2">
         <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Timeline</p>
-        {['Appel initial - discussion budget', 'Envoi selection 5 vehicules', 'Retour client - interesse par BMW X3'].map((note, i) => (
+        {['Appel initial - discussion budget', 'Envoi sélection 5 véhicules', 'Retour client - intéressé par BMW X3'].map((note, i) => (
           <div key={i} className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
             <div>
@@ -126,7 +126,7 @@ function MockupCalculateur() {
         { label: "Prix d'achat", value: '22 900 EUR', color: 'text-gray-300' },
         { label: 'Transport DE→FR', value: '650 EUR', color: 'text-gray-400' },
         { label: 'CT + Immat', value: '350 EUR', color: 'text-gray-400' },
-        { label: 'Remise en etat', value: '800 EUR', color: 'text-gray-400' },
+        { label: 'Remise en état', value: '800 EUR', color: 'text-gray-400' },
         { label: 'Prix de revente', value: '28 000 EUR', color: 'text-white' },
       ].map((row, i) => (
         <div key={i} className="flex justify-between text-xs">
@@ -158,13 +158,13 @@ function MockupWhatsApp() {
       </div>
       <div className="rounded-xl bg-[#0b3d2e]/40 border border-green-500/10 p-3 space-y-2">
         <p className="text-xs text-green-300 font-medium">Bonjour Jean,</p>
-        <p className="text-xs text-green-200/80">Voici ma selection pour vous :</p>
+        <p className="text-xs text-green-200/80">Voici ma sélection pour vous :</p>
         <div className="space-y-1.5">
           {['BMW X3 - 22 900 EUR - DE', 'Audi Q5 - 24 500 EUR - BE'].map((v, i) => (
             <p key={i} className="text-xs text-green-200/70">• {v}</p>
           ))}
         </div>
-        <p className="text-xs text-green-200/60 italic">Dites-moi lequel vous interesse !</p>
+        <p className="text-xs text-green-200/60 italic">Dites-moi lequel vous intéresse !</p>
       </div>
       <div className="flex items-center justify-center gap-2 pt-1">
         <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center animate-bounce">
@@ -179,22 +179,22 @@ function MockupWhatsApp() {
 const STICKY_SCROLL_ITEMS = [
   {
     title: 'Centralisez vos clients',
-    description: "Creez un dossier par client avec son budget, ses criteres et l'historique complet de vos echanges. Plus jamais de notes eparpillees sur post-it ou WhatsApp.",
+    description: "Créez un dossier par client avec son budget, ses critères et l'historique complet de vos échanges. Plus jamais de notes éparpillées sur post-it ou WhatsApp.",
     content: <MockupClientFiche />,
   },
   {
     title: 'Trouvez les bonnes affaires',
-    description: "Importez des annonces depuis 16 pays europeens (AutoScout24, La Centrale, LeBonCoin, mobile.de...). L'IA analyse, score, calcule le cout d'import et la marge nette.",
+    description: "Importez des annonces depuis 16 pays européens (AutoScout24, La Centrale, LeBonCoin, mobile.de...). L'IA analyse, score, calcule le coût d'import et la marge nette.",
     content: <MockupAnnonces />,
   },
   {
-    title: 'Analysez et negociez',
-    description: "Score \"bonne affaire\" auto-calcule sur 100. Calculateur de marge complet (transport, CT, immat, remise en etat). Checklist pre-achat 12 points. Vue Kanban pour suivre chaque dossier.",
+    title: 'Analysez et négociez',
+    description: "Score \"bonne affaire\" auto-calculé sur 100. Calculateur de marge complet (transport, CT, immat, remise en état). Checklist pré-achat 12 points. Vue Kanban pour suivre chaque dossier.",
     content: <MockupCalculateur />,
   },
   {
     title: 'Partagez et concluez',
-    description: "Envoyez une selection formatee a votre client par WhatsApp en 1 clic. Tableau comparatif, message groupe ou detaille. Confettis quand vous concluez la vente.",
+    description: "Envoyez une sélection formatée à votre client par WhatsApp en 1 clic. Tableau comparatif, message groupé ou détaillé. Confettis quand vous concluez la vente.",
     content: <MockupWhatsApp />,
   },
 ]
@@ -236,39 +236,39 @@ const SITES_OUTER = [
 const COMPETITORS = ['CarTracker Pro', 'AutoCerfa', 'Optimcar', 'eAuto', 'Spider VO']
 
 const COMPARE_ROWS: { feature: string; values: (boolean | string)[] }[] = [
-  { feature: "Import IA depuis 16 pays europeens", values: [true, 'FR seule', 'FR seule', 'FR seule', 'FR seule'] },
-  { feature: "Recherche multi-sites simultanee", values: [true, 'Partiel', false, 'Partiel', 'Partiel'] },
-  { feature: "Score \"bonne affaire\" auto-calcule", values: [true, false, false, false, false] },
+  { feature: "Import IA depuis 16 pays européens", values: [true, 'FR seule', 'FR seule', 'FR seule', 'FR seule'] },
+  { feature: "Recherche multi-sites simultanée", values: [true, 'Partiel', false, 'Partiel', 'Partiel'] },
+  { feature: "Score \"bonne affaire\" auto-calculé", values: [true, false, false, false, false] },
   { feature: "Calculateur de marge complet", values: [true, 'Partiel', true, 'Partiel', 'Partiel'] },
-  { feature: "Checklist pre-achat 12 points", values: [true, false, false, false, false] },
+  { feature: "Checklist pré-achat 12 points", values: [true, false, false, false, false] },
   { feature: "Vue Kanban drag & drop", values: [true, false, false, false, false] },
-  { feature: "Partage WhatsApp formate", values: [true, false, false, 'Email seul', false] },
+  { feature: "Partage WhatsApp formaté", values: [true, false, false, 'Email seul', false] },
   { feature: "Notes client avec timeline", values: [true, 'Partiel', true, true, true] },
-  { feature: "Tags personnalises illimites", values: [true, false, 'Partiel', false, false] },
-  { feature: "Cout d'import auto-calcule", values: [true, false, false, false, false] },
-  { feature: "Assistant IA integre (Gamos)", values: [true, false, false, 'Partiel', false] },
+  { feature: "Tags personnalisés illimités", values: [true, false, 'Partiel', false, false] },
+  { feature: "Coût d'import auto-calculé", values: [true, false, false, false, false] },
+  { feature: "Assistant IA intégré (Gamos)", values: [true, false, false, 'Partiel', false] },
   { feature: "Tendances marche temps reel", values: [true, false, false, false, false] },
   { feature: "Export CSV personnalisable", values: [true, true, true, true, true] },
   { feature: "Comparaison annonces cote a cote", values: [true, false, false, false, false] },
   { feature: "Extension Chrome import", values: ['bientot', false, false, false, false] },
   { feature: "Partage client par lien web", values: ['bientot', false, false, false, false] },
-  { feature: "Blog integre marketing", values: ['bientot', false, false, false, false] },
+  { feature: "Blog intégré marketing", values: ['bientot', false, false, false, false] },
   { feature: "Multi-utilisateurs equipe", values: ['Plan Agence', true, true, true, true] },
   { feature: "Mobile responsive complet", values: [true, 'Partiel', true, true, true] },
-  { feature: "API Anthropic Claude integree", values: [true, false, false, false, false] },
-  { feature: "Recherches sauvegardees", values: [true, false, false, false, false] },
+  { feature: "API Anthropic Claude intégrée", values: [true, false, false, false, false] },
+  { feature: "Recherches sauvegardées", values: [true, false, false, false, false] },
   { feature: "Alertes prix automatiques", values: ['bientot', false, false, false, false] },
   { feature: "Historique des prix par annonce", values: [true, false, false, false, false] },
-  { feature: "Prix mensuel", values: ['Des 0€', '49-150€/m', '80-250€/m', '60-180€/m', '70-200€/m'] },
+  { feature: "Prix mensuel", values: ['Dès 0€', '49-150€/m', '80-250€/m', '60-180€/m', '70-200€/m'] },
   { feature: "Essai gratuit", values: [true, '30€ credits', false, false, 'Demo seule'] },
 ]
 
 const UPCOMING_FEATURES = [
   { icon: Puzzle, title: "Extension Chrome d'import en 1 clic", desc: "Importez n'importe quelle annonce directement depuis votre navigateur sans copier-coller. Compatible AutoScout24, La Centrale, LeBonCoin, mobile.de et plus.", badge: 'T1 2026' },
-  { icon: Share2, title: "Partage client par lien web personnalise", desc: "Generez un lien unique a envoyer a votre client. Il consulte les annonces selectionnees sur une page premium a votre nom, peut liker/commenter en temps reel.", badge: 'T1 2026' },
-  { icon: Newspaper, title: "Blog integre marketing automatique", desc: "Notre IA genere pour vous des articles SEO sur les tendances auto, a publier sur votre site pour attirer plus de clients.", badge: 'T2 2026' },
-  { icon: TrendingUp, title: "Alertes prix automatiques", desc: "Soyez prevenu instantanement quand une annonce que vous suivez baisse de prix. Historique complet des variations.", badge: 'T2 2026' },
-  { icon: Users, title: "Mode multi-utilisateurs avance", desc: "Assignez des clients a des collaborateurs, voyez qui travaille sur quoi, statistiques par membre d'equipe.", badge: 'T3 2026' },
+  { icon: Share2, title: "Partage client par lien web personnalisé", desc: "Générez un lien unique à envoyer à votre client. Il consulte les annonces sélectionnées sur une page premium à votre nom, peut liker/commenter en temps réel.", badge: 'T1 2026' },
+  { icon: Newspaper, title: "Blog intégré marketing automatique", desc: "Notre IA génère pour vous des articles SEO sur les tendances auto, à publier sur votre site pour attirer plus de clients.", badge: 'T2 2026' },
+  { icon: TrendingUp, title: "Alertes prix automatiques", desc: "Soyez prévenu instantanément quand une annonce que vous suivez baisse de prix. Historique complet des variations.", badge: 'T2 2026' },
+  { icon: Users, title: "Mode multi-utilisateurs avancé", desc: "Assignez des clients à des collaborateurs, voyez qui travaille sur quoi, statistiques par membre d'équipe.", badge: 'T3 2026' },
 ]
 
 const FAQS = [
@@ -484,7 +484,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 border-t border-white/[0.04]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { display: '16', label: 'Pays europeens couverts' },
+            { display: '16', label: 'Pays européens couverts' },
             { display: '5s', label: 'Secondes pour importer' },
             { display: '3', label: 'Plans tarifaires' },
             { display: '14j', label: "D'essai gratuit" },
@@ -708,7 +708,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
               CarTracker Pro vs la concurrence
             </h2>
-            <p className="text-gray-400">Comparaison detaillee avec les principaux outils du marche</p>
+            <p className="text-gray-400">Comparaison détaillée avec les principaux outils du marché</p>
           </motion.div>
 
           <motion.div
@@ -723,7 +723,7 @@ export default function LandingPage() {
               <table className="w-full text-sm min-w-[700px]">
                 <thead className="sticky top-0 z-10 bg-[#0d1117]/95 backdrop-blur-xl">
                   <tr className="border-b border-white/[0.06]">
-                    <th className="text-left px-4 py-4 text-gray-400 font-medium min-w-[200px]">Fonctionnalite</th>
+                    <th className="text-left px-4 py-4 text-gray-400 font-medium min-w-[200px]">Fonctionnalité</th>
                     {COMPETITORS.map((c, i) => (
                       <th key={c} className={`px-3 py-4 text-center min-w-[100px] ${i === 0 ? 'text-orange-400 font-semibold' : 'text-gray-500 font-medium text-xs'}`}>
                         {c}
@@ -753,9 +753,9 @@ export default function LandingPage() {
           {/* Legende */}
           <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500 justify-center">
             <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-400" /> Inclus</span>
-            <span className="flex items-center gap-1"><span className="text-yellow-400">🟡</span> En developpement</span>
+            <span className="flex items-center gap-1"><span className="text-yellow-400">🟡</span> En développement</span>
             <span className="flex items-center gap-1"><X className="w-3 h-3 text-red-500/40" /> Non disponible</span>
-            <span>Partiel = Fonctionnalite limitee</span>
+            <span>Partiel = Fonctionnalité limitée</span>
           </div>
         </div>
       </section>
@@ -774,7 +774,7 @@ export default function LandingPage() {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
-              En developpement actif
+              En développement actif
             </h2>
             <p className="text-gray-400">Les fonctionnalites sur lesquelles on travaille en ce moment</p>
           </motion.div>
