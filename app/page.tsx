@@ -249,20 +249,20 @@ const COMPARE_ROWS: { feature: string; values: (boolean | string)[] }[] = [
   { feature: "Tags personnalisés illimités", values: [true, false, 'Partiel', false, false] },
   { feature: "Coût d'import auto-calculé", values: [true, false, false, false, false] },
   { feature: "Assistant IA intégré (Gamos)", values: [true, false, false, 'Partiel', false] },
-  { feature: "Tendances marche temps reel", values: [true, false, false, false, false] },
+  { feature: "Tendances marché temps réel", values: [true, false, false, false, false] },
   { feature: "Export CSV personnalisable", values: [true, true, true, true, true] },
-  { feature: "Comparaison annonces cote a cote", values: [true, false, false, false, false] },
+  { feature: "Comparaison annonces côte à côte", values: [true, false, false, false, false] },
   { feature: "Extension Chrome import", values: ['bientot', false, false, false, false] },
   { feature: "Partage client par lien web", values: ['bientot', false, false, false, false] },
   { feature: "Blog intégré marketing", values: ['bientot', false, false, false, false] },
-  { feature: "Multi-utilisateurs equipe", values: ['Plan Agence', true, true, true, true] },
+  { feature: "Multi-utilisateurs équipe", values: ['Plan Agence', true, true, true, true] },
   { feature: "Mobile responsive complet", values: [true, 'Partiel', true, true, true] },
   { feature: "API Anthropic Claude intégrée", values: [true, false, false, false, false] },
   { feature: "Recherches sauvegardées", values: [true, false, false, false, false] },
   { feature: "Alertes prix automatiques", values: ['bientot', false, false, false, false] },
   { feature: "Historique des prix par annonce", values: [true, false, false, false, false] },
   { feature: "Prix mensuel", values: ['Dès 0€', '49-150€/m', '80-250€/m', '60-180€/m', '70-200€/m'] },
-  { feature: "Essai gratuit", values: [true, '30€ credits', false, false, 'Demo seule'] },
+  { feature: "Essai gratuit", values: [true, '30€ crédits', false, false, 'Démo seule'] },
 ]
 
 const UPCOMING_FEATURES = [
@@ -710,7 +710,7 @@ export default function LandingPage() {
                         <td key={ci} className="px-3 py-3 text-center">
                           {v === true ? <Check className="w-4 h-4 text-green-400 mx-auto" />
                            : v === false ? <X className="w-4 h-4 text-red-500/40 mx-auto" />
-                           : v === 'bientot' ? <span className="inline-flex items-center gap-1 text-[10px]"><span className="text-yellow-400">🟡</span><span className="text-gray-500 italic">Bientot</span></span>
+                           : v === 'bientot' ? <span className="inline-flex items-center gap-1 text-[10px]"><span className="text-yellow-400">🟡</span><span className="text-gray-500 italic">Bientôt</span></span>
                            : <span className={`text-[11px] ${ci === 0 ? 'text-orange-400 font-semibold' : 'text-gray-600'}`}>{v}</span>}
                         </td>
                       ))}
@@ -749,7 +749,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
               En développement actif
             </h2>
-            <p className="text-gray-400">Les fonctionnalites sur lesquelles on travaille en ce moment</p>
+            <p className="text-gray-400">Les fonctionnalités sur lesquelles on travaille en ce moment</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
