@@ -734,7 +734,7 @@ export default function LandingPage() {
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Démarrage</p>
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-gray-100"><NumberTicker value={15} prefix="" suffix="€" /></span>
+                    <span className="text-4xl font-extrabold text-gray-100">15€</span>
                     <span className="text-gray-500 text-sm mb-1">/mois</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Pour démarrer son activité</p>
@@ -762,7 +762,7 @@ export default function LandingPage() {
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">Pro</p>
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-gray-100"><NumberTicker value={39} prefix="" suffix="€" /></span>
+                    <span className="text-4xl font-extrabold text-gray-100">39€</span>
                     <span className="text-gray-500 text-sm mb-1">/mois</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Pour les pros actifs</p>
@@ -786,7 +786,7 @@ export default function LandingPage() {
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Agence</p>
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-gray-100"><NumberTicker value={79} prefix="" suffix="€" /></span>
+                    <span className="text-4xl font-extrabold text-gray-100">79€</span>
                     <span className="text-gray-500 text-sm mb-1">/mois</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Pour les équipes</p>
