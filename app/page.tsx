@@ -173,14 +173,14 @@ export default function LandingPage() {
           ══════════════════════════════════════════════════════════════════════ */}
       <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden">
         <GridBackground className="absolute inset-0 z-0" />
-        <Meteors count={15} className="z-[1]" />
+        <Meteors count={12} className="z-[1]" />
 
         <motion.div
           style={{ opacity: heroOpacity, scale: heroScale }}
           className="relative z-10 w-full max-w-7xl mx-auto px-4 pt-24 pb-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
         >
           {/* Left — Copy */}
-          <div className="space-y-6">
+          <div className="space-y-6 relative z-10 bg-[#06090f]/80 backdrop-blur-sm rounded-3xl p-6 -m-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

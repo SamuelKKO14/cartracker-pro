@@ -46,7 +46,7 @@ export default function RegisterPage() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-10 max-w-md mx-4 text-center space-y-5"
+          className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-12 max-w-[480px] mx-4 text-center space-y-5"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -76,9 +76,9 @@ export default function RegisterPage() {
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-md mx-4"
+        className="relative w-full max-w-[480px] px-4"
       >
-        <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-8 space-y-8">
+        <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-12 space-y-8">
           {focused && <BorderBeam size={150} duration={4} />}
 
           <div className="text-center space-y-3">

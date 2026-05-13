@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
-export function Meteors({ count = 20, className }: { count?: number; className?: string }) {
+export function Meteors({ count = 12, className }: { count?: number; className?: string }) {
   const meteors = useMemo(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -26,10 +26,11 @@ export function Meteors({ count = 20, className }: { count?: number; className?:
             animationDuration: m.duration,
             width: `${m.size}px`,
             height: `${m.size}px`,
+            willChange: 'transform, opacity',
           }}
         >
           <span
-            className="absolute w-[1px] bg-gradient-to-b from-orange-400/60 to-transparent"
+            className="absolute w-[1px] bg-gradient-to-b from-orange-400/40 to-transparent"
             style={{ height: `${40 + Math.random() * 60}px`, top: '100%' }}
           />
         </span>
@@ -38,10 +39,10 @@ export function Meteors({ count = 20, className }: { count?: number; className?:
         @keyframes meteor {
           0% {
             transform: translateY(0) translateX(0) rotate(215deg);
-            opacity: 1;
+            opacity: 0.4;
           }
           70% {
-            opacity: 1;
+            opacity: 0.4;
           }
           100% {
             transform: translateY(600px) translateX(-300px) rotate(215deg);
@@ -50,8 +51,9 @@ export function Meteors({ count = 20, className }: { count?: number; className?:
         }
         .animate-meteor {
           animation: meteor linear infinite;
-          background: linear-gradient(135deg, #f97316, #fbbf24);
+          background: linear-gradient(135deg, rgba(249,115,22,0.4), rgba(251,191,36,0.2));
           border-radius: 50%;
+          will-change: transform, opacity;
         }
       `}</style>
     </div>

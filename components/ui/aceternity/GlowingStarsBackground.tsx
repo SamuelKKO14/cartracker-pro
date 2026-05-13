@@ -53,7 +53,7 @@ export function GlowingStarsBackground({
           animation: glow-pulse ease-in-out infinite;
         }
       `}</style>
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 w-full h-full flex items-center justify-center">{children}</div>
     </div>
   )
 }
