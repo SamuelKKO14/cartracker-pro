@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
 import { ListingFormModal } from '@/components/listings/listing-form-modal'
@@ -16,8 +17,10 @@ import {
   ArrowRight, Sparkles,
   BarChart3, Plus, ExternalLink, Calculator, GripVertical,
 } from 'lucide-react'
+import { AnimatedGradientText } from '@/components/ui/magicui/AnimatedGradientText'
+import { BorderBeam } from '@/components/ui/magicui/BorderBeam'
 
-// ── Types ────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────
 
 interface KPIs {
   activeClients: number
@@ -61,19 +64,26 @@ type SectionId = 'import' | 'listingsClients' | 'finance'
 const DEFAULT_ORDER: SectionId[] = ['import', 'listingsClients', 'finance']
 const LS_KEY = 'dashboard_section_order'
 
-
 function loadOrder(): SectionId[] {
   try {
     const raw = localStorage.getItem(LS_KEY)
     if (!raw) return DEFAULT_ORDER
     const parsed = JSON.parse(raw) as SectionId[]
-    // Validate — make sure it's a permutation of DEFAULT_ORDER
     if (
       parsed.length === DEFAULT_ORDER.length &&
       DEFAULT_ORDER.every(id => parsed.includes(id))
     ) return parsed
   } catch { /* ignore */ }
   return DEFAULT_ORDER
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (d: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, delay: d, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+  }),
 }
 
 // ── Component ────────────────────────────────────────────────
@@ -125,7 +135,7 @@ export function DashboardClient({
     setDragOverIdx(null)
   }, [])
 
-  // Modal state (for new listing via keyboard shortcut / header button)
+  // Modal state
   const [showFormModal, setShowFormModal] = useState(false)
   const [formInitialData, setFormInitialData] = useState<ListingInitialData | undefined>(undefined)
   const [formDefaultClientId, setFormDefaultClientId] = useState<string | undefined>(undefined)
@@ -148,7 +158,6 @@ export function DashboardClient({
     )
   }
 
-
   function renderListingsClients() {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -168,11 +177,18 @@ export function DashboardClient({
             <EmptyState message="Aucune annonce" action={{ label: 'Ajouter', onClick: openNewListing }} />
           ) : (
             <div className="space-y-2">
-              {recentListings.map(listing => {
+              {recentListings.map((listing, i) => {
                 const score = getFinalScore(listing.auto_score, listing.manual_score)
                 const margin = listing.listing_margins?.[0]?.margin
                 return (
-                  <div key={listing.id} className="flex items-center gap-3 p-3 rounded-lg border border-[#1a1f2e] bg-[#080b10] hover:border-[#2a2f3e] transition-colors group">
+                  <motion.div
+                    key={listing.id}
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={i * 0.05}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04] transition-all group"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-gray-200 truncate">{listing.brand} {listing.model}</span>
@@ -193,24 +209,24 @@ export function DashboardClient({
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {score != null && (
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border border-[#2a2f3e] bg-[#0a0d14]/80 ${getScoreColor(score)}`}>
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border border-white/[0.08] bg-white/[0.04] ${getScoreColor(score)}`}>
                           {score}
                         </span>
                       )}
                       <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link href={`/annonces?id=${listing.id}`}>
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#1a1f2e] text-gray-500 hover:text-gray-200 transition-colors" title="Voir">
+                          <button className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/[0.06] text-gray-500 hover:text-gray-200 transition-colors" title="Voir">
                             <ExternalLink className="w-3.5 h-3.5" />
                           </button>
                         </Link>
                         <Link href={`/annonces?id=${listing.id}&margin=1`}>
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#1a1f2e] text-gray-500 hover:text-orange-400 transition-colors" title="Calculer marge">
+                          <button className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/[0.06] text-gray-500 hover:text-orange-400 transition-colors" title="Calculer marge">
                             <Calculator className="w-3.5 h-3.5" />
                           </button>
                         </Link>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
@@ -233,27 +249,35 @@ export function DashboardClient({
             <EmptyState message="Aucun client" action={{ label: 'Ajouter un client', href: '/clients' }} />
           ) : (
             <div className="space-y-2">
-              {recentClients.map(client => (
-                <Link key={client.id} href={`/clients/${client.id}`}>
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-[#1a1f2e] bg-[#080b10] hover:border-[#2a2f3e] transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-orange-500/15 flex items-center justify-center text-orange-400 text-xs font-bold shrink-0">
-                      {client.name[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-200 truncate">{client.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {client.budget && <span className="text-xs text-gray-500">Budget : {formatPrice(client.budget)}</span>}
-                        {client.notes && <span className="text-xs text-gray-600 truncate max-w-[140px]">{client.notes}</span>}
+              {recentClients.map((client, i) => (
+                <motion.div
+                  key={client.id}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={i * 0.05}
+                >
+                  <Link href={`/clients/${client.id}`}>
+                    <div className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04] transition-all">
+                      <div className="w-8 h-8 rounded-full bg-orange-500/15 flex items-center justify-center text-orange-400 text-xs font-bold shrink-0">
+                        {client.name[0]?.toUpperCase()}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-200 truncate">{client.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {client.budget && <span className="text-xs text-gray-500">Budget : {formatPrice(client.budget)}</span>}
+                          {client.notes && <span className="text-xs text-gray-600 truncate max-w-[140px]">{client.notes}</span>}
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500 shrink-0 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.08]">
+                        {client.listingCount} ann.
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500 shrink-0 bg-[#0a0d14] px-2 py-0.5 rounded-full border border-[#1a1f2e]">
-                      {client.listingCount} ann.
-                    </span>
-                  </div>
-                </Link>
+                  </Link>
+                </motion.div>
               ))}
               <Link href="/clients">
-                <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-[#2a2f3e] text-xs text-gray-500 hover:text-orange-400 hover:border-orange-500/40 transition-colors mt-1">
+                <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/[0.08] text-xs text-gray-500 hover:text-orange-400 hover:border-orange-500/40 transition-all mt-1">
                   <Plus className="w-3.5 h-3.5" /> Nouveau client
                 </button>
               </Link>
@@ -267,7 +291,6 @@ export function DashboardClient({
   function renderFinance() {
     return (
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2">
             <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> Finance
@@ -279,15 +302,13 @@ export function DashboardClient({
           </Link>
         </div>
 
-        {/* Main finance cards */}
         <div className="grid grid-cols-3 gap-3">
           <FinanceCard label="Marge totale" value={formatPrice(finance.totalMargin)} color="text-green-400" />
           <FinanceCard label="Revendus" value={String(finance.resoldCount)} color="text-blue-400" />
           <FinanceCard label="Marge moy." value={finance.resoldCount > 0 ? formatPrice(finance.avgMargin) : '—'} color="text-orange-400" />
         </div>
 
-        {/* Mini récap band */}
-        <div className="bg-[#0d1117] border border-[#1a1f2e] rounded-xl p-4 space-y-4">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-gray-500 mb-1">CA mois en cours</p>
@@ -303,7 +324,7 @@ export function DashboardClient({
             </div>
           </div>
           <Link href="/finance">
-            <button className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[#2a2f3e] text-xs text-gray-400 hover:text-orange-400 hover:border-orange-500/40 transition-colors">
+            <button className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-white/[0.08] text-xs text-gray-400 hover:text-orange-400 hover:border-orange-500/40 transition-all">
               Voir les finances <ArrowRight className="w-3 h-3" />
             </button>
           </Link>
@@ -333,20 +354,36 @@ export function DashboardClient({
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
 
           {/* ── HEADER ── */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
             <p className="text-xs text-gray-500 capitalize">{today}</p>
             <h2 className="text-xl font-semibold text-gray-100 mt-0.5">
-              Bonjour{firstName ? `, ${firstName}` : ''} 👋
+              Bonjour{firstName ? <>, <AnimatedGradientText>{firstName}</AnimatedGradientText></> : ''} !
             </h2>
-          </div>
+          </motion.div>
 
-          {/* ── KPIs (fixed, not draggable) ── */}
+          {/* ── KPIs ── */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <KPICard icon={<Users className="w-4 h-4" />} label="Clients actifs" value={kpis.activeClients} color="blue" href="/clients" />
-            <KPICard icon={<Car className="w-4 h-4" />} label="Annonces" value={kpis.totalListings} color="purple" href="/annonces" />
-            <KPICard icon={<TrendingUp className="w-4 h-4" />} label="En négociation" value={kpis.negotiationCount} color="orange" href="/annonces?status=negotiation" />
-            <KPICard icon={<Euro className="w-4 h-4" />} label="Marge potentielle" value={formatPrice(kpis.totalPositiveMargin)} color="teal" isText href="/finance" />
-            <KPICard icon={<ShoppingCart className="w-4 h-4" />} label="Véhicules vendus" value={kpis.resoldCount} color="green" href="/finance" />
+            {[
+              { icon: <Users className="w-4 h-4" />, label: 'Clients actifs', value: kpis.activeClients, color: 'blue' as const, href: '/clients', highlight: false },
+              { icon: <Car className="w-4 h-4" />, label: 'Annonces', value: kpis.totalListings, color: 'purple' as const, href: '/annonces', highlight: false },
+              { icon: <TrendingUp className="w-4 h-4" />, label: 'En négociation', value: kpis.negotiationCount, color: 'orange' as const, href: '/annonces?status=negotiation', highlight: false },
+              { icon: <Euro className="w-4 h-4" />, label: 'Marge potentielle', value: formatPrice(kpis.totalPositiveMargin), color: 'teal' as const, href: '/finance', highlight: true, isText: true },
+              { icon: <ShoppingCart className="w-4 h-4" />, label: 'Véhicules vendus', value: kpis.resoldCount, color: 'green' as const, href: '/finance', highlight: false },
+            ].map((kpi, i) => (
+              <motion.div
+                key={kpi.label}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                custom={i * 0.05}
+              >
+                <KPICard {...kpi} />
+              </motion.div>
+            ))}
           </div>
 
           {/* ── DRAGGABLE SECTIONS ── */}
@@ -356,36 +393,36 @@ export function DashboardClient({
               const isDragOver = dragOverIdx === idx
               const isDragging = dragSrcIdx.current === idx
               return (
-                <div
+                <motion.div
                   key={sectionId}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={0.2 + idx * 0.1}
                   draggable
                   onDragStart={() => handleDragStart(idx)}
                   onDragOver={e => handleDragOver(e, idx)}
                   onDrop={e => handleDrop(e, idx)}
                   onDragEnd={handleDragEnd}
-                  className={`rounded-xl border transition-all duration-150 ${
+                  className={`rounded-xl border backdrop-blur-sm transition-all duration-200 ${
                     isDragOver
-                      ? 'border-orange-500/50 bg-orange-500/5 shadow-lg shadow-orange-900/20 scale-[1.005]'
+                      ? 'border-orange-500/40 bg-orange-500/[0.03] shadow-[0_0_30px_rgba(249,115,22,0.08)]'
                       : isDragging
-                      ? 'border-[#2a2f3e] bg-[#0d1117] opacity-50'
-                      : 'border-[#1a1f2e] bg-[#0d1117]'
+                      ? 'border-white/[0.04] bg-white/[0.01] opacity-50'
+                      : 'border-white/[0.06] bg-white/[0.02]'
                   }`}
                 >
-                  {/* Section header (drag handle) */}
-                  <div
-                    className="flex items-center gap-2 px-4 py-3 border-b border-[#1a1f2e] cursor-grab active:cursor-grabbing select-none"
-                  >
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.04] cursor-grab active:cursor-grabbing select-none">
                     <GripVertical className="w-4 h-4 text-gray-600 shrink-0" />
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
                       {meta.icon}
                       {meta.title}
                     </span>
                   </div>
-                  {/* Section content */}
                   <div className="p-4">
                     {SECTION_RENDER[sectionId]()}
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>
@@ -412,7 +449,7 @@ export function DashboardClient({
 // ── Sub-components ────────────────────────────────────────────
 
 function KPICard({
-  icon, label, value, color, isText, href
+  icon, label, value, color, isText, href, highlight
 }: {
   icon: React.ReactNode
   label: string
@@ -420,17 +457,23 @@ function KPICard({
   color: 'blue' | 'purple' | 'green' | 'orange' | 'teal' | 'pink'
   isText?: boolean
   href?: string
+  highlight?: boolean
 }) {
   const colorMap = {
-    blue: 'text-blue-400 bg-blue-900/20',
-    purple: 'text-purple-400 bg-purple-900/20',
-    green: 'text-green-400 bg-green-900/20',
-    orange: 'text-orange-400 bg-orange-900/20',
-    teal: 'text-teal-400 bg-teal-900/20',
-    pink: 'text-pink-400 bg-pink-900/20',
+    blue: 'text-blue-400 bg-blue-500/10',
+    purple: 'text-purple-400 bg-purple-500/10',
+    green: 'text-green-400 bg-green-500/10',
+    orange: 'text-orange-400 bg-orange-500/10',
+    teal: 'text-teal-400 bg-teal-500/10',
+    pink: 'text-pink-400 bg-pink-500/10',
   }
   const inner = (
-    <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] hover:border-[#2a2f3e] transition-colors h-full">
+    <div className={`relative p-4 rounded-xl border transition-all duration-200 h-full ${
+      highlight
+        ? 'border-orange-500/20 bg-white/[0.03] shadow-[0_0_20px_rgba(249,115,22,0.06)]'
+        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04]'
+    }`}>
+      {highlight && <BorderBeam size={100} duration={5} />}
       <div className={`inline-flex items-center justify-center w-7 h-7 rounded-lg mb-2.5 ${colorMap[color]}`}>
         <span className={colorMap[color].split(' ')[0]}>{icon}</span>
       </div>
@@ -444,7 +487,7 @@ function KPICard({
 
 function FinanceCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="p-3 rounded-lg border border-[#1a1f2e] bg-[#0d1117] text-center">
+    <div className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center">
       <p className="text-xs text-gray-500 mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
@@ -466,7 +509,7 @@ function EmptyState({
   ) : null
 
   return (
-    <div className="rounded-xl border border-[#1a1f2e] bg-[#080b10] p-5 text-center space-y-1">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-center space-y-1">
       <p className="text-gray-500 text-sm">{message}</p>
       {inner}
     </div>
