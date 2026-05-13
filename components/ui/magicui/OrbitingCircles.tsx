@@ -7,45 +7,38 @@ export function OrbitingCircles({
   radius = 160,
   duration = 20,
   reverse = false,
-  delay = 0,
+  startAngle = 0,
 }: {
   children: React.ReactNode
   className?: string
   radius?: number
   duration?: number
   reverse?: boolean
-  delay?: number
+  startAngle?: number
 }) {
+  const id = `orbit-${radius}-${startAngle}`
+
   return (
     <div
       className={cn(
-        'absolute flex items-center justify-center animate-orbit',
-        reverse && '[animation-direction:reverse]',
+        'absolute flex items-center justify-center',
         className
       )}
-      style={
-        {
-          '--radius': `${radius}px`,
-          '--duration': `${duration}s`,
-          '--delay': `${-delay}s`,
-          width: '40px',
-          height: '40px',
-          transform: `rotate(0deg) translateX(var(--radius)) rotate(0deg)`,
-        } as React.CSSProperties
-      }
+      style={{
+        width: '40px',
+        height: '40px',
+        animation: `${id} ${duration}s linear infinite${reverse ? ' reverse' : ''}`,
+      }}
     >
       {children}
       <style jsx>{`
-        @keyframes orbit {
+        @keyframes ${id} {
           from {
-            transform: rotate(0deg) translateX(var(--radius)) rotate(0deg);
+            transform: rotate(${startAngle}deg) translateX(${radius}px) rotate(-${startAngle}deg);
           }
           to {
-            transform: rotate(360deg) translateX(var(--radius)) rotate(-360deg);
+            transform: rotate(${startAngle + 360}deg) translateX(${radius}px) rotate(-${startAngle + 360}deg);
           }
-        }
-        .animate-orbit {
-          animation: orbit var(--duration) linear var(--delay) infinite;
         }
       `}</style>
     </div>

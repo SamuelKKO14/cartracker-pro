@@ -67,12 +67,17 @@ const STEPS = [
   { num: '04', icon: Euro, title: 'Vendez', desc: "Marquez comme revendu. Le CA et la marge se calculent automatiquement." },
 ]
 
-const SITES = [
+const SITES_INNER = [
   { name: 'AutoScout24', short: 'AS24' },
   { name: 'La Centrale', short: 'LC' },
   { name: 'LeBonCoin', short: 'LBC' },
-  { name: 'mobile.de', short: 'mob' },
   { name: 'Le Parking', short: 'LP' },
+  { name: 'Autoplus', short: 'A+' },
+]
+const SITES_OUTER = [
+  { name: 'mobile.de', short: 'mob' },
+  { name: 'Caradisiac', short: 'Cara' },
+  { name: 'ParuVendu', short: 'PV' },
 ]
 
 const COMPARE_ROWS = [
@@ -434,30 +439,53 @@ export default function LandingPage() {
             <p className="text-gray-400">Importez depuis n'importe quel site européen d'annonces auto</p>
           </motion.div>
 
-          <div className="relative h-[400px] flex items-center justify-center">
-            {/* Center — Logo */}
-            <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)]">
-              <Car className="w-8 h-8 text-white" />
+          <div className="relative h-[400px] sm:h-[450px] flex items-center justify-center">
+            {/* Center — Logo with pulsing glow */}
+            <div className="relative z-10">
+              <div className="absolute inset-0 rounded-2xl bg-orange-500/30 blur-xl animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)]">
+                <Car className="w-8 h-8 text-white" />
+              </div>
             </div>
 
-            {/* Orbiting sites */}
-            {SITES.map((site, i) => (
+            {/* Inner orbit — 5 sites, equidistant at 72° intervals */}
+            {SITES_INNER.map((site, i) => (
               <OrbitingCircles
                 key={site.name}
-                radius={140 + (i % 2) * 40}
-                duration={25 + i * 3}
-                delay={i * (25 / SITES.length)}
-                reverse={i % 2 === 1}
+                radius={120}
+                duration={25}
+                startAngle={i * 72}
               >
-                <div className="w-10 h-10 rounded-xl border border-white/[0.08] bg-[#0d1117] flex items-center justify-center text-xs font-bold text-gray-300 shadow-lg">
+                <div className="group relative w-10 h-10 rounded-xl border border-white/[0.08] bg-[#0d1117] flex items-center justify-center text-xs font-bold text-gray-300 shadow-lg cursor-default">
                   {site.short}
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {site.name}
+                  </span>
                 </div>
               </OrbitingCircles>
             ))}
 
-            {/* Glow ring */}
-            <div className="absolute inset-0 m-auto w-[300px] h-[300px] rounded-full border border-orange-500/10" />
-            <div className="absolute inset-0 m-auto w-[380px] h-[380px] rounded-full border border-white/[0.04]" />
+            {/* Outer orbit — 3 sites, equidistant at 120° intervals, reverse */}
+            {SITES_OUTER.map((site, i) => (
+              <OrbitingCircles
+                key={site.name}
+                radius={185}
+                duration={30}
+                startAngle={i * 120 + 30}
+                reverse
+              >
+                <div className="group relative w-10 h-10 rounded-xl border border-white/[0.08] bg-[#0d1117] flex items-center justify-center text-xs font-bold text-gray-300 shadow-lg cursor-default">
+                  {site.short}
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {site.name}
+                  </span>
+                </div>
+              </OrbitingCircles>
+            ))}
+
+            {/* Glow rings */}
+            <div className="absolute inset-0 m-auto w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] rounded-full border border-orange-500/10" style={{ borderStyle: 'dashed' }} />
+            <div className="absolute inset-0 m-auto w-[370px] h-[370px] sm:w-[390px] sm:h-[390px] rounded-full border border-white/[0.04]" style={{ borderStyle: 'dotted' }} />
           </div>
         </div>
       </section>
