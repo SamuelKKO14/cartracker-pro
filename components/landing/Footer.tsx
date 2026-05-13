@@ -53,7 +53,7 @@ export function Footer() {
         </div>
         <div className="border-t border-[#1a1f2e] pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
           <span>© 2026 CarTracker Pro — Tous droits réservés</span>
-          <span>Fait avec ❤️ pour les pros de l'auto</span>
+          <span>Support : <a href="mailto:contact@cartrackerpro.fr" className="text-gray-500 hover:text-gray-300 transition-colors">contact@cartrackerpro.fr</a></span>
         </div>
       </div>
     </footer>

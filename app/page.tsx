@@ -6,7 +6,7 @@ import {
   Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
   Puzzle, CheckCircle, Sparkles, Users, Euro, FileText,
   TrendingUp, Newspaper, ClipboardList, Search, Minus, Plus,
-  MessageSquare, Pause, Play,
+  MessageSquare, Pause, Play, Clock, Lightbulb, Target, User, Rocket,
 } from 'lucide-react'
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
@@ -71,15 +71,15 @@ function scrollTo(id: string) {
 // ── Data ───────────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { icon: Sparkles, label: 'Import Intelligent IA', desc: "Copiez-collez le texte d'une annonce, l'IA extrait tout en 5 secondes. Marque, modèle, prix, km, carburant, boîte, pays.", color: 'yellow', glow: 'hover:border-yellow-500/40 hover:shadow-[0_0_16px_rgba(234,179,8,0.1)]' },
-  { icon: Puzzle, label: 'Extension Chrome', desc: "Importez directement depuis AutoScout24, La Centrale, LeBonCoin, mobile.de avec les photos. Un clic suffit.", color: 'cyan', glow: 'hover:border-cyan-500/40 hover:shadow-[0_0_16px_rgba(6,182,212,0.1)]' },
-  { icon: Calculator, label: 'Calcul de marge', desc: "Prix d'achat + transport + remise en état + CT + immat = coût total. Marge nette calculée à l'euro près.", color: 'green', glow: 'hover:border-green-500/40 hover:shadow-[0_0_16px_rgba(34,197,94,0.1)]' },
-  { icon: Share2, label: 'Partage client', desc: "Générez un lien de partage. Votre client voit les voitures et peut répondre. Vos sources restent confidentielles.", color: 'blue', glow: 'hover:border-blue-500/40 hover:shadow-[0_0_16px_rgba(59,130,246,0.1)]' },
-  { icon: Globe, label: '16 pays européens', desc: "Allemagne, Belgique, Pologne, Espagne, Italie, Pays-Bas, Suède, Roumanie… Toute l'Europe couverte.", color: 'violet', glow: 'hover:border-violet-500/40 hover:shadow-[0_0_16px_rgba(139,92,246,0.1)]' },
-  { icon: Bot, label: 'Gamos IA', desc: "Votre assistant IA personnel. Conseils d'import, frais par pays, aide à la rédaction. Disponible 24h/24.", color: 'orange', glow: 'hover:border-orange-500/40 hover:shadow-[0_0_16px_rgba(249,115,22,0.15)]' },
-  { icon: BarChart3, label: 'Suivi Finance', desc: "CA, marges, objectifs mensuels et annuels. Pilotez votre activité comme un vrai business.", color: 'teal', glow: 'hover:border-teal-500/40 hover:shadow-[0_0_16px_rgba(20,184,166,0.1)]' },
-  { icon: ClipboardList, label: 'Checklist pré-achat', desc: "12 points de vérification : CT, carnet, HistoVec, sinistres, essai, pneus, papiers, gage…", color: 'emerald', glow: 'hover:border-emerald-500/40 hover:shadow-[0_0_16px_rgba(16,185,129,0.1)]' },
-  { icon: Newspaper, label: 'Blog intégré', desc: "Créez et publiez des articles optimisés SEO pour attirer des clients. Génération assistée par IA.", color: 'rose', glow: 'hover:border-rose-500/40 hover:shadow-[0_0_16px_rgba(244,63,94,0.1)]' },
+  { icon: Sparkles, label: 'Import Intelligent IA', desc: "Copiez-collez le texte d'une annonce, l'IA extrait tout en 5 secondes. Marque, modèle, prix, km, carburant, boîte, pays.", color: 'yellow', glow: 'hover:border-yellow-500/40 hover:shadow-[0_0_16px_rgba(234,179,8,0.1)]', comingSoon: false },
+  { icon: Puzzle, label: 'Extension Chrome', desc: "Importez directement depuis AutoScout24, La Centrale, LeBonCoin, mobile.de avec les photos. Un clic suffit.", color: 'cyan', glow: 'hover:border-cyan-500/40 hover:shadow-[0_0_16px_rgba(6,182,212,0.1)]', comingSoon: true },
+  { icon: Calculator, label: 'Calcul de marge', desc: "Prix d'achat + transport + remise en état + CT + immat = coût total. Marge nette calculée à l'euro près.", color: 'green', glow: 'hover:border-green-500/40 hover:shadow-[0_0_16px_rgba(34,197,94,0.1)]', comingSoon: false },
+  { icon: Share2, label: 'Partage client', desc: "Générez un lien de partage. Votre client voit les voitures et peut répondre. Vos sources restent confidentielles.", color: 'blue', glow: 'hover:border-blue-500/40 hover:shadow-[0_0_16px_rgba(59,130,246,0.1)]', comingSoon: true },
+  { icon: Globe, label: '16 pays européens', desc: "Allemagne, Belgique, Pologne, Espagne, Italie, Pays-Bas, Suède, Roumanie… Toute l'Europe couverte.", color: 'violet', glow: 'hover:border-violet-500/40 hover:shadow-[0_0_16px_rgba(139,92,246,0.1)]', comingSoon: false },
+  { icon: Bot, label: 'Gamos IA', desc: "Votre assistant IA personnel. Conseils d'import, frais par pays, aide à la rédaction. Disponible 24h/24.", color: 'orange', glow: 'hover:border-orange-500/40 hover:shadow-[0_0_16px_rgba(249,115,22,0.15)]', comingSoon: false },
+  { icon: BarChart3, label: 'Suivi Finance', desc: "CA, marges, objectifs mensuels et annuels. Pilotez votre activité comme un vrai business.", color: 'teal', glow: 'hover:border-teal-500/40 hover:shadow-[0_0_16px_rgba(20,184,166,0.1)]', comingSoon: false },
+  { icon: ClipboardList, label: 'Checklist pré-achat', desc: "12 points de vérification : CT, carnet, HistoVec, sinistres, essai, pneus, papiers, gage…", color: 'emerald', glow: 'hover:border-emerald-500/40 hover:shadow-[0_0_16px_rgba(16,185,129,0.1)]', comingSoon: false },
+  { icon: Newspaper, label: 'Blog intégré', desc: "Créez et publiez des articles optimisés SEO pour attirer des clients. Génération assistée par IA.", color: 'rose', glow: 'hover:border-rose-500/40 hover:shadow-[0_0_16px_rgba(244,63,94,0.1)]', comingSoon: true },
 ]
 
 const ICON_COLOR: Record<string, string> = {
@@ -97,64 +97,76 @@ const ICON_COLOR: Record<string, string> = {
 const STEPS = [
   { num: '1', icon: Search, title: 'Trouvez', desc: "Naviguez sur les sites européens ou utilisez l'import IA pour ajouter des annonces en secondes." },
   { num: '2', icon: ClipboardList, title: 'Organisez', desc: "Associez les annonces à vos clients, calculez les marges, remplissez la checklist pré-achat." },
-  { num: '3', icon: Share2, title: 'Partagez', desc: "Envoyez une sélection personnalisée par lien sécurisé. Votre client répond directement." },
+  { num: '3', icon: Calculator, title: 'Analysez', desc: "Calculez la marge nette en temps réel. Prix d'achat + transport + remise en état + CT + immat = coût total. Vérifiez chaque point avec la checklist pré-achat 12 points." },
   { num: '4', icon: Euro, title: 'Vendez', desc: "Marquez comme revendu. Le CA et la marge se calculent automatiquement dans Finance." },
 ]
 
 const COMPARE_ROWS = [
   { feature: "Import IA depuis sites européens", ctp: true, a: false, b: false, c: false },
-  { feature: "Extension Chrome d'import", ctp: true, a: false, b: false, c: false },
-  { feature: "Partage client sans source", ctp: true, a: false, b: "Partiel", c: false },
+  { feature: "Extension Chrome d'import", ctp: 'bientôt', a: false, b: false, c: false },
+  { feature: "Partage client sans source", ctp: 'bientôt', a: false, b: "Partiel", c: false },
   { feature: "Assistant IA intégré", ctp: true, a: false, b: false, c: false },
   { feature: "16 pays européens", ctp: true, a: "France seule", b: "4 pays", c: "France seule" },
   { feature: "Calcul de marge complet", ctp: true, a: "Partiel", b: true, c: "Partiel" },
-  { feature: "Blog intégré", ctp: true, a: false, b: false, c: false },
+  { feature: "Blog intégré", ctp: 'bientôt', a: false, b: false, c: false },
   { feature: "Prix", ctp: "Dès 0€", a: "50-150€/m.", b: "80-200€/m.", c: "60-120€/m." },
 ]
 
 const FAQS = [
   {
-    q: "CarTracker Pro fonctionne avec quels sites d'annonces ?",
-    a: "Notre extension Chrome fonctionne nativement avec AutoScout24, La Centrale, LeBonCoin, mobile.de, Le Parking et AutoHero. Pour tous les autres sites, notre IA universelle extrait automatiquement les informations. L'import IA par copier-coller fonctionne avec n'importe quel texte d'annonce."
+    q: "Qu'est-ce que CarTracker Pro exactement ?",
+    a: "CarTracker Pro est un SaaS conçu pour les professionnels de l'achat-revente automobile (mandataires, courtiers, garages). Il centralise la recherche d'annonces dans 16 pays européens, organise vos clients et vos suivis, calcule automatiquement vos marges nettes et vous aide à boucler vos ventes plus vite. Tout est accessible depuis n'importe quel navigateur, aucune installation."
   },
   {
-    q: "Est-ce que mes clients voient d'où viennent les annonces ?",
-    a: "Non, jamais. Quand vous partagez une sélection par lien, le client voit uniquement les photos, les caractéristiques et le prix que vous avez fixé. Aucune source, aucun site d'origine n'est visible."
+    q: "À qui s'adresse CarTracker Pro ?",
+    a: "Aux mandataires auto, courtiers, garages indépendants et toute personne qui fait de l'achat-revente automobile à titre professionnel. Que vous gériez 5 clients ou 50, l'outil s'adapte à votre rythme. Les particuliers acheteurs/vendeurs ne sont pas la cible."
   },
   {
-    q: "Comment fonctionne le calcul de marge ?",
-    a: "Vous entrez le prix d'achat, les frais de transport, remise en état, contrôle technique, immatriculation et autres frais. L'outil calcule le coût total et votre marge nette en fonction du prix de revente que vous fixez."
+    q: "Combien ça coûte ?",
+    a: "Le plan Starter est entièrement gratuit (10 annonces, 5 clients, sans carte bancaire). Pour développer votre activité : Démarrage à 15€/mois (15 clients, 30 annonces), Pro à 39€/mois (250 clients, 500 annonces, IA illimitée, 14 pays), Agence à 79€/mois (illimité + 3 utilisateurs). Les plans Démarrage, Pro et Agence offrent 14 jours d'essai gratuit, annulable à tout moment."
   },
   {
-    q: "Je peux essayer gratuitement ?",
-    a: "Oui ! Le plan Starter est gratuit (10 annonces, 5 clients), sans carte bancaire. Le plan Démarrage (15€/mois) permet de lancer son activité avec 15 clients et 30 annonces. Les plans Pro et Agence offrent un essai gratuit de 14 jours."
+    q: "Comment fonctionne l'import IA ?",
+    a: "Vous copiez le texte d'une annonce depuis n'importe quel site (LeBonCoin, AutoScout24, La Centrale, mobile.de, etc.), vous le collez dans CarTracker Pro, et l'IA extrait tout en 5 secondes : marque, modèle, année, kilométrage, prix, carburant, boîte, pays. Vous pouvez aussi importer depuis une photo de l'annonce. Le plan Démarrage inclut 10 imports texte et 3 imports photo par mois. Pro et Agence : illimité."
   },
   {
-    q: "Qu'est-ce que Gamos ?",
-    a: "Gamos est votre assistant IA intégré directement dans l'outil. Il connaît le marché automobile européen, peut vous aider à calculer les frais d'import par pays, rédiger des messages clients, et vous guider dans toutes les fonctionnalités de l'outil."
+    q: "L'extension Chrome est-elle disponible ?",
+    a: "Pas encore. L'extension Chrome est actuellement en développement. Elle permettra d'importer une annonce en un clic directement depuis le site où vous naviguez (AutoScout24, La Centrale, LeBonCoin, mobile.de, etc.). En attendant, l'import IA dans le SaaS fonctionne déjà et extrait toutes les infos en quelques secondes."
   },
   {
-    q: "Est-ce que l'outil fonctionne sur mobile ?",
-    a: "Oui, CarTracker Pro est entièrement responsive. Vous pouvez gérer vos clients et annonces depuis votre téléphone. L'extension Chrome fonctionne sur ordinateur."
+    q: "Et le partage client par lien ?",
+    a: "Le partage par lien sécurisé est aussi en cours de développement. L'idée : envoyer à votre client un lien qui affiche votre sélection de voitures (sans révéler vos sources), avec un bouton 'celle-ci m'intéresse' pour qu'il vous réponde directement. En attendant, vous pouvez exporter votre sélection en CSV ou la copier-coller dans WhatsApp."
+  },
+  {
+    q: "Mes données sont-elles sécurisées ?",
+    a: "Oui. Vos données sont hébergées sur Supabase (infrastructure européenne) avec chiffrement au repos et en transit. Chaque utilisateur n'a accès qu'à ses propres données — c'est cloisonné au niveau de la base de données. Les paiements passent par Stripe, leader mondial du paiement en ligne. Aucune carte bancaire n'est stockée chez nous."
+  },
+  {
+    q: "Comment annuler mon abonnement ?",
+    a: "Vous pouvez annuler à tout moment depuis votre espace Paramètres → Facturation. L'annulation est immédiate et vous gardez l'accès jusqu'à la fin de la période payée. Aucun engagement, aucun frais caché."
+  },
+  {
+    q: "Y a-t-il un support en cas de problème ?",
+    a: "Bien sûr. Pour toute question, suggestion ou bug, écrivez à contact@cartrackerpro.fr — réponse sous 24h en semaine. Les abonnés Pro bénéficient d'un support prioritaire, les abonnés Agence d'un support prioritaire sous 4h."
+  },
+  {
+    q: "Quels pays européens sont couverts ?",
+    a: "Le plan Démarrage couvre 4 pays (France, Allemagne, Belgique, Espagne). Les plans Pro et Agence couvrent 16 pays : France, Allemagne, Belgique, Espagne, Italie, Pays-Bas, Portugal, Pologne, Roumanie, Autriche, Suisse, Suède, Norvège, Lituanie, et plus. La liste s'enrichit régulièrement."
   },
 ]
 
 const DEMO_TABS = [
   { id: 'import', label: '⚡ Import IA' },
-  { id: 'extension', label: '🔌 Extension' },
   { id: 'clients', label: '👥 Clients' },
   { id: 'marge', label: '💰 Marge' },
-  { id: 'partage', label: '🔗 Partage' },
   { id: 'gamos', label: '🤖 Gamos' },
   { id: 'finance', label: '📊 Finance' },
 ]
 
 const DEMO_DESC: Record<string, string> = {
   import: "Copiez le texte d'une annonce depuis n'importe quel site européen. Notre IA extrait automatiquement marque, modèle, année, km, prix, carburant, boîte, pays. 5 secondes chrono.",
-  extension: "Installez notre extension Chrome. Naviguez sur AutoScout24, La Centrale, LeBonCoin, mobile.de — un clic sur l'icône CarTracker et l'annonce est dans votre bibliothèque. Avec les photos.",
   clients: "Créez des dossiers par client. Budget, critères de recherche, notes de suivi datées. Associez les annonces à chaque client. Retrouvez tout en 1 clic.",
   marge: "Calculez votre marge nette sur chaque annonce. Prix d'achat, transport, remise en état, CT, immatriculation — tout est pris en compte. Fixez vos objectifs financiers.",
-  partage: "Envoyez une sélection personnalisée à votre client par lien. Il voit les voitures avec les photos et peut dire 'celle-ci m'intéresse'. Vous ne révélez jamais vos sources.",
   gamos: "Votre assistant IA personnel. Il connaît le marché auto, calcule les frais d'import, vous guide dans l'outil. Disponible 24h/24 dans un chat intégré.",
   finance: "Suivez votre chiffre d'affaires, vos marges et vos performances. Fixez des objectifs mensuels ou annuels. Visualisez votre activité comme un vrai business.",
 }
@@ -427,16 +439,16 @@ export default function LandingPage() {
   )
 
   const DEMO_MOCK: Record<string, React.ReactNode> = {
-    import: <MockImport />, extension: <MockExtension />, clients: <MockClients />,
-    marge: <MockMarge />, partage: <MockPartage />, gamos: <MockGamos />, finance: <MockFinance />,
+    import: <MockImport />, clients: <MockClients />,
+    marge: <MockMarge />, gamos: <MockGamos />, finance: <MockFinance />,
   }
 
   // ── STATS section (animated counters) ─────────────────────────────────────
   const { ref: statsRef, inView: statsInView } = useInView(0.3)
-  const c1 = useCountUp(500, statsInView)
-  const c2 = useCountUp(16, statsInView)
-  const c3 = useCountUp(10000, statsInView)
-  const c4 = useCountUp(98, statsInView)
+  const c1 = useCountUp(16, statsInView)
+  const c2 = useCountUp(5, statsInView)
+  const c3 = useCountUp(3, statsInView)
+  const c4 = useCountUp(14, statsInView)
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
 
@@ -485,7 +497,7 @@ export default function LandingPage() {
           </div>
 
           {/* Stats */}
-          <p className="text-sm text-gray-500">500+ pros actifs &nbsp;•&nbsp; 16 pays couverts &nbsp;•&nbsp; 0€ pour commencer</p>
+          <p className="text-sm text-gray-500">Disponible dans 16 pays &nbsp;•&nbsp; Plans dès 0€ &nbsp;•&nbsp; Essai gratuit 14j</p>
 
           {/* Site badges */}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
@@ -651,32 +663,26 @@ export default function LandingPage() {
             <FadeUp>
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-2">🔌 Extension Chrome</p>
-                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 leading-tight">Importez depuis n'importe quel site auto en 1 clic <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold border border-orange-500/30 align-middle">Bientôt disponible</span></h2>
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-sm font-semibold text-orange-400 mb-4">
+                    <Rocket className="w-4 h-4" /> En développement — Disponible Q2 2026
+                  </span>
+                  <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-2">Extension Chrome</p>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 leading-tight">Importez depuis n'importe quel site auto en 1 clic</h2>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    "Naviguez comme d'habitude sur vos sites préférés",
-                    "Un clic sur l'icône CarTracker Pro dans votre navigateur",
-                    "L'annonce complète avec les photos est importée instantanément",
-                    "Fonctionne sur AutoScout24, La Centrale, LeBonCoin, mobile.de, Le Parking, AutoHero et +50 autres sites grâce à l'IA",
-                  ].map((t, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-orange-400" />
-                      </div>
-                      <span className="text-sm text-gray-300">{t}</span>
-                    </div>
-                  ))}
-                </div>
-                <a href="/auth/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
-                  Créer mon compte gratuitement
-                </a>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  L'extension Chrome arrive bientôt. En attendant, l'import IA texte/photo fonctionne déjà dans le SaaS et extrait tout en 5 secondes : marque, modèle, prix, km, carburant, boîte, pays.
+                </p>
+                <Link href="/auth/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(249,115,22,0.35)]">
+                  Tester l'import IA gratuitement <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </FadeUp>
 
             <FadeUp delay={140}>
-              <div className="space-y-4">
+              <div className="space-y-4 relative">
+                <div className="absolute inset-0 bg-[#06090f]/40 backdrop-blur-[1px] rounded-2xl z-10 flex items-center justify-center">
+                  <span className="px-4 py-2 rounded-full bg-orange-500/15 border border-orange-500/30 text-sm font-semibold text-orange-400">Aperçu — bientôt disponible</span>
+                </div>
                 {[
                   { icon: Globe, step: '1', title: "Naviguez sur AutoScout24.de", sub: "Trouvez l'annonce qui vous intéresse" },
                   { icon: Puzzle, step: '2', title: "Cliquez sur l'extension", sub: "Un clic sur l'icône CarTracker dans le navigateur" },
@@ -714,12 +720,17 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <FadeUp className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Tout ce qu'il vous faut pour dominer le marché</h2>
-            <p className="text-gray-400 max-w-xl mx-auto">9 fonctionnalités pensées pour les professionnels de l'automobile</p>
+            <p className="text-gray-400 max-w-xl mx-auto">6 fonctionnalités actives + 3 en cours de développement</p>
           </FadeUp>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
               <FadeUp key={f.label} delay={i * 60}>
-                <div className={`group p-5 rounded-xl bg-[#0a0d14] border border-[#1a1f2e] transition-all duration-200 ${f.glow} h-full`}>
+                <div className={`group p-5 rounded-xl bg-[#0a0d14] border border-[#1a1f2e] transition-all duration-200 ${f.glow} h-full relative`}>
+                  {f.comingSoon && (
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[10px] font-semibold text-orange-400">
+                      <Clock className="w-3 h-3" /> Bientôt
+                    </span>
+                  )}
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${ICON_COLOR[f.color]}`}>
                     <f.icon className={`w-4.5 h-4.5 ${ICON_COLOR[f.color].split(' ')[0]}`} />
                   </div>
@@ -788,6 +799,7 @@ export default function LandingPage() {
                         <td key={ci} className={`p-3.5 text-center ${ci === 0 ? 'bg-orange-500/5' : ''}`}>
                           {v === true ? <Check className="w-4 h-4 text-green-400 mx-auto" />
                            : v === false ? <X className="w-4 h-4 text-red-500/60 mx-auto" />
+                           : v === 'bientôt' ? <span className="inline-flex items-center gap-1 justify-center"><Check className="w-4 h-4 text-green-400" /><span className="text-[10px] text-gray-500 italic">(bientôt)</span></span>
                            : <span className={`text-xs ${ci === 0 ? 'text-orange-400 font-semibold' : 'text-gray-600'}`}>{v}</span>}
                         </td>
                       ))}
@@ -805,15 +817,15 @@ export default function LandingPage() {
         <div ref={statsRef} className="max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { val: c1, suffix: '+', label: 'Pros actifs' },
-              { val: c2, suffix: '', label: 'Pays couverts' },
-              { val: c3, suffix: '+', label: 'Annonces importées', fmt: true },
-              { val: c4, suffix: '%', label: 'Satisfaction client' },
-            ].map(({ val, suffix, label, fmt }) => (
+              { val: c1, suffix: '', label: 'Pays européens couverts' },
+              { val: c2, suffix: 's', label: "Secondes pour importer avec l'IA" },
+              { val: c3, suffix: '', label: 'Plans tarifaires' },
+              { val: c4, suffix: 'j', label: "D'essai gratuit Pro & Agence" },
+            ].map(({ val, suffix, label }) => (
               <FadeUp key={label}>
                 <div className="space-y-1">
                   <p className="text-4xl md:text-5xl font-extrabold text-orange-400">
-                    {fmt ? val >= 1000 ? `${Math.floor(val / 1000)} 000` : val : val}{suffix}
+                    {val}{suffix}
                   </p>
                   <p className="text-sm text-gray-500">{label}</p>
                 </div>
@@ -910,33 +922,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 11. TÉMOIGNAGES ────────────────────────────────────────────────── */}
+      {/* ── 11. POURQUOI ON A CRÉÉ CARTRACKER PRO ────────────────────────── */}
       <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <FadeUp className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Ce que disent nos pros</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">Pourquoi on a créé CarTracker Pro</h2>
+            <p className="text-gray-400">L'histoire derrière l'outil</p>
           </FadeUp>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { name: 'Thomas D.', role: 'Mandataire automobile, Lyon', text: "Avant CarTracker, je perdais 3h par semaine à chercher sur les sites allemands. Maintenant j'importe une annonce en 10 secondes avec l'extension.", init: 'TD', color: 'bg-blue-900/30 text-blue-400' },
-              { name: 'Marie L.', role: 'Courtière auto, Paris', text: "Le partage client par lien a changé ma relation avec mes clients. Ils reçoivent une vraie sélection pro sans voir d'où je source.", init: 'ML', color: 'bg-pink-900/30 text-pink-400' },
-              { name: 'Karim B.', role: 'Négociant VO, Marseille', text: "Gamos m'a aidé à calculer les frais d'import polonais. L'outil fait le travail que je faisais sur Excel en 10x moins de temps.", init: 'KB', color: 'bg-teal-900/30 text-teal-400' },
-            ].map((t, i) => (
-              <FadeUp key={t.name} delay={i * 80}>
-                <div className="p-5 rounded-2xl bg-[#0a0d14] border border-[#1a1f2e] flex flex-col gap-4 h-full">
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
-                    ))}
+              { icon: Search, title: 'Le constat', text: "Les pros de l'auto perdent un temps fou. Ils jonglent entre 6 sites d'annonces différents, perdent des voitures dans des fils WhatsApp infinis avec leurs clients, calculent leurs marges sur des bouts de papier ou des Excel bricolés. Et quand ils ont 5 clients en parallèle, c'est le chaos.", color: 'text-blue-400 bg-blue-900/20' },
+              { icon: Lightbulb, title: 'La conviction', text: "Tout ce temps perdu sur la recherche et l'organisation, c'est du temps en moins pour la négociation et la vente — là où les pros font vraiment leur marge. Il fallait un outil pensé pour eux, pas une usine à gaz.", color: 'text-yellow-400 bg-yellow-900/20' },
+              { icon: Target, title: 'La solution', text: "Un compagnon simple qui centralise tout : recherche multi-pays, association par client, calcul de marge automatique, checklist pré-achat. Pas de promesses miracles, juste un outil qui fait gagner du temps tous les jours.", color: 'text-green-400 bg-green-900/20' },
+              { icon: User, title: 'Construit par un entrepreneur passionné', text: "CarTracker Pro est construit en solo par Samuel, entrepreneur passionné d'automobile qui combine deux mondes : la rigueur technique d'un SaaS bien fait et la compréhension des vrais besoins du terrain. Chaque fonctionnalité est pensée pour résoudre un problème concret remonté par les premiers utilisateurs.", color: 'text-orange-400 bg-orange-900/20' },
+            ].map((block, i) => (
+              <FadeUp key={block.title} delay={i * 80}>
+                <div className="p-5 rounded-2xl bg-[#0a0d14] border border-[#1a1f2e] h-full space-y-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${block.color}`}>
+                    <block.icon className="w-4.5 h-4.5" />
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed flex-1">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-1 border-t border-[#1a1f2e]">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${t.color}`}>{t.init}</div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-200">{t.name}</p>
-                      <p className="text-xs text-gray-500">{t.role}</p>
-                    </div>
-                  </div>
+                  <h3 className="text-sm font-bold text-gray-100">{block.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{block.text}</p>
                 </div>
               </FadeUp>
             ))}
@@ -965,7 +971,7 @@ export default function LandingPage() {
                   </button>
                   <div
                     className="overflow-hidden transition-all duration-300"
-                    style={{ maxHeight: openFaq === i ? '200px' : '0px', opacity: openFaq === i ? 1 : 0 }}
+                    style={{ maxHeight: openFaq === i ? '600px' : '0px', opacity: openFaq === i ? 1 : 0 }}
                   >
                     <div className="px-5 pb-4 text-sm text-gray-400 leading-relaxed border-t border-[#1a1f2e] pt-3">
                       {faq.a}

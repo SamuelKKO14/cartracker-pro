@@ -2,19 +2,50 @@
 import { useState } from 'react'
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
-import { Mail, Clock, CheckCircle, Send } from 'lucide-react'
+import { Mail, Clock, CheckCircle, Send, Loader2 } from 'lucide-react'
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSubmitted(true)
+    setError(null)
+
+    if (!form.name || !form.email || !form.subject || !form.message) {
+      setError('Tous les champs sont obligatoires.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError('Adresse email invalide.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Erreur lors de l\'envoi.')
+      } else {
+        setSubmitted(true)
+        setForm({ name: '', email: '', subject: '', message: '' })
+      }
+    } catch {
+      setError('Erreur réseau. Veuillez réessayer.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,7 +70,7 @@ export default function ContactPage() {
                   <Mail className="w-4 h-4 text-orange-400" />
                 </div>
                 <p className="font-semibold text-white text-sm">Email</p>
-                <p className="text-sm text-gray-400">support@cartracker.pro</p>
+                <a href="mailto:contact@cartrackerpro.fr" className="text-sm text-orange-400 hover:underline">contact@cartrackerpro.fr</a>
               </div>
               <div className="rounded-xl border border-[#1a1f2e] bg-[#0d1117] p-5 space-y-2">
                 <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center">
@@ -57,9 +88,9 @@ export default function ContactPage() {
                 <div className="rounded-xl border border-green-500/30 bg-green-500/8 p-10 flex flex-col items-center justify-center gap-4 text-center h-full">
                   <CheckCircle className="w-12 h-12 text-green-400" />
                   <h2 className="text-xl font-semibold text-white">Message envoyé !</h2>
-                  <p className="text-gray-400 text-sm max-w-xs">Merci pour votre message. Nous vous répondrons dans les plus brefs délais.</p>
+                  <p className="text-gray-400 text-sm max-w-xs">Nous vous répondons sous 24h en semaine.</p>
                   <button
-                    onClick={() => { setSubmitted(false); setForm({ name: '', email: '', subject: '', message: '' }) }}
+                    onClick={() => setSubmitted(false)}
                     className="mt-2 px-5 py-2 rounded-lg border border-[#2a2f3e] text-sm text-gray-300 hover:text-white hover:border-[#3a3f4e] transition-colors"
                   >
                     Envoyer un autre message
@@ -102,11 +133,11 @@ export default function ContactPage() {
                       className="w-full px-3 py-2.5 rounded-lg bg-[#1a1f2e] border border-[#2a2f3e] text-sm text-white focus:outline-none focus:border-orange-500/60 transition-colors"
                     >
                       <option value="">Choisissez un sujet</option>
-                      <option value="support">Support technique</option>
-                      <option value="facturation">Facturation / Abonnement</option>
-                      <option value="suggestion">Suggestion de fonctionnalité</option>
-                      <option value="partenariat">Partenariat</option>
-                      <option value="autre">Autre</option>
+                      <option value="Support technique">Support technique</option>
+                      <option value="Facturation / Abonnement">Facturation / Abonnement</option>
+                      <option value="Suggestion de fonctionnalité">Suggestion de fonctionnalité</option>
+                      <option value="Partenariat">Partenariat</option>
+                      <option value="Autre">Autre</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
@@ -121,13 +152,23 @@ export default function ContactPage() {
                       className="w-full px-3 py-2.5 rounded-lg bg-[#1a1f2e] border border-[#2a2f3e] text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500/60 transition-colors resize-none"
                     />
                   </div>
+                  {error && (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium transition-all hover:scale-[1.01] shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium transition-all hover:scale-[1.01] shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:opacity-50"
                   >
-                    <Send className="w-4 h-4" />
-                    Envoyer le message
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    {loading ? 'Envoi en cours...' : 'Envoyer le message'}
                   </button>
+                  <p className="text-xs text-gray-600 text-center">
+                    Vous pouvez aussi nous écrire directement à{' '}
+                    <a href="mailto:contact@cartrackerpro.fr" className="text-orange-400 hover:underline">contact@cartrackerpro.fr</a>
+                  </p>
                 </form>
               )}
             </div>
