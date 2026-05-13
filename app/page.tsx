@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
@@ -83,16 +84,16 @@ const FEATURES = [
 
 
 const SITES_INNER = [
-  { name: 'AutoScout24', short: 'AS24' },
-  { name: 'La Centrale', short: 'LC' },
-  { name: 'LeBonCoin', short: 'LBC' },
-  { name: 'Le Parking', short: 'LP' },
-  { name: 'Autoplus', short: 'A+' },
+  { name: 'AutoScout24', logo: '/logos/autoscout24.png' },
+  { name: 'La Centrale', logo: '/logos/lacentrale.png' },
+  { name: 'LeBonCoin', logo: '/logos/leboncoin.png' },
+  { name: 'Le Parking', logo: '/logos/leparking.png' },
+  { name: 'Autoplus', logo: '/logos/autoplus.png' },
 ]
 const SITES_OUTER = [
-  { name: 'mobile.de', short: 'mob' },
-  { name: 'Caradisiac', short: 'Cara' },
-  { name: 'ParuVendu', short: 'PV' },
+  { name: 'mobile.de', logo: '/logos/mobile-de.png' },
+  { name: 'Caradisiac', logo: '/logos/caradisiac.png' },
+  { name: 'ParuVendu', logo: '/logos/paruvendu.png' },
 ]
 
 const COMPETITORS = ['CarTracker Pro', 'AutoCerfa', 'Optimcar', 'eAuto', 'Spider VO']
@@ -461,8 +462,8 @@ export default function LandingPage() {
                 duration={25}
                 startAngle={i * 72}
               >
-                <div className="group relative w-10 h-10 rounded-xl border border-white/[0.08] bg-[#0d1117] flex items-center justify-center text-xs font-bold text-gray-300 shadow-lg cursor-default">
-                  {site.short}
+                <div className="group relative w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-lg cursor-default">
+                  <Image src={site.logo} alt={site.name} width={32} height={32} className="rounded-lg object-contain" />
                   <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     {site.name}
                   </span>
@@ -479,8 +480,8 @@ export default function LandingPage() {
                 startAngle={i * 120 + 30}
                 reverse
               >
-                <div className="group relative w-10 h-10 rounded-xl border border-white/[0.08] bg-[#0d1117] flex items-center justify-center text-xs font-bold text-gray-300 shadow-lg cursor-default">
-                  {site.short}
+                <div className="group relative w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-lg cursor-default">
+                  <Image src={site.logo} alt={site.name} width={32} height={32} className="rounded-lg object-contain" />
                   <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     {site.name}
                   </span>
