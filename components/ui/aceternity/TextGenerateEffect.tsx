@@ -23,19 +23,21 @@ export function TextGenerateEffect({
   return (
     <div className={cn(className)}>
       {wordArray.map((word, idx) => (
-        <motion.span
-          key={`${word}-${idx}`}
-          className="inline-block mr-[0.25em]"
-          initial={{ opacity: 0, filter: 'blur(8px)' }}
-          animate={isReady ? { opacity: 1, filter: 'blur(0px)' } : {}}
-          transition={{
-            duration: 0.5,
-            delay: idx * 0.08,
-            ease: 'easeOut',
-          }}
-        >
-          {word}
-        </motion.span>
+        <span key={idx} className="inline-block whitespace-nowrap">
+          <motion.span
+            className="inline-block"
+            initial={{ opacity: 0, filter: 'blur(8px)' }}
+            animate={isReady ? { opacity: 1, filter: 'blur(0px)' } : {}}
+            transition={{
+              duration: 0.5,
+              delay: idx * 0.08,
+              ease: 'easeOut',
+            }}
+          >
+            {word}
+          </motion.span>
+          {idx < wordArray.length - 1 && <span>&nbsp;</span>}
+        </span>
       ))}
     </div>
   )
