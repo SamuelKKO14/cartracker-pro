@@ -5,11 +5,6 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
-const CarModel3D = dynamic(
-  () => import('@/components/landing/CarModel3D').then(m => ({ default: m.CarModel3D })),
-  { ssr: false }
-)
-
 const CarHeroScene = dynamic(
   () => import('@/components/3d/CarHeroScene').then(m => ({ default: m.CarHeroScene })),
   {
@@ -451,10 +446,12 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="relative h-[400px] sm:h-[450px] flex items-center justify-center">
-            {/* Center — 3D rotating car with pulsing glow */}
-            <div className="relative z-10 flex items-center justify-center">
-              <div className="absolute w-32 h-32 rounded-full bg-orange-500/20 blur-2xl animate-pulse" />
-              <CarModel3D />
+            {/* Center — Logo with pulsing glow */}
+            <div className="relative z-10">
+              <div className="absolute inset-0 rounded-2xl bg-orange-500/30 blur-xl animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)]">
+                <Car className="w-8 h-8 text-white" />
+              </div>
             </div>
 
             {/* Inner orbit — 5 sites, equidistant at 72° intervals */}
