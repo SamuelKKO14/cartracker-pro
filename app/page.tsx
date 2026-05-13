@@ -72,11 +72,11 @@ function SectionDivider() {
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { icon: Sparkles, label: 'Import Intelligent IA', desc: "Copiez-collez le texte d'une annonce, l'IA extrait tout en 5 secondes.", color: 'from-yellow-500/20 to-yellow-500/5', iconColor: 'text-yellow-400', span: 'md:col-span-2', comingSoon: false },
-  { icon: Calculator, label: 'Calcul de marge', desc: "Prix d'achat + transport + remise en état = marge nette en temps réel.", color: 'from-green-500/20 to-green-500/5', iconColor: 'text-green-400', span: '', comingSoon: false },
+  { icon: Sparkles, label: 'Sourcing multi-sites', desc: "Copiez-collez le texte d'une annonce VO, l'IA extrait tout en 5 secondes.", color: 'from-yellow-500/20 to-yellow-500/5', iconColor: 'text-yellow-400', span: 'md:col-span-2', comingSoon: false },
+  { icon: Calculator, label: 'Calcul de marge', desc: "Prix d'achat + transport + remise en état + carte grise = marge nette en temps réel.", color: 'from-green-500/20 to-green-500/5', iconColor: 'text-green-400', span: '', comingSoon: false },
   { icon: Globe, label: '16 pays européens', desc: "Allemagne, Belgique, Pologne, Espagne, Italie… Toute l'Europe couverte.", color: 'from-violet-500/20 to-violet-500/5', iconColor: 'text-violet-400', span: '', comingSoon: false },
   { icon: Bot, label: 'Gamos IA', desc: "Assistant IA personnel. Conseils d'import, frais par pays, aide 24h/24.", color: 'from-orange-500/20 to-orange-500/5', iconColor: 'text-orange-400', span: '', comingSoon: false },
-  { icon: BarChart3, label: 'Suivi Finance', desc: "CA, marges, objectifs mensuels. Pilotez votre activité comme un business.", color: 'from-teal-500/20 to-teal-500/5', iconColor: 'text-teal-400', span: '', comingSoon: false },
+  { icon: BarChart3, label: 'Suivi Finance', desc: "CA, marges, objectifs mensuels. Pilotez votre parc comme un vrai business.", color: 'from-teal-500/20 to-teal-500/5', iconColor: 'text-teal-400', span: '', comingSoon: false },
   { icon: ClipboardList, label: 'Checklist pré-achat', desc: "12 points de vérification avant chaque achat. CT, carnet, HistoVec, sinistres…", color: 'from-emerald-500/20 to-emerald-500/5', iconColor: 'text-emerald-400', span: 'md:col-span-2', comingSoon: false },
   { icon: Puzzle, label: 'Extension Chrome', desc: "Import direct depuis AutoScout24, La Centrale, LeBonCoin, mobile.de.", color: 'from-cyan-500/20 to-cyan-500/5', iconColor: 'text-cyan-400', span: '', comingSoon: true },
   { icon: Share2, label: 'Partage client', desc: "Lien sécurisé pour partager votre sélection sans révéler vos sources.", color: 'from-blue-500/20 to-blue-500/5', iconColor: 'text-blue-400', span: '', comingSoon: true },
@@ -100,14 +100,14 @@ const SITES_OUTER = [
 const COMPETITORS = ['CarTracker Pro', 'AutoCerfa', 'Optimcar', 'eAuto', 'Spider VO']
 
 const COMPARE_ROWS: { feature: string; values: (boolean | string)[] }[] = [
-  { feature: "Import IA depuis 16 pays européens", values: [true, 'FR seule', 'FR seule', 'FR seule', 'FR seule'] },
-  { feature: "Recherche multi-sites simultanée", values: [true, 'Partiel', false, 'Partiel', 'Partiel'] },
+  { feature: "Sourcing IA depuis 16 pays européens", values: [true, 'FR seule', 'FR seule', 'FR seule', 'FR seule'] },
+  { feature: "Sourcing multi-sites simultané", values: [true, 'Partiel', false, 'Partiel', 'Partiel'] },
   { feature: "Score \"bonne affaire\" auto-calculé", values: [true, false, false, false, false] },
-  { feature: "Calculateur de marge complet", values: [true, 'Partiel', true, 'Partiel', 'Partiel'] },
+  { feature: "Marge nette auto (remise en état, carte grise, transport)", values: [true, 'Partiel', true, 'Partiel', 'Partiel'] },
   { feature: "Checklist pré-achat 12 points", values: [true, false, false, false, false] },
   { feature: "Vue Kanban drag & drop", values: [true, false, false, false, false] },
   { feature: "Partage WhatsApp formaté", values: [true, false, false, 'Email seul', false] },
-  { feature: "Notes client avec timeline", values: [true, 'Partiel', true, true, true] },
+  { feature: "Suivi par mandant avec historique des échanges", values: [true, 'Partiel', true, true, true] },
   { feature: "Tags personnalisés illimités", values: [true, false, 'Partiel', false, false] },
   { feature: "Coût d'import auto-calculé", values: [true, false, false, false, false] },
   { feature: "Assistant IA intégré (Gamos)", values: [true, false, false, 'Partiel', false] },
@@ -142,7 +142,7 @@ const FAQS = [
   },
   {
     q: "À qui s'adresse CarTracker Pro ?",
-    a: "Aux mandataires auto, courtiers, garages indépendants et toute personne qui fait de l'achat-revente automobile à titre professionnel. Que vous gériez 5 clients ou 50, l'outil s'adapte."
+    a: "Aux mandataires VO, courtiers, négociants et garages indépendants qui font de l'achat-revente automobile à titre professionnel. Que vous gériez 5 mandants ou 50, l'outil s'adapte."
   },
   {
     q: "Combien ça coûte ?",
@@ -179,7 +179,7 @@ const FAQS = [
 ]
 
 const TESTIMONIALS = [
-  { name: 'Le constat', text: "Les pros de l'auto perdent un temps fou. Ils jonglent entre 6 sites, perdent des voitures dans WhatsApp, calculent leurs marges sur papier.", icon: Search, color: 'text-blue-400' },
+  { name: 'Le constat', text: "Les mandataires et négociants VO perdent un temps fou. Ils jonglent entre 6 sites, perdent des voitures dans WhatsApp, calculent leurs marges sur papier.", icon: Search, color: 'text-blue-400' },
   { name: 'La conviction', text: "Le temps perdu sur la recherche, c'est du temps en moins pour la vente — là où les pros font leur marge.", icon: Lightbulb, color: 'text-yellow-400' },
   { name: 'La solution', text: "Un outil qui centralise tout : recherche multi-pays, association par client, calcul de marge, checklist pré-achat.", icon: Target, color: 'text-green-400' },
   { name: 'Le fondateur', text: "Construit en solo par Samuel, entrepreneur passionné d'auto qui combine rigueur technique et besoins terrain.", icon: User, color: 'text-orange-400' },
@@ -236,7 +236,7 @@ export default function LandingPage() {
               className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm text-sm"
             >
               <Car className="w-4 h-4 text-orange-400" />
-              <span className="text-gray-300">L'outil des pros de l'auto</span>
+              <span className="text-gray-300">Pour mandataires, négociants & courtiers VO</span>
             </motion.div>
 
             <TextGenerateEffect
@@ -253,7 +253,7 @@ export default function LandingPage() {
               <AnimatedGradientText className="text-lg font-medium">
                 Centralisez, analysez, vendez mieux.
               </AnimatedGradientText>
-              {' '}L'outil que les mandataires utilisent pour structurer leur activité.
+              {' '}L&apos;outil tout-en-un pour le sourcing, le suivi client et la gestion de votre activité.
             </motion.p>
 
             <motion.div
@@ -651,7 +651,7 @@ export default function LandingPage() {
                   <p className="text-sm text-gray-500 mt-1">Pour démarrer son activité</p>
                 </div>
                 <ul className="space-y-2.5 flex-1 mb-6">
-                  {['15 clients max','30 annonces max','Import IA (10/mois)','4 pays UE','Score bonne affaire','Essai 14 jours gratuit'].map(f => (
+                  {['15 clients max','30 annonces VO','Sourcing IA (10/mois)','4 pays UE','Score bonne affaire','Essai 14 jours gratuit'].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
                       <Check className="w-3.5 h-3.5 text-gray-500 shrink-0" /> {f}
                     </li>
@@ -678,7 +678,7 @@ export default function LandingPage() {
                   <p className="text-sm text-gray-500 mt-1">Pour les pros actifs</p>
                 </div>
                 <ul className="space-y-2.5 flex-1 mb-6">
-                  {['250 clients','500 annonces','IA illimitée','14 pays UE','Kanban + Tags','Stats & Finance avancées','Export CSV','Essai 14 jours gratuit'].map(f => (
+                  {['250 clients','500 annonces VO','Sourcing IA illimité','14 pays UE','Kanban + Tags','Stats & Finance avancées','Export CSV','Essai 14 jours gratuit'].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
                       <Check className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {f}
                     </li>

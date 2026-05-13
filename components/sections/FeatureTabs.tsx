@@ -300,7 +300,7 @@ const tabs = [
     label: 'Clients',
     icon: Users,
     title: 'Gestion clients centralisée',
-    description: 'Créez un dossier par client avec budget, critères et timeline complète de vos échanges.',
+    description: 'Créez un dossier par mandant avec budget, critères et historique complet de vos échanges.',
     mockup: <MockupClients />,
   },
   {
@@ -308,15 +308,15 @@ const tabs = [
     label: 'Recherche',
     icon: Search,
     title: 'Tendances & Import IA',
-    description: "Suivez les prix du marché, repérez les pays avantageux et importez n'importe quelle annonce en 5 secondes avec l'IA.",
+    description: "Suivez les prix du marché VO, repérez les pays avantageux et importez n'importe quelle annonce en 5 secondes avec l'IA.",
     mockup: <MockupRecherche />,
   },
   {
     id: 'listings',
     label: 'Annonces',
     icon: Car,
-    title: 'Toutes vos annonces centralisées',
-    description: 'Scoring auto, filtres multi-critères, marge calculée. Chaque annonce est analysée et prête à être partagée.',
+    title: 'Toutes vos annonces VO centralisées',
+    description: 'Scoring auto, filtres multi-critères, marge nette par véhicule. Chaque annonce est analysée et prête à être partagée.',
     mockup: <MockupAnnonces />,
   },
   {
@@ -324,7 +324,7 @@ const tabs = [
     label: 'Finance',
     icon: Calculator,
     title: 'Finance & Objectifs',
-    description: 'CA, charges, marge nette en temps réel. Fixez vos objectifs et suivez votre progression.',
+    description: 'CA, charges, marge nette par véhicule en temps réel. Fixez vos objectifs et suivez votre progression.',
     mockup: <MockupFinance />,
   },
   {
@@ -332,7 +332,7 @@ const tabs = [
     label: 'Stats',
     icon: BarChart3,
     title: 'Statistiques détaillées',
-    description: 'Annonces, scores, prix moyens, top affaires. Pilotez votre activité avec des données concrètes.',
+    description: 'Annonces, scores, prix moyens, top affaires. Pilotez votre parc avec des données concrètes.',
     mockup: <MockupStats />,
   },
 ]
