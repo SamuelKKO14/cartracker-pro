@@ -29,6 +29,7 @@ import {
 import { Navbar } from '@/components/landing/Navbar'
 import { Footer } from '@/components/landing/Footer'
 import { FeatureTabs } from '@/components/sections/FeatureTabs'
+import { LogoIcon } from '@/components/ui/logo'
 
 // Aceternity
 import { GridBackground } from '@/components/ui/aceternity/GridBackground'
@@ -446,11 +447,11 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="relative h-[400px] sm:h-[450px] flex items-center justify-center">
-            {/* Center — Logo with pulsing glow */}
+            {/* Center — CarTracker Pro logo with pulsing glow */}
             <div className="relative z-10">
               <div className="absolute inset-0 rounded-2xl bg-orange-500/30 blur-xl animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)]">
-                <Car className="w-8 h-8 text-white" />
+              <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)]">
+                <LogoIcon className="w-14 h-14 [&_path]:stroke-white [&_line]:stroke-white [&_circle]:fill-white" />
               </div>
             </div>
 
