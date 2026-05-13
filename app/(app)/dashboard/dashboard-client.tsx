@@ -367,11 +367,11 @@ export function DashboardClient({
           {/* ── KPIs ── */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
-              { icon: <Users className="w-4 h-4" />, label: 'Clients actifs', value: kpis.activeClients, color: 'blue' as const, href: '/clients', highlight: false },
-              { icon: <Car className="w-4 h-4" />, label: 'Annonces', value: kpis.totalListings, color: 'purple' as const, href: '/annonces', highlight: false },
-              { icon: <TrendingUp className="w-4 h-4" />, label: 'En négociation', value: kpis.negotiationCount, color: 'orange' as const, href: '/annonces?status=negotiation', highlight: false },
-              { icon: <Euro className="w-4 h-4" />, label: 'Marge potentielle', value: formatPrice(kpis.totalPositiveMargin), color: 'teal' as const, href: '/finance', highlight: true, isText: true },
-              { icon: <ShoppingCart className="w-4 h-4" />, label: 'Véhicules vendus', value: kpis.resoldCount, color: 'green' as const, href: '/finance', highlight: false },
+              { icon: <Users className="w-4 h-4" />, label: 'Clients actifs', value: kpis.activeClients, color: 'blue' as const, href: '/clients' },
+              { icon: <Car className="w-4 h-4" />, label: 'Annonces', value: kpis.totalListings, color: 'purple' as const, href: '/annonces' },
+              { icon: <TrendingUp className="w-4 h-4" />, label: 'En négociation', value: kpis.negotiationCount, color: 'orange' as const, href: '/annonces?status=negotiation' },
+              { icon: <Euro className="w-4 h-4" />, label: 'Marge potentielle', value: formatPrice(kpis.totalPositiveMargin), color: 'teal' as const, href: '/finance', isText: true },
+              { icon: <ShoppingCart className="w-4 h-4" />, label: 'Véhicules vendus', value: kpis.resoldCount, color: 'green' as const, href: '/finance' },
             ].map((kpi, i) => (
               <motion.div
                 key={kpi.label}
@@ -448,7 +448,7 @@ export function DashboardClient({
 // ── Sub-components ────────────────────────────────────────────
 
 function KPICard({
-  icon, label, value, color, isText, href, highlight
+  icon, label, value, color, isText, href,
 }: {
   icon: React.ReactNode
   label: string
@@ -456,7 +456,6 @@ function KPICard({
   color: 'blue' | 'purple' | 'green' | 'orange' | 'teal' | 'pink'
   isText?: boolean
   href?: string
-  highlight?: boolean
 }) {
   const colorMap = {
     blue: 'text-blue-400 bg-blue-500/10',
@@ -467,11 +466,7 @@ function KPICard({
     pink: 'text-pink-400 bg-pink-500/10',
   }
   const inner = (
-    <div className={`relative p-4 rounded-xl border transition-all duration-200 h-full ${
-      highlight
-        ? 'border-orange-500/20 bg-white/[0.03] shadow-[0_0_20px_rgba(249,115,22,0.06)]'
-        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04]'
-    }`}>
+    <div className="relative p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04] transition-all duration-200 h-full">
       <div className={`inline-flex items-center justify-center w-7 h-7 rounded-lg mb-2.5 ${colorMap[color]}`}>
         <span className={colorMap[color].split(' ')[0]}>{icon}</span>
       </div>
