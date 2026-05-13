@@ -18,7 +18,6 @@ import {
   BarChart3, Plus, ExternalLink, Calculator, GripVertical,
 } from 'lucide-react'
 import { AnimatedGradientText } from '@/components/ui/magicui/AnimatedGradientText'
-import { BorderBeam } from '@/components/ui/magicui/BorderBeam'
 
 // ── Types ────────────────────────────────────────────────
 
@@ -473,7 +472,6 @@ function KPICard({
         ? 'border-orange-500/20 bg-white/[0.03] shadow-[0_0_20px_rgba(249,115,22,0.06)]'
         : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.04]'
     }`}>
-      {highlight && <BorderBeam size={100} duration={5} />}
       <div className={`inline-flex items-center justify-center w-7 h-7 rounded-lg mb-2.5 ${colorMap[color]}`}>
         <span className={colorMap[color].split(' ')[0]}>{icon}</span>
       </div>
