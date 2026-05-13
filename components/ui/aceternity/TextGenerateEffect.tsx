@@ -1,6 +1,6 @@
 'use client'
-import { useEffect, useMemo } from 'react'
-import { motion, stagger, useAnimate } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export function TextGenerateEffect({
@@ -12,24 +12,27 @@ export function TextGenerateEffect({
   className?: string
   delay?: number
 }) {
-  const [scope, animate] = useAnimate()
-  const wordArray = useMemo(() => words.split(' '), [words])
+  const [isReady, setIsReady] = useState(false)
+  const wordArray = words.split(' ')
 
   useEffect(() => {
-    animate(
-      'span',
-      { opacity: 1, filter: 'blur(0px)' },
-      { duration: 0.4, delay: stagger(0.08, { startDelay: delay }) }
-    )
-  }, [animate, delay])
+    const timer = setTimeout(() => setIsReady(true), 100 + delay * 1000)
+    return () => clearTimeout(timer)
+  }, [delay])
 
   return (
-    <div ref={scope} className={cn(className)}>
+    <div className={cn(className)}>
       {wordArray.map((word, idx) => (
         <motion.span
           key={`${word}-${idx}`}
           className="inline-block mr-[0.25em]"
           initial={{ opacity: 0, filter: 'blur(8px)' }}
+          animate={isReady ? { opacity: 1, filter: 'blur(0px)' } : {}}
+          transition={{
+            duration: 0.5,
+            delay: idx * 0.08,
+            ease: 'easeOut',
+          }}
         >
           {word}
         </motion.span>
