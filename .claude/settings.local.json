@@ -15,7 +15,8 @@
       "Bash(grep -E \"\\\\.\\(css|scss\\)$\")",
       "Bash(cp /Users/vigusb/Desktop/vigusb-shopify/tinker/sections/header.liquid /tmp/header_content.liquid)",
       "Read(//tmp/**)",
-      "Read(//Users/vigusb/**)"
+      "Read(//Users/vigusb/**)",
+      "Bash(git revert:*)"
     ]
   }
 }
