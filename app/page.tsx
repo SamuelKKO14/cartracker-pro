@@ -84,16 +84,16 @@ const FEATURES = [
 
 
 const SITES_INNER = [
-  { name: 'AutoScout24', logo: '/logos/autoscout24.png' },
-  { name: 'La Centrale', logo: '/logos/lacentrale.png' },
-  { name: 'LeBonCoin', logo: '/logos/leboncoin.png' },
-  { name: 'Le Parking', logo: '/logos/leparking.png' },
-  { name: 'Autoplus', logo: '/logos/autoplus.png' },
+  { name: 'AutoScout24', logo: '/logos/autoscout24.com.png' },
+  { name: 'La Centrale', logo: '/logos/lacentrale.fr.png' },
+  { name: 'LeBonCoin', logo: '/logos/leboncoin.fr.png' },
+  { name: 'Le Parking', logo: '/logos/leparking.fr.jpeg' },
+  { name: 'Autoplus', logo: '/logos/autoplus.fr.png' },
 ]
 const SITES_OUTER = [
-  { name: 'mobile.de', logo: '/logos/mobile-de.png' },
-  { name: 'Caradisiac', logo: '/logos/caradisiac.png' },
-  { name: 'ParuVendu', logo: '/logos/paruvendu.png' },
+  { name: 'mobile.de', logo: '/logos/mobile.de.png' },
+  { name: 'Caradisiac', logo: '/logos/caradisiac.com.png' },
+  { name: 'ParuVendu', logo: '/logos/paruvendu.fr.png' },
 ]
 
 const COMPETITORS = ['CarTracker Pro', 'AutoCerfa', 'Optimcar', 'eAuto', 'Spider VO']
