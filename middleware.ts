@@ -33,12 +33,10 @@ export async function middleware(request: NextRequest) {
   // Routes API publiques ou avec leur propre auth (extension Chrome)
   if (pathname.startsWith('/api/extension/')) return response
 
-  // Protect API routes (sauf GET /api/share/[token] et /api/blog/*)
+  // Protect API routes (sauf /api/blog/*)
   if (pathname.startsWith('/api/')) {
-    const isPublicShareGet =
-      request.method === 'GET' && /^\/api\/share\/[^/]+$/.test(pathname)
     const isPublicBlog = pathname.startsWith('/api/blog/')
-    if (!isPublicShareGet && !isPublicBlog && !user) {
+    if (!isPublicBlog && !user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
     return response
@@ -48,7 +46,6 @@ export async function middleware(request: NextRequest) {
   const isPublicPage =
     pathname === '/' ||
     pathname.startsWith('/auth/') ||
-    pathname.startsWith('/share/') ||
     pathname === '/cgu' ||
     pathname === '/confidentialite' ||
     pathname === '/contact' ||

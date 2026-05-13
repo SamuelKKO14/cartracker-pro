@@ -48,14 +48,6 @@ const STEPS: StepDef[] = [
     href: '/annonces',
   },
   {
-    id: 'first_share',
-    icon: '📤',
-    title: 'Partage une sélection',
-    description: 'Envoie une sélection d\'annonces à un client via lien.',
-    cta: 'Mes partages',
-    href: '/partages',
-  },
-  {
     id: 'explore_dashboard',
     icon: '📊',
     title: 'Explore ton tableau de bord',

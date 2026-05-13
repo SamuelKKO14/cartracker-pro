@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Search, List, BarChart3, LayoutDashboard, Share2, TrendingUp, User, LogOut, Newspaper, Menu, X, HelpCircle, CreditCard } from 'lucide-react'
+import { Users, Search, List, BarChart3, LayoutDashboard, TrendingUp, User, LogOut, Newspaper, Menu, X, HelpCircle, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { LogoIcon, LogoFull } from '@/components/ui/logo'
 import { cn } from '@/lib/utils'
@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { href: '/annonces', icon: List, label: 'Annonces', key: '4' },
   { href: '/stats', icon: BarChart3, label: 'Statistiques', key: '5' },
   { href: '/clients', icon: Users, label: 'Clients', key: '6' },
-  { href: '/partages', icon: Share2, label: 'Partages', key: '7' },
+
   { href: '/blog', icon: Newspaper, label: 'Blog', key: '8' },
   { href: '/parametres/facturation', icon: CreditCard, label: 'Facturation', key: '9' },
 ]

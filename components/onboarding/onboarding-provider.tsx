@@ -10,7 +10,6 @@ export type StepId =
   | 'first_client'
   | 'first_listing'
   | 'first_margin'
-  | 'first_share'
   | 'explore_dashboard'
 
 export const ALL_STEPS: StepId[] = [
@@ -18,7 +17,6 @@ export const ALL_STEPS: StepId[] = [
   'first_client',
   'first_listing',
   'first_margin',
-  'first_share',
   'explore_dashboard',
 ]
 
@@ -179,15 +177,6 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId!)
           if ((count ?? 0) > 0) toComplete.push('first_margin')
-        }
-
-        // first_share: user has created at least one share
-        if (!cur.includes('first_share')) {
-          const { count } = await supabase
-            .from('client_shares')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', userId!)
-          if ((count ?? 0) > 0) toComplete.push('first_share')
         }
 
         // explore_dashboard: visiting /dashboard with ≥1 client AND ≥1 listing

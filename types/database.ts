@@ -572,8 +572,6 @@ export type ListingMargin = Database['public']['Tables']['listing_margins']['Row
 export type ListingChecklist = Database['public']['Tables']['listing_checklist']['Row']
 export type SavedSearch = Database['public']['Tables']['saved_searches']['Row']
 
-export type ClientShare = Database['public']['Tables']['client_shares']['Row']
-export type ClientShareResponse = Database['public']['Tables']['client_share_responses']['Row']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ListingStatus = 'new' | 'viewed' | 'contacted' | 'negotiation' | 'bought' | 'resold' | 'ignored'
 export type ListingPhoto = Database['public']['Tables']['listing_photos']['Row']
