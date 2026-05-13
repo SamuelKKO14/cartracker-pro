@@ -1,8 +1,23 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import { CarHeroScene } from '@/components/3d/CarHeroScene'
+import dynamic from 'next/dynamic'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+
+const CarHeroScene = dynamic(
+  () => import('@/components/3d/CarHeroScene').then(m => ({ default: m.CarHeroScene })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="relative w-32 h-32 animate-pulse">
+          <div className="absolute inset-0 rounded-full bg-orange-500/20 blur-2xl" />
+          <Car className="absolute inset-0 m-auto w-12 h-12 text-orange-400" />
+        </div>
+      </div>
+    ),
+  }
+)
 import {
   Car, X, ArrowRight, ChevronDown,
   Check, Star, Globe, Zap, Calculator, Share2, Bot, BarChart3,
