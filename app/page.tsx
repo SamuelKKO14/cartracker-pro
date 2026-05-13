@@ -37,7 +37,6 @@ import { StickyScroll } from '@/components/ui/aceternity/StickyScroll'
 import { TextGenerateEffect } from '@/components/ui/aceternity/TextGenerateEffect'
 import { CardSpotlight } from '@/components/ui/aceternity/CardSpotlight'
 import { BentoGrid, BentoCard } from '@/components/ui/aceternity/BentoGrid'
-import { Card3D } from '@/components/ui/aceternity/Card3D'
 
 // Magic UI
 import { NumberTicker } from '@/components/ui/magicui/NumberTicker'
@@ -222,12 +221,6 @@ const FEATURES = [
   { icon: Newspaper, label: 'Blog intégré', desc: "Articles SEO pour attirer des clients. Génération assistée par IA.", color: 'from-rose-500/20 to-rose-500/5', iconColor: 'text-rose-400', span: '', comingSoon: true },
 ]
 
-const STEPS = [
-  { num: '01', icon: Search, title: 'Trouvez', desc: "Naviguez sur les sites européens ou utilisez l'import IA pour ajouter des annonces." },
-  { num: '02', icon: ClipboardList, title: 'Organisez', desc: "Associez les annonces à vos clients, remplissez la checklist pré-achat." },
-  { num: '03', icon: Calculator, title: 'Analysez', desc: "Calculez la marge nette en temps réel. Transport, remise en état, CT, tout est compté." },
-  { num: '04', icon: Euro, title: 'Vendez', desc: "Marquez comme revendu. Le CA et la marge se calculent automatiquement." },
-]
 
 const SITES_INNER = [
   { name: 'AutoScout24', short: 'AS24' },
@@ -544,53 +537,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
         <StickyScroll items={STICKY_SCROLL_ITEMS} />
-      </section>
-
-      <SectionDivider />
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. COMMENT ÇA MARCHE — Card3D steps (résumé rapide)
-          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#06090f]">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            custom={0}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
-              Comment ça marche
-            </h2>
-            <p className="text-gray-400">4 étapes pour structurer votre activité</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {STEPS.map((step, i) => (
-              <motion.div
-                key={step.num}
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i * 0.1}
-              >
-                <Card3D className="p-6 h-full" intensity={8}>
-                  <div className="space-y-4">
-                    <span className="text-xs font-mono text-orange-400/60">{step.num}</span>
-                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                      <step.icon className="w-5 h-5 text-orange-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">{step.title}</h3>
-                    <p className="text-sm text-gray-400 leading-relaxed">{step.desc}</p>
-                  </div>
-                </Card3D>
-              </motion.div>
-            ))}
-          </div>
-        </div>
       </section>
 
       <SectionDivider />
