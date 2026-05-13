@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import { CarHeroScene } from '@/components/3d/CarHeroScene'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import {
   Car, X, ArrowRight, ChevronDown,
@@ -30,23 +30,6 @@ import { Marquee } from '@/components/ui/magicui/Marquee'
 import { AnimatedGradientText } from '@/components/ui/magicui/AnimatedGradientText'
 import { OrbitingCircles } from '@/components/ui/magicui/OrbitingCircles'
 
-// 3D — lazy loaded, SSR disabled
-const CarHeroScene = dynamic(
-  () => import('@/components/3d/CarHeroScene').then(m => ({ default: m.CarHeroScene })),
-  { ssr: false, loading: () => <HeroFallback /> }
-)
-
-function HeroFallback() {
-  return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="relative w-32 h-32">
-        <div className="absolute inset-0 rounded-full bg-orange-500/10 animate-ping" />
-        <div className="absolute inset-4 rounded-full bg-orange-500/20 animate-pulse" />
-        <Car className="absolute inset-0 m-auto w-12 h-12 text-orange-400" />
-      </div>
-    </div>
-  )
-}
 
 // ── Shared animation config ──────────────────────────────────────────────────
 
