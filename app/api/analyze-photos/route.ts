@@ -89,11 +89,11 @@ CHAMPS À EXTRAIRE (réponds en JSON strict, null si vraiment impossible à dét
   "generation": "Génération/code châssis si identifiable (ex: G20, W205, MK2)",
   "year": "Année (number, ex: 2020). Cherche dans : photo de specs, plaque d'immatriculation (format SIV = pas d'année, mais ancien FNI = oui), carte grise visible, design de la voiture (génération typique), badges/écussons spéciaux",
   "km": "Kilométrage (number, sans espaces). Cherche dans : photo du compteur (priorité 1), specs écrites, capture d'annonce. Si tu vois 'X xxx km' ou 'X.xxx km', convertis en number",
-  "price": "Prix en € (number, sans espaces). Cherche dans : capture d'annonce, étiquette prix chez concessionnaire, panneau d'affichage. Si plusieurs prix visibles (HT/TTC/financement), prends le prix de vente TTC le plus visible",
-  "horsepower": "Puissance en CV/ch (number). Cherche dans : specs, badge sur la voiture (ex: T5, 250, AMG 43), nom du moteur",
+  "price": "Prix de vente en € (number sans espace ni décimale). Cherche AGRESSIVEMENT : 1) Étiquette prix grande taille (chiffres en gros sur les photos d'annonce, panneau concession) 2) Texte 'Prix', '€', 'EUR', 'TTC', 'HT' suivi d'un nombre 3) Mentions 'Notre prix', 'Prix net', 'À vendre' 4) Si plusieurs prix visibles : prends le PLUS GROS et le plus visible (c'est généralement le prix TTC affiché) 5) Ignore les prix barrés (anciens prix promotionnels). Si aucun prix visible nulle part, retourne null. Mais examine attentivement TOUTES les photos avant de conclure.",
+  "horsepower": "Puissance en CV/ch (number entier). RECHERCHE PRIORITAIRE — examine ATTENTIVEMENT chaque image pour trouver : 1) Texte 'Puissance DIN', 'Puissance fiscale', 'Puissance moteur', 'kW', 'ch', 'CV', 'HP' dans les photos de specs 2) Badge sur la voiture (ex: T5 sur Volvo = 254ch, T6 = 310ch, D4 = 190ch, D5 = 235ch, 320d BMW = 190ch, 330d = 265ch, M3 = 480ch, AMG 43 = 390ch, AMG 63 = 510ch) 3) Nom complet du moteur visible (ex: TDI 150, TSI 200) 4) Tableau de caractéristiques sur capture d'annonce. Si tu vois '190 ch' ou '190 CH' ou '190 hp' ou '140 kW' (kW à convertir : multiplier par 1.36), retourne le nombre en ch. Ne JAMAIS laisser vide si une valeur numérique de puissance est visible quelque part dans les images.",
   "fuel": "Carburant — DOIT être EXACTEMENT une de ces valeurs : 'Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL'. Déduis depuis : badge (TDI/HDI/Blue = Diesel, TSI/T5/T6 = Essence/Hybride sur Volvo, e-tron/EV = Électrique), specs, type de moteur visible",
   "gearbox": "Boîte — DOIT être EXACTEMENT 'Manuelle' ou 'Automatique'. Cherche : levier de vitesse visible dans intérieur (priorité), specs, indication BVM/BVA/DSG/Geartronic = Automatique, EDC = Automatique",
-  "body": "Carrosserie — DOIT être EXACTEMENT une de : 'Berline', 'SUV', 'Citadine', 'Break', 'Coupé', 'Cabriolet', 'Utilitaire', 'Monospace'. Déduis visuellement.",
+  "body": "Carrosserie — DOIT être EXACTEMENT une de : 'Berline', 'SUV', 'Citadine', 'Break', 'Coupé', 'Cabriolet', 'Utilitaire', 'Monospace'. Déduis visuellement OU par le modèle (voir section DÉDUCTION ci-dessous).",
   "color": "Couleur principale en français (ex: 'Noir métallisé', 'Blanc', 'Gris foncé')",
   "country": "Code pays ISO 2 lettres. Déduis depuis : plaque d'immatriculation (FR, DE, BE, ES, IT, NL, PT, PL, RO, AT, CH, SE, NO, LT, LU, DK), drapeau, langue du texte des photos specs, devise (€ = pas concluant, mais £/CHF/SEK = indique). Par défaut FR si annonce en français",
   "seller": "Type de vendeur — DOIT être 'particulier' OU 'professionnel'. Indices PRO : logo concessionnaire visible, panneau d'affichage type concession, photo studio/showroom, mention 'garantie 12 mois', plusieurs voitures alignées en arrière-plan, texte 'professionnel' sur l'annonce. Par défaut 'particulier' si aucun indice pro",
@@ -108,6 +108,17 @@ CHAMPS À EXTRAIRE (réponds en JSON strict, null si vraiment impossible à dét
 photo_classification : pour CHAQUE image envoyée (index 0 à N-1), dis si elle montre :
 - "vehicle" = la voiture en elle-même (extérieur, intérieur, détails carrosserie, compteur)
 - "specs" = capture d'écran d'annonce, fiche technique, panneau de prix, etc.
+
+DÉDUCTION MODÈLE → CARROSSERIE (si la marque + modèle correspond, déduis automatiquement sans hésitation) :
+SUV : XC40, XC60, XC90, X1, X2, X3, X4, X5, X6, X7, Q2, Q3, Q5, Q7, Q8, GLA, GLB, GLC, GLE, GLS, G-Class, Cayenne, Macan, Tiguan, Touareg, T-Roc, T-Cross, Kuga, Puma, Captur, Kadjar, Koleos, Arkana, 2008, 3008, 5008, C3 Aircross, C5 Aircross, Tucson, Santa Fe, Kona, Sportage, Sorento, Niro, RAV4, C-HR, Highlander, CX-3, CX-5, CX-30, Atlas, Range Rover, Discovery, Defender, Evoque, Velar, Compass, Renegade, Cherokee, Wrangler, Outback, Forester, Karoq, Kodiaq
+BERLINE : Série 3, Série 5, Série 7, Classe C, Classe E, Classe S, A3, A4, A5, A6, A7, A8, Passat, Talisman, 508, Insignia, Mondeo, Civic Sedan, Accord, Camry, Model 3, Model S, S60, S90, Stinger, Optima, Sonata
+CITADINE : Polo, Up!, 208, 108, Twingo, Clio, Sandero, Fiesta, Ka, Yaris, Aygo, C1, C3, 500, Panda, Ibiza, Corsa, Picanto, Rio, i10, i20, Swift, Jazz
+BREAK : Touring, V60, V90, A4 Avant, A6 Avant, Classe C Break, Classe E Break, Passat Variant, Octavia Combi, Superb Combi, 308 SW, 508 SW
+COUPÉ : Série 4, Série 8, Classe C Coupé, A5 Coupé, TT, 911, 718, Cayman
+CABRIOLET : Z4, Classe C Cabriolet, A5 Cabriolet, TT Roadster, Boxster, 911 Cabriolet, MX-5
+UTILITAIRE : Master, Trafic, Kangoo, Berlingo, Partner, Expert, Jumpy, Boxer, Ducato, Transit, Sprinter, Vito, Crafter, Combo
+MONOSPACE : Espace, Scenic, Grand Scenic, Touran, Sharan, Galaxy, S-Max
+Si le modèle n'est PAS dans cette liste, déduis visuellement. Ne laisse JAMAIS body vide pour un modèle reconnaissable.
 
 RÈGLES IMPORTANTES :
 - Sois AGRESSIVEMENT déductif — il vaut mieux donner une valeur probable que null
@@ -142,6 +153,11 @@ Réponds UNIQUEMENT le JSON, rien d'autre. Pas de markdown, pas d'explications.`
     extracted.km = safeNumber(extracted.km)
     extracted.price = safeNumber(extracted.price)
     extracted.horsepower = safeNumber(extracted.horsepower)
+
+    // If AI returned horsepower in kW (< 60 is suspicious for a car), convert to ch
+    if (typeof extracted.horsepower === 'number' && extracted.horsepower > 0 && extracted.horsepower < 60) {
+      extracted.horsepower = Math.round((extracted.horsepower as number) * 1.36)
+    }
     extracted.fuel = safeEnum(extracted.fuel, VALID_FUEL)
     extracted.gearbox = safeEnum(extracted.gearbox, VALID_GEARBOX)
     extracted.body = safeEnum(extracted.body, VALID_BODY)
