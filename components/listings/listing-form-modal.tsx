@@ -15,6 +15,7 @@ import type { Client, Listing } from '@/types/database'
 export interface ListingInitialData {
   brand?: string
   model?: string
+  generation?: string | null
   year?: number | null
   km?: number | null
   price?: number | null

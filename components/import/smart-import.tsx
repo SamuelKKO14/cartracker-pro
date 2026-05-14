@@ -13,13 +13,18 @@ import { Camera, X, Loader2, Sparkles, ArrowRight, AlertCircle } from 'lucide-re
 const AI_PREVIEW_FIELDS: { key: keyof ListingInitialData; label: string; format?: (v: unknown) => string }[] = [
   { key: 'brand', label: 'Marque' },
   { key: 'model', label: 'Modèle' },
+  { key: 'generation', label: 'Génération' },
   { key: 'year', label: 'Année' },
   { key: 'km', label: 'Km', format: v => v != null ? `${(v as number).toLocaleString('fr-FR')} km` : '' },
   { key: 'price', label: 'Prix', format: v => v != null ? `${(v as number).toLocaleString('fr-FR')} €` : '' },
+  { key: 'horsepower', label: 'CV', format: v => v != null ? `${v} ch` : '' },
   { key: 'fuel', label: 'Carburant' },
   { key: 'gearbox', label: 'Boîte' },
+  { key: 'body', label: 'Carrosserie' },
+  { key: 'color', label: 'Couleur' },
   { key: 'country', label: 'Pays' },
   { key: 'seller', label: 'Vendeur' },
+  { key: 'first_owner', label: '1ère main', format: v => v === true ? 'Oui' : v === false ? 'Non' : '' },
 ]
 
 // ── Props ────────────────────────────────────────────────────
@@ -146,8 +151,8 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
     }, 2000)
 
     try {
-      // Only send first 5 photos to avoid exceeding Vercel's 4.5 MB body limit
-      const base64Images = await Promise.all(photoFiles.slice(0, 5).map(f => resizeImage(f)))
+      // Send up to 10 photos to Claude for analysis
+      const base64Images = await Promise.all(photoFiles.slice(0, 10).map(f => resizeImage(f)))
       const res = await fetch('/api/analyze-photos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,6 +204,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
           client_id: photoClientId || null,
           brand: str('brand') ?? 'Inconnu',
           model: str('model'),
+          generation: str('generation'),
           year: num('year'),
           km: num('km'),
           price: num('price'),
@@ -207,6 +213,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
           body: str('body'),
           country: str('country'),
           seller: str('seller'),
+          first_owner: photoEditedResult['first_owner'] === 'true',
           horsepower: num('horsepower'),
           color: str('color'),
           notes: str('notes'),
@@ -507,6 +514,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                   {([
                     { key: 'brand', label: 'Marque', type: 'text' },
                     { key: 'model', label: 'Modèle', type: 'text' },
+                    { key: 'generation', label: 'Génération', type: 'text' },
                     { key: 'year', label: 'Année', type: 'number' },
                     { key: 'km', label: 'Kilométrage', type: 'number' },
                     { key: 'price', label: 'Prix (€)', type: 'number' },
@@ -527,8 +535,9 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                   {([
                     { key: 'fuel', label: 'Carburant', options: ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL'] },
                     { key: 'gearbox', label: 'Boîte de vitesses', options: ['Manuelle', 'Automatique'] },
-                    { key: 'body', label: 'Carrosserie', options: ['Berline', 'SUV/4x4', 'Break', 'Coupé', 'Cabriolet', 'Citadine', 'Utilitaire', 'Monospace'] },
+                    { key: 'body', label: 'Carrosserie', options: ['Berline', 'SUV', 'Citadine', 'Break', 'Coupé', 'Cabriolet', 'Utilitaire', 'Monospace'] },
                     { key: 'seller', label: 'Type vendeur', options: ['particulier', 'professionnel'] },
+                    { key: 'first_owner', label: '1ère main', options: ['true', 'false'] },
                   ] as { key: string; label: string; options: string[] }[]).map(({ key, label, options }) => (
                     <div key={key}>
                       <label className="text-xs text-gray-500 mb-1 block">{label}</label>
@@ -538,7 +547,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                         className="w-full h-8 px-3 text-sm rounded-md border border-[#2a2f3e] bg-[#0a0d14] text-gray-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
                       >
                         <option value="">—</option>
-                        {options.map(o => <option key={o} value={o}>{o}</option>)}
+                        {options.map(o => <option key={o} value={o}>{key === 'first_owner' ? (o === 'true' ? 'Oui' : 'Non') : o}</option>)}
                       </select>
                     </div>
                   ))}
