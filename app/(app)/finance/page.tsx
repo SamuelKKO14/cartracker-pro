@@ -49,6 +49,7 @@ interface NegoListing {
   model: string | null
   year: number | null
   price: number | null
+  status: string
   listing_margins: ListingMargin[] | null
 }
 
@@ -514,9 +515,9 @@ export default function FinancePage() {
           .eq('status', 'resold'),
         supabase
           .from('listings')
-          .select('id, brand, model, year, price, listing_margins(*)')
+          .select('id, brand, model, year, price, status, listing_margins(*)')
           .eq('user_id', user.id)
-          .eq('status', 'negotiation'),
+          .neq('status', 'resold'),
         supabase
           .from('profiles')
           .select('goal_monthly_margin, goal_annual_revenue, goal_margin_per_vehicle')
@@ -655,19 +656,25 @@ export default function FinancePage() {
     return { negoMarginsTotal: total, negoHasEstimated: hasEstimated }
   }, [negoListings])
 
+  // ── Pipeline prévisionnel (all non-resold with margins) ──
+  const pipeline = useMemo(() => {
+    let total = 0, count = 0
+    for (const l of negoListings) {
+      const mg = getListingMargin(l, true)
+      if (mg !== null) { total += mg.value; count++ }
+    }
+    return { count, total, avg: count > 0 ? total / count : 0 }
+  }, [negoListings])
+
   const projectedMonth = monthMargin + negoMarginsTotal
   const projectedPct = goals.goal_monthly_margin > 0
     ? (projectedMonth / goals.goal_monthly_margin) * 100
     : 0
 
-  // ── Ventes triées ──
+  // ── Ventes triées (from transactions) ──
   const sortedSales = useMemo(() =>
-    [...filtered].sort((a, b) => {
-      if (!a.sold_at) return 1
-      if (!b.sold_at) return -1
-      return new Date(b.sold_at).getTime() - new Date(a.sold_at).getTime()
-    }),
-    [filtered],
+    [...filteredTx].sort((a, b) => new Date(b.sold_at).getTime() - new Date(a.sold_at).getTime()),
+    [filteredTx],
   )
 
   // ── Historique : du premier mois avec une transaction jusqu'à décembre de l'année en cours ──
@@ -1030,7 +1037,30 @@ export default function FinancePage() {
                 )}
               </div>
 
-              {/* Section 5 — Ventes */}
+              {/* Section 5 — Pipeline prévisionnel */}
+              {pipeline.count > 0 && (
+                <div>
+                  <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Pipeline prévisionnel — {pipeline.count} véhicule{pipeline.count > 1 ? 's' : ''}
+                  </h2>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] text-center">
+                      <p className="text-xs text-gray-500 mb-1">Véhicules</p>
+                      <p className="text-lg font-bold text-blue-400">{pipeline.count}</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] text-center">
+                      <p className="text-xs text-gray-500 mb-1">Marge totale</p>
+                      <p className="text-lg font-bold text-green-400">{fmt(pipeline.total)}</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-[#1a1f2e] bg-[#0d1117] text-center">
+                      <p className="text-xs text-gray-500 mb-1">Marge moyenne</p>
+                      <p className="text-lg font-bold text-orange-400">{fmt(pipeline.avg)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Section 6 — Ventes */}
               <div>
                 <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   Ventes{sortedSales.length > 0 ? ` — ${sortedSales.length} opération${sortedSales.length > 1 ? 's' : ''}` : ''}
@@ -1046,30 +1076,25 @@ export default function FinancePage() {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-[#1a1f2e] overflow-hidden divide-y divide-[#1a1f2e]">
-                    {sortedSales.map(l => {
-                      const marginResult = getListingMargin(l)
-                      const margin = marginResult?.value ?? null
-                      const hasMarginData = !!l.listing_margins?.[0]
+                    {sortedSales.map(t => {
+                      const margin = t.margin
                       return (
                         <div
-                          key={l.id}
-                          className="flex items-center gap-4 px-5 py-4 bg-[#0a0d14] hover:bg-[#0d1117] transition-colors cursor-pointer"
-                          onClick={() => setSelectedSale(l)}
+                          key={t.id}
+                          className="flex items-center gap-4 px-5 py-4 bg-[#0a0d14] hover:bg-[#0d1117] transition-colors"
                         >
                           <span className="text-xl flex-shrink-0">🚗</span>
 
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-100 truncate">
-                              {l.brand} {l.model}{l.year ? ` — ${l.year}` : ''}
+                              {t.brand} {t.model}{t.year ? ` — ${t.year}` : ''}
                             </p>
                             <p className="text-xs text-gray-500 truncate mt-0.5">
-                              {l.clients?.name ? `Client : ${l.clients.name}` : ''}
-                              {l.listing_margins?.[0]?.buy_price != null
-                                ? `${l.clients?.name ? ' · ' : ''}Achetée ${fmt(l.listing_margins[0].buy_price)}`
+                              {t.buy_price != null ? `Achetée ${fmt(t.buy_price)}` : ''}
+                              {t.sell_price != null
+                                ? `${t.buy_price != null ? ' · ' : ''}Revendue ${fmt(t.sell_price)}`
                                 : ''}
-                              {l.sold_price != null
-                                ? ` · Revendue ${fmt(l.sold_price)}`
-                                : ''}
+                              {t.sold_at ? ` · ${new Date(t.sold_at).toLocaleDateString('fr-FR')}` : ''}
                             </p>
                           </div>
 
@@ -1078,27 +1103,18 @@ export default function FinancePage() {
                               Soldée
                             </span>
                             <div className="text-right min-w-[80px]">
-                              {hasMarginData ? (
-                                <p
-                                  className="text-sm font-semibold"
-                                  style={{
-                                    color: margin !== null
-                                      ? margin >= 0 ? '#4ade80' : '#f87171'
-                                      : '#6b7280',
-                                  }}
-                                >
-                                  {margin !== null ? fmt(margin) : 'N/A'}
-                                </p>
-                              ) : (
-                                <button
-                                  className="text-xs text-orange-400 hover:text-orange-300 border border-orange-900/40 bg-orange-900/10 px-2 py-0.5 rounded transition-colors"
-                                  onClick={e => { e.stopPropagation(); setMarginListing(l) }}
-                                >
-                                  Ajouter les données
-                                </button>
-                              )}
-                              {l.sold_price != null && (
-                                <p className="text-xs text-gray-500 mt-0.5">{fmt(l.sold_price)}</p>
+                              <p
+                                className="text-sm font-semibold"
+                                style={{
+                                  color: margin !== null
+                                    ? margin >= 0 ? '#4ade80' : '#f87171'
+                                    : '#6b7280',
+                                }}
+                              >
+                                {margin !== null ? fmt(margin) : 'N/A'}
+                              </p>
+                              {t.sell_price != null && (
+                                <p className="text-xs text-gray-500 mt-0.5">{fmt(t.sell_price)}</p>
                               )}
                             </div>
                           </div>

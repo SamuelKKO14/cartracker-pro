@@ -6,15 +6,15 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     profileRes,
     clientsRes,
     listingsRes,
-    marginsRes,
-    resoldRes,
-    monthTransactionsRes,
+    transactionsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).single(),
     supabase.from('clients')
@@ -25,18 +25,9 @@ export default async function DashboardPage() {
       .select('id, brand, model, year, km, price, status, fuel, auto_score, manual_score, created_at, client_id, source, clients(name), listing_margins(margin)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
-    supabase.from('listing_margins')
-      .select('margin')
-      .eq('user_id', user.id)
-      .gt('margin', 0),
-    supabase.from('listings')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('status', 'resold'),
     supabase.from('transactions')
-      .select('sell_price')
-      .eq('user_id', user.id)
-      .gte('sold_at', monthStart),
+      .select('sell_price, margin, sold_at')
+      .eq('user_id', user.id),
   ])
 
   const allListings = (listingsRes.data ?? []) as unknown as Array<{
@@ -49,9 +40,7 @@ export default async function DashboardPage() {
   const allClients = (clientsRes.data ?? []) as unknown as Array<{
     id: string; name: string; budget: number | null; notes: string | null; updated_at: string
   }>
-  const positiveMargins = (marginsRes.data ?? []) as unknown as Array<{ margin: number }>
-  const resoldCount = (resoldRes.data ?? []).length
-  const monthCA = (monthTransactionsRes.data ?? []).reduce((s, t) => s + ((t as { sell_price: number | null }).sell_price ?? 0), 0)
+  const allTx = (transactionsRes.data ?? []) as Array<{ sell_price: number | null; margin: number | null; sold_at: string }>
 
   // Count listings per client
   const countPerClient: Record<string, number> = {}
@@ -59,14 +48,24 @@ export default async function DashboardPage() {
     if (l.client_id) countPerClient[l.client_id] = (countPerClient[l.client_id] ?? 0) + 1
   })
 
-  // Finance
-  const totalPositiveMargin = positiveMargins.reduce((s: number, m: { margin: number }) => s + m.margin, 0)
-  const allResoldMargins = allListings
-    .filter(l => l.status === 'resold')
-    .map(l => (l.listing_margins?.[0]?.margin ?? 0) as number)
-  const avgMargin = allResoldMargins.length > 0
-    ? allResoldMargins.reduce((s, v) => s + v, 0) / allResoldMargins.length
-    : 0
+  // Finance — all metrics from transactions table
+  const resoldCount = allTx.length
+  const totalMargin = allTx.reduce((s, t) => s + (t.margin ?? 0), 0)
+  const avgMargin = resoldCount > 0 ? totalMargin / resoldCount : 0
+
+  // Month (calendar) metrics
+  const monthTx = allTx.filter(t => t.sold_at >= monthStart)
+  const monthCA = monthTx.reduce((s, t) => s + (t.sell_price ?? 0), 0)
+  const monthMargin = monthTx.reduce((s, t) => s + (t.margin ?? 0), 0)
+  const monthAvgMargin = monthTx.length > 0 ? monthMargin / monthTx.length : 0
+  const monthSoldCount = monthTx.length
+
+  // 30 days sliding window metrics
+  const thirtyTx = allTx.filter(t => t.sold_at >= thirtyDaysAgo)
+  const thirtyCA = thirtyTx.reduce((s, t) => s + (t.sell_price ?? 0), 0)
+  const thirtyMargin = thirtyTx.reduce((s, t) => s + (t.margin ?? 0), 0)
+  const thirtyAvgMargin = thirtyTx.length > 0 ? thirtyMargin / thirtyTx.length : 0
+  const thirtySoldCount = thirtyTx.length
 
   return (
     <DashboardClient
@@ -75,7 +74,7 @@ export default async function DashboardPage() {
         activeClients: allClients.length,
         totalListings: allListings.length,
         negotiationCount: allListings.filter(l => l.status === 'negotiation').length,
-        totalPositiveMargin,
+        totalPositiveMargin: totalMargin,
         resoldCount,
       }}
       recentListings={allListings.slice(0, 5)}
@@ -84,10 +83,17 @@ export default async function DashboardPage() {
         listingCount: countPerClient[c.id] ?? 0,
       }))}
       finance={{
-        totalMargin: totalPositiveMargin,
+        totalMargin,
         resoldCount,
         avgMargin,
         monthCA,
+        monthMargin,
+        monthAvgMargin,
+        monthSoldCount,
+        thirtyCA,
+        thirtyMargin,
+        thirtyAvgMargin,
+        thirtySoldCount,
       }}
       allClients={allClients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))}
     />

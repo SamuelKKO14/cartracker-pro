@@ -34,6 +34,13 @@ interface Finance {
   resoldCount: number
   avgMargin: number
   monthCA: number
+  monthMargin: number
+  monthAvgMargin: number
+  monthSoldCount: number
+  thirtyCA: number
+  thirtyMargin: number
+  thirtyAvgMargin: number
+  thirtySoldCount: number
 }
 
 interface DashboardListing {
@@ -91,6 +98,9 @@ export function DashboardClient({
   firstName, kpis, recentListings, recentClients, finance, allClients
 }: DashboardProps) {
   const router = useRouter()
+
+  // Finance period toggle
+  const [financePeriod, setFinancePeriod] = useState<'month' | 'thirty'>('month')
 
   // Section order (DnD)
   const [order, setOrder] = useState<SectionId[]>(DEFAULT_ORDER)
@@ -288,6 +298,12 @@ export function DashboardClient({
   }
 
   function renderFinance() {
+    const isMonth = financePeriod === 'month'
+    const periodCA = isMonth ? finance.monthCA : finance.thirtyCA
+    const periodMargin = isMonth ? finance.monthMargin : finance.thirtyMargin
+    const periodAvg = isMonth ? finance.monthAvgMargin : finance.thirtyAvgMargin
+    const periodSold = isMonth ? finance.monthSoldCount : finance.thirtySoldCount
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -308,18 +324,42 @@ export function DashboardClient({
         </div>
 
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
+              <button
+                onClick={() => setFinancePeriod('month')}
+                className={`px-3 py-1 text-xs font-medium transition-colors ${
+                  financePeriod === 'month'
+                    ? 'bg-orange-500/20 text-orange-400 border-r border-white/[0.08]'
+                    : 'text-gray-500 hover:text-gray-300 border-r border-white/[0.08]'
+                }`}
+              >
+                Ce mois
+              </button>
+              <button
+                onClick={() => setFinancePeriod('thirty')}
+                className={`px-3 py-1 text-xs font-medium transition-colors ${
+                  financePeriod === 'thirty'
+                    ? 'bg-orange-500/20 text-orange-400'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                30 jours
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-xs text-gray-500 mb-1">CA mois en cours</p>
-              <p className="text-lg font-bold text-white">{formatPrice(finance.monthCA)}</p>
+              <p className="text-xs text-gray-500 mb-1">CA {isMonth ? 'mois en cours' : '30 jours'}</p>
+              <p className="text-lg font-bold text-white">{formatPrice(periodCA)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Marge moy./véhicule</p>
-              <p className="text-lg font-bold text-white">{finance.resoldCount > 0 ? formatPrice(finance.avgMargin) : '—'}</p>
+              <p className="text-lg font-bold text-white">{periodSold > 0 ? formatPrice(periodAvg) : '—'}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Véhicules vendus</p>
-              <p className="text-lg font-bold text-white">{finance.resoldCount}</p>
+              <p className="text-lg font-bold text-white">{periodSold}</p>
             </div>
           </div>
           <Link href="/finance">
