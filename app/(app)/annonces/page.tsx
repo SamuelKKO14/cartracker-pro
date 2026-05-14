@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
@@ -24,6 +24,7 @@ import { Progress } from '@/components/ui/progress'
 import {
   Grid3X3, Table, Kanban, Search, SlidersHorizontal, Share2, GitCompare, X,
   ArrowLeft, Pencil, Calculator, CheckSquare, ExternalLink, Camera, Flag,
+  Loader2, Plus, Trash2,
 } from 'lucide-react'
 import {
   formatPrice, formatKm, STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS,
@@ -59,6 +60,9 @@ function ListingDetailView({
   const [markingSold, setMarkingSold] = useState(false)
   const [sellPrice, setSellPrice] = useState('')
   const [saving, setSaving] = useState(false)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null)
+  const detailPhotoInputRef = useRef<HTMLInputElement>(null)
 
   async function refetchListing() {
     const supabase = createClient()
@@ -117,6 +121,57 @@ function ListingDetailView({
       onBack()
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleUploadPhotos(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setUploadingPhotos(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const currentPhotos = listing.listing_photos ?? []
+      let position = currentPhotos.length
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop() ?? 'jpg'
+        const path = `${user.id}/${listing.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+        const { error: storageError } = await supabase.storage
+          .from('listing-photos')
+          .upload(path, file, { contentType: file.type })
+        if (storageError) continue
+        const { data: { publicUrl } } = supabase.storage
+          .from('listing-photos')
+          .getPublicUrl(path)
+        await supabase.from('listing_photos').insert({
+          user_id: user.id,
+          listing_id: listing.id,
+          url: publicUrl,
+          position,
+        })
+        position++
+      }
+      await refetchListing()
+    } finally {
+      setUploadingPhotos(false)
+      if (detailPhotoInputRef.current) detailPhotoInputRef.current.value = ''
+    }
+  }
+
+  async function handleDeletePhoto(photo: { id: string; url: string }) {
+    if (!confirm('Supprimer cette photo ?')) return
+    setDeletingPhotoId(photo.id)
+    try {
+      const supabase = createClient()
+      const url = new URL(photo.url)
+      const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)
+      if (pathMatch) {
+        await supabase.storage.from('listing-photos').remove([pathMatch[1]])
+      }
+      await supabase.from('listing_photos').delete().eq('id', photo.id)
+      await refetchListing()
+    } finally {
+      setDeletingPhotoId(null)
     }
   }
 
@@ -195,20 +250,49 @@ function ListingDetailView({
           </div>
         </div>
 
-        {/* Photo strip */}
-        {photos.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {photos.map(p => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={p.id}
-                src={p.url}
-                alt=""
-                className="h-32 w-48 object-cover rounded-lg flex-shrink-0 border border-[#1a1f2e]"
-              />
-            ))}
+        {/* Photos */}
+        <div className="space-y-3">
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              {photos.map(p => (
+                <div key={p.id} className="relative aspect-video rounded-lg overflow-hidden border border-[#1a1f2e] bg-[#0a0d14]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => handleDeletePhoto(p)}
+                    disabled={deletingPhotoId === p.id}
+                    className="absolute top-1.5 right-1.5 w-[44px] h-[44px] flex items-center justify-center rounded-full bg-red-600/90 text-white hover:bg-red-700 transition-colors"
+                  >
+                    {deletingPhotoId === p.id
+                      ? <Loader2 className="w-5 h-5 animate-spin" />
+                      : <Trash2 className="w-5 h-5" />
+                    }
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div>
+            <input
+              ref={detailPhotoInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={e => handleUploadPhotos(e.target.files)}
+            />
+            <button
+              onClick={() => detailPhotoInputRef.current?.click()}
+              disabled={uploadingPhotos}
+              className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg border border-[#2a2f3e] bg-[#0d1117] text-gray-300 hover:bg-[#1a1f2e] hover:text-white transition-colors disabled:opacity-50"
+            >
+              {uploadingPhotos
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Upload en cours…</>
+                : <><Plus className="w-4 h-4" /> Ajouter des photos</>
+              }
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Characteristics */}
         <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">

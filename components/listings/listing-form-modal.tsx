@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateAutoScore, COUNTRY_LABELS, getImportCost } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Camera, X } from 'lucide-react'
 import type { Client, Listing } from '@/types/database'
 
 export interface ListingInitialData {
@@ -79,6 +79,10 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
   const [loading, setLoading] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
+  const [photoDragging, setPhotoDragging] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     // Obligatoire
@@ -121,6 +125,12 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
     fetchClients()
   }, [])
 
+  useEffect(() => {
+    const urls = photoFiles.map(f => URL.createObjectURL(f))
+    setPhotoPreviewUrls(urls)
+    return () => { urls.forEach(u => URL.revokeObjectURL(u)) }
+  }, [photoFiles])
+
   function updateField(key: string, value: string | boolean | string[]) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
@@ -133,6 +143,15 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
 
   function removeTag(tag: string) {
     updateField('tags', form.tags.filter(t => t !== tag))
+  }
+
+  function addPhotoFiles(newFiles: FileList | File[]) {
+    const arr = Array.from(newFiles).filter(f => f.type.startsWith('image/'))
+    setPhotoFiles(prev => [...prev, ...arr].slice(0, 30))
+  }
+
+  function removePhotoFile(idx: number) {
+    setPhotoFiles(prev => prev.filter((_, i) => i !== idx))
   }
 
   const autoScore = calculateAutoScore({
@@ -186,7 +205,32 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
       if (listing) {
         await supabase.from('listings').update(payload).eq('id', listing.id)
       } else {
-        await supabase.from('listings').insert(payload)
+        const { data: newListing } = await supabase
+          .from('listings')
+          .insert(payload)
+          .select('id')
+          .single()
+
+        if (newListing && photoFiles.length > 0) {
+          for (let i = 0; i < photoFiles.length; i++) {
+            const file = photoFiles[i]
+            const ext = file.name.split('.').pop() ?? 'jpg'
+            const path = `${user.id}/${newListing.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+            const { error: storageError } = await supabase.storage
+              .from('listing-photos')
+              .upload(path, file, { contentType: file.type })
+            if (storageError) continue
+            const { data: { publicUrl } } = supabase.storage
+              .from('listing-photos')
+              .getPublicUrl(path)
+            await supabase.from('listing_photos').insert({
+              user_id: user.id,
+              listing_id: newListing.id,
+              url: publicUrl,
+              position: i,
+            })
+          }
+        }
       }
       onSaved()
     } finally {
@@ -442,6 +486,56 @@ export function ListingFormModal({ open, onClose, onSaved, listing, defaultClien
               </>
             )}
           </div>
+
+          {/* ─── PHOTOS (création uniquement) ─── */}
+          {!listing && (
+            <div className="border border-[#1a1f2e] rounded-xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-[#0a0d14] text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Photos ({photoFiles.length}/30)
+              </div>
+              <div className="p-4 space-y-3">
+                <div
+                  onDragOver={e => { e.preventDefault(); setPhotoDragging(true) }}
+                  onDragLeave={() => setPhotoDragging(false)}
+                  onDrop={e => { e.preventDefault(); setPhotoDragging(false); addPhotoFiles(e.dataTransfer.files) }}
+                  onClick={() => photoInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                    photoDragging
+                      ? 'border-orange-500/60 bg-orange-500/5'
+                      : 'border-gray-700 hover:border-gray-600 hover:bg-[#0a0d14]'
+                  }`}
+                >
+                  <Camera className="w-8 h-8 text-gray-500 mb-2" />
+                  <p className="text-xs text-gray-400 text-center">Glissez des photos ou cliquez pour sélectionner</p>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={e => { if (e.target.files) addPhotoFiles(e.target.files); e.target.value = '' }}
+                  />
+                </div>
+                {photoPreviewUrls.length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {photoPreviewUrls.map((url, i) => (
+                      <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); removePhotoFile(i) }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="secondary" onClick={onClose}>Annuler</Button>

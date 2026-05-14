@@ -65,6 +65,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
   const [photoCreating, setPhotoCreating] = useState(false)
   const [photoSuccess, setPhotoSuccess] = useState(false)
   const [photoClassification, setPhotoClassification] = useState<Array<{ index: number; type: 'vehicle' | 'specs' }> | null>(null)
+  const [selectedPhotoIndexes, setSelectedPhotoIndexes] = useState<Set<number>>(new Set())
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Sync object URLs with photoFiles (with cleanup)
@@ -170,6 +171,12 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
           fullClassification.push({ index: i, type: 'vehicle' })
         }
         setPhotoClassification(fullClassification)
+        const initialSelected = new Set<number>()
+        for (let i = 0; i < photoFiles.length; i++) {
+          const cl = fullClassification.find(c => c.index === i)
+          if (!cl || cl.type === 'vehicle') initialSelected.add(i)
+        }
+        setSelectedPhotoIndexes(initialSelected)
         setPhotoResult(r as ListingInitialData)
         const editable: Record<string, string> = {}
         for (const k of Object.keys(r)) {
@@ -224,13 +231,8 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
 
       if (listingErr || !listing) throw new Error(listingErr?.message ?? 'Erreur création annonce')
 
-      // Only upload vehicle photos — filter out specs screenshots
-      const vehicleFiles = photoClassification
-        ? photoFiles.filter((_, idx) => {
-            const cl = photoClassification.find(c => c.index === idx)
-            return !cl || cl.type === 'vehicle'
-          })
-        : photoFiles
+      // Only upload selected photos
+      const vehicleFiles = photoFiles.filter((_, idx) => selectedPhotoIndexes.has(idx))
 
       const uploadResults = await Promise.all(
         vehicleFiles.map(async (file, position) => {
@@ -258,6 +260,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
         setPhotoResult(null)
         setPhotoEditedResult({})
         setPhotoClassification(null)
+        setSelectedPhotoIndexes(new Set())
         setPhotoSuccess(false)
         onListingCreated?.()
         router.refresh()
@@ -478,35 +481,46 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
                   Vérifiez et corrigez les informations extraites par l'IA avant de créer l'annonce.
                 </p>
 
-                {/* Photo classification badges */}
+                {/* Photo selection grid */}
                 {photoPreviewUrls.length > 0 && (
                   <div className="space-y-2">
+                    <p className="text-xs text-gray-500">Sélectionnez les photos à conserver avec l&apos;annonce :</p>
                     <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
                       {photoPreviewUrls.map((url, i) => {
                         const cl = photoClassification?.find(c => c.index === i)
                         const isSpecs = cl?.type === 'specs'
+                        const isSelected = selectedPhotoIndexes.has(i)
                         return (
-                          <div key={i} className={`relative aspect-square rounded-lg overflow-hidden ${isSpecs ? 'opacity-50' : ''}`}>
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPhotoIndexes(prev => {
+                                const next = new Set(prev)
+                                if (next.has(i)) next.delete(i); else next.add(i)
+                                return next
+                              })
+                            }}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                              isSelected ? 'border-green-500 opacity-100' : 'border-transparent opacity-40'
+                            }`}
+                          >
                             <img src={url} alt="" className="w-full h-full object-cover" />
                             <span className={`absolute bottom-1 left-1 text-[10px] px-1 py-0.5 rounded-full leading-none ${isSpecs ? 'bg-gray-800/90 text-gray-300' : 'bg-green-800/90 text-green-200'}`}>
                               {isSpecs ? '📋' : '🚗'}
                             </span>
-                          </div>
+                            <span className={`absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                              isSelected ? 'bg-green-500 text-white' : 'bg-gray-800/80 text-gray-400'
+                            }`}>
+                              {isSelected ? '✓' : ''}
+                            </span>
+                          </button>
                         )
                       })}
                     </div>
-                    {photoClassification && (() => {
-                      const vehicleCount = photoFiles.filter((_, i) => {
-                        const cl = photoClassification.find(c => c.index === i)
-                        return !cl || cl.type === 'vehicle'
-                      }).length
-                      const specsCount = photoFiles.length - vehicleCount
-                      return specsCount > 0 ? (
-                        <p className="text-xs text-gray-500">
-                          <span className="text-green-400 font-medium">{vehicleCount} photo{vehicleCount > 1 ? 's' : ''} du véhicule</span> seront conservées · <span className="text-gray-400">{specsCount} photo{specsCount > 1 ? 's' : ''} de caractéristiques</span> utilisées pour l'extraction uniquement
-                        </p>
-                      ) : null
-                    })()}
+                    <p className="text-xs text-gray-500">
+                      <span className="text-green-400 font-medium">{selectedPhotoIndexes.size} photo{selectedPhotoIndexes.size > 1 ? 's' : ''}</span> seront conservées avec l&apos;annonce
+                    </p>
                   </div>
                 )}
 
@@ -571,7 +585,7 @@ export function SmartImport({ allClients, onListingCreated }: SmartImportProps) 
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setPhotoResult(null); setPhotoEditedResult({}); setPhotoClassification(null); setPhotoError(null) }}
+                    onClick={() => { setPhotoResult(null); setPhotoEditedResult({}); setPhotoClassification(null); setSelectedPhotoIndexes(new Set()); setPhotoError(null) }}
                     className="px-4 h-9 rounded-md border border-[#2a2f3e] text-gray-400 hover:text-gray-200 hover:border-[#3a3f4e] text-sm transition-colors"
                   >
                     ↩ Recommencer
