@@ -32,6 +32,7 @@ type ListingWithClient = ListingWithDetails & {
 
 export default function StatsPage() {
   const [listings, setListings] = useState<ListingWithClient[]>([])
+  const [txMarginTotal, setTxMarginTotal] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -40,12 +41,21 @@ export default function StatsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data } = await supabase
-        .from('listings')
-        .select('*, listing_margins(*), clients(name)')
-        .eq('user_id', user.id)
+      const [{ data }, { data: txData }] = await Promise.all([
+        supabase
+          .from('listings')
+          .select('*, listing_margins(*), clients(name)')
+          .eq('user_id', user.id),
+        supabase
+          .from('transactions')
+          .select('margin')
+          .eq('user_id', user.id),
+      ])
 
       setListings((data as unknown as ListingWithClient[]) ?? [])
+      setTxMarginTotal(
+        ((txData ?? []) as Array<{ margin: number | null }>).reduce((s, t) => s + (t.margin ?? 0), 0)
+      )
       setLoading(false)
     }
     fetchData()
@@ -71,11 +81,8 @@ export default function StatsPage() {
   const withScore = listings.map(l => getFinalScore(l.auto_score, l.manual_score)).filter(s => s != null) as number[]
   const avgScore = withScore.length > 0 ? Math.round(withScore.reduce((a, b) => a + b, 0) / withScore.length) : 0
   const goodDeals = withScore.filter(s => s >= 70).length
-  const bought = listings.filter(l => l.status === 'bought').length
-  const totalMargin = listings.reduce((sum, l) => {
-    const m = (l.margin as { margin?: number } | null)?.margin
-    return sum + (m ?? 0)
-  }, 0)
+  const bought = listings.filter(l => l.status === 'bought' || l.status === 'resold').length
+  const totalMargin = txMarginTotal
 
   // ── Brand data ────────────────────────────────────────────────────────────
   const brandMap: Record<string, { total: number; totalPrice: number; count: number }> = {}
