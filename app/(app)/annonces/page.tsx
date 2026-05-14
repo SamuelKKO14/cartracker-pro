@@ -11,6 +11,8 @@ import { ChecklistModal } from '@/components/listings/checklist-modal'
 import { ShareModal } from '@/components/listings/share-modal'
 import { ComparePanel } from '@/components/listings/compare-panel'
 import { PhotosModal } from '@/components/listings/photos-modal'
+import { PhotosViewer } from '@/components/listings/photos-viewer'
+import type { ViewerPhoto } from '@/components/listings/photos-viewer'
 import { ListingsGrid } from '@/components/listings/listings-grid'
 import { ListingsTable } from '@/components/listings/listings-table'
 import { ListingsKanban } from '@/components/listings/listings-kanban'
@@ -24,7 +26,7 @@ import { Progress } from '@/components/ui/progress'
 import {
   Grid3X3, Table, Kanban, Search, SlidersHorizontal, Share2, GitCompare, X,
   ArrowLeft, Pencil, Calculator, CheckSquare, ExternalLink, Camera, Flag,
-  Loader2, Plus, Trash2,
+  Loader2, Plus, Trash2, CheckCircle, Check,
 } from 'lucide-react'
 import {
   formatPrice, formatKm, STATUS_LABELS, STATUS_COLORS, COUNTRY_LABELS,
@@ -61,7 +63,14 @@ function ListingDetailView({
   const [sellPrice, setSellPrice] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
-  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set())
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const longPressFiredRef = useRef(false)
   const detailPhotoInputRef = useRef<HTMLInputElement>(null)
 
   async function refetchListing() {
@@ -158,21 +167,118 @@ function ListingDetailView({
     }
   }
 
-  async function handleDeletePhoto(photo: { id: string; url: string }) {
+  // ── Toast helper ──
+  function showToast(msg: string) {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(null), 3000)
+  }
+
+  // ── Long-press handlers ──
+  function clearLongPress() {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  function startLongPress(photoId: string) {
+    longPressFiredRef.current = false
+    longPressTimerRef.current = setTimeout(() => {
+      longPressFiredRef.current = true
+      setSelectionMode(true)
+      setSelectedPhotoIds(new Set([photoId]))
+    }, 500)
+  }
+
+  function handlePhotoMouseDown(photoId: string) {
+    if (selectionMode) return
+    startLongPress(photoId)
+  }
+  function handlePhotoMouseUp() { clearLongPress() }
+  function handlePhotoTouchStart(photoId: string) {
+    if (selectionMode) return
+    startLongPress(photoId)
+  }
+  function handlePhotoTouchEnd() { clearLongPress() }
+  function handlePhotoTouchMove() { clearLongPress() }
+
+  // ── Click handler (mode-aware) ──
+  function handlePhotoClick(photoId: string, index: number) {
+    if (longPressFiredRef.current) return
+    if (selectionMode) {
+      setSelectedPhotoIds(prev => {
+        const next = new Set(prev)
+        if (next.has(photoId)) next.delete(photoId); else next.add(photoId)
+        if (next.size === 0) setSelectionMode(false)
+        return next
+      })
+    } else {
+      setLightboxIndex(index)
+    }
+  }
+
+  // ── Single photo delete (mode normal, petit bouton) ──
+  async function handleDeleteSingle(photo: { id: string; url: string }) {
     if (!confirm('Supprimer cette photo ?')) return
-    setDeletingPhotoId(photo.id)
+    const supabase = createClient()
+    const url = new URL(photo.url)
+    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)
+    if (pathMatch) {
+      await supabase.storage.from('listing-photos').remove([pathMatch[1]])
+    }
+    await supabase.from('listing_photos').delete().eq('id', photo.id)
+    await refetchListing()
+    showToast('Photo supprimée')
+  }
+
+  // ── Lightbox single delete (from PhotosViewer) ──
+  async function handleLightboxDelete(photo: ViewerPhoto) {
+    const supabase = createClient()
+    const url = new URL(photo.url)
+    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)
+    if (pathMatch) {
+      await supabase.storage.from('listing-photos').remove([pathMatch[1]])
+    }
+    await supabase.from('listing_photos').delete().eq('id', photo.id)
+    const currentPhotos = listing.listing_photos ?? []
+    if (currentPhotos.length <= 1) setLightboxIndex(null)
+    else if (lightboxIndex !== null && lightboxIndex >= currentPhotos.length - 1) {
+      setLightboxIndex(Math.max(0, currentPhotos.length - 2))
+    }
+    await refetchListing()
+  }
+
+  // ── Bulk delete ──
+  async function handleBulkDelete() {
+    const ids = Array.from(selectedPhotoIds)
+    if (ids.length === 0) return
+    setBulkDeleting(true)
     try {
       const supabase = createClient()
-      const url = new URL(photo.url)
-      const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)
-      if (pathMatch) {
-        await supabase.storage.from('listing-photos').remove([pathMatch[1]])
-      }
-      await supabase.from('listing_photos').delete().eq('id', photo.id)
+      const currentPhotos = listing.listing_photos ?? []
+      const photosToDelete = currentPhotos.filter(p => ids.includes(p.id))
+
+      await Promise.all(
+        photosToDelete.map(p => {
+          const storagePath = new URL(p.url).pathname.match(/\/storage\/v1\/object\/public\/listing-photos\/(.+)$/)?.[1]
+          if (storagePath) return supabase.storage.from('listing-photos').remove([storagePath])
+        })
+      )
+      await supabase.from('listing_photos').delete().in('id', ids)
+
+      setSelectedPhotoIds(new Set())
+      setSelectionMode(false)
+      setShowBulkDeleteConfirm(false)
       await refetchListing()
+      showToast(`${ids.length} photo${ids.length > 1 ? 's' : ''} supprimée${ids.length > 1 ? 's' : ''}`)
     } finally {
-      setDeletingPhotoId(null)
+      setBulkDeleting(false)
     }
+  }
+
+  function cancelSelection() {
+    setSelectedPhotoIds(new Set())
+    setSelectionMode(false)
   }
 
   const score = getFinalScore(listing.auto_score, listing.manual_score)
@@ -252,26 +358,97 @@ function ListingDetailView({
 
         {/* Photos */}
         <div className="space-y-3">
+          {/* Header : titre + bouton Sélectionner / barre sélection */}
           {photos.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              {photos.map(p => (
-                <div key={p.id} className="relative aspect-video rounded-lg overflow-hidden border border-[#1a1f2e] bg-[#0a0d14]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.url} alt="" className="w-full h-full object-cover" />
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Photos</h2>
+              {selectionMode ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-300">
+                    {selectedPhotoIds.size} photo{selectedPhotoIds.size > 1 ? 's' : ''} sélectionnée{selectedPhotoIds.size > 1 ? 's' : ''}
+                  </span>
                   <button
-                    onClick={() => handleDeletePhoto(p)}
-                    disabled={deletingPhotoId === p.id}
-                    className="absolute top-1.5 right-1.5 w-[44px] h-[44px] flex items-center justify-center rounded-full bg-red-600/90 text-white hover:bg-red-700 transition-colors"
+                    onClick={cancelSelection}
+                    className="text-sm text-gray-400 hover:text-white transition-colors"
                   >
-                    {deletingPhotoId === p.id
-                      ? <Loader2 className="w-5 h-5 animate-spin" />
-                      : <Trash2 className="w-5 h-5" />
-                    }
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => setShowBulkDeleteConfirm(true)}
+                    disabled={selectedPhotoIds.size === 0}
+                    className="text-sm bg-red-500 hover:bg-red-600 disabled:bg-red-500/30 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-md transition-colors"
+                  >
+                    Supprimer ({selectedPhotoIds.size})
                   </button>
                 </div>
-              ))}
+              ) : (
+                <button
+                  onClick={() => setSelectionMode(true)}
+                  className="text-sm text-gray-400 hover:text-orange-400 flex items-center gap-1 px-3 py-1 rounded-md hover:bg-white/5 transition-colors"
+                  aria-label="Passer en mode sélection"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Sélectionner
+                </button>
+              )}
             </div>
           )}
+
+          {/* Photo grid */}
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              {photos.map((p, idx) => {
+                const isSelected = selectedPhotoIds.has(p.id)
+                return (
+                  <div
+                    key={p.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={selectionMode ? `${isSelected ? 'Désélectionner' : 'Sélectionner'} photo ${idx + 1}` : `Voir photo ${idx + 1}`}
+                    onMouseDown={() => handlePhotoMouseDown(p.id)}
+                    onMouseUp={handlePhotoMouseUp}
+                    onMouseLeave={handlePhotoMouseUp}
+                    onTouchStart={() => handlePhotoTouchStart(p.id)}
+                    onTouchEnd={handlePhotoTouchEnd}
+                    onTouchMove={handlePhotoTouchMove}
+                    onClick={() => handlePhotoClick(p.id, idx)}
+                    className={`relative aspect-video rounded-lg overflow-hidden bg-[#0a0d14] cursor-pointer select-none transition-all ${
+                      selectionMode
+                        ? isSelected
+                          ? 'border-2 border-orange-500 opacity-100'
+                          : 'border-2 border-transparent opacity-70'
+                        : 'border border-[#1a1f2e] hover:border-[#2a2f3e]'
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt="" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+
+                    {/* Mode sélection : checkbox ronde */}
+                    {selectionMode && (
+                      <span className={`absolute top-1.5 left-1.5 w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors ${
+                        isSelected ? 'bg-orange-500 border-orange-500' : 'bg-black/40 border-white/60'
+                      }`}>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                      </span>
+                    )}
+
+                    {/* Mode normal : petite poubelle discrète */}
+                    {!selectionMode && (
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDeleteSingle(p) }}
+                        className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 text-white opacity-50 hover:opacity-100 transition-opacity"
+                        aria-label="Supprimer cette photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Bouton ajouter */}
           <div>
             <input
               ref={detailPhotoInputRef}
@@ -293,6 +470,44 @@ function ListingDetailView({
             </button>
           </div>
         </div>
+
+        {/* Modal confirmation suppression groupée */}
+        {showBulkDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => !bulkDeleting && setShowBulkDeleteConfirm(false)}>
+            <div className="bg-[#0d1117] border border-[#2a2f3e] rounded-xl p-6 max-w-sm w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+              <h3 className="text-base font-semibold text-gray-100">
+                Supprimer {selectedPhotoIds.size} photo{selectedPhotoIds.size > 1 ? 's' : ''} ?
+              </h3>
+              <p className="text-sm text-gray-400">
+                Cette action est définitive. Les photos seront supprimées du stockage.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowBulkDeleteConfirm(false)}
+                  disabled={bulkDeleting}
+                  className="px-4 py-2 text-sm rounded-md border border-[#2a2f3e] text-gray-300 hover:bg-[#1a1f2e] transition-colors disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="px-4 py-2 text-sm rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {bulkDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toastMsg && (
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
+            ✓ {toastMsg}
+          </div>
+        )}
 
         {/* Characteristics */}
         <div className="p-5 rounded-xl border border-[#1a1f2e] bg-[#0a0d14]">
@@ -436,6 +651,15 @@ function ListingDetailView({
           onClose={() => setActiveModal(null)}
           listing={listing as unknown as Listing}
           onSaved={() => { setActiveModal(null); refetchListing() }}
+        />
+      )}
+      {lightboxIndex !== null && photos.length > 0 && (
+        <PhotosViewer
+          photos={photos as ViewerPhoto[]}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onDelete={handleLightboxDelete}
         />
       )}
     </div>
