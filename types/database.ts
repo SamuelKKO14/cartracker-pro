@@ -14,6 +14,7 @@ export interface Database {
           criteria: string | null
           notes: string | null
           billing_type: string
+          is_demo: boolean
           created_at: string
           updated_at: string
         }
@@ -27,6 +28,7 @@ export interface Database {
           criteria?: string | null
           notes?: string | null
           billing_type?: string
+          is_demo?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -40,6 +42,7 @@ export interface Database {
           criteria?: string | null
           notes?: string | null
           billing_type?: string
+          is_demo?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -50,6 +53,7 @@ export interface Database {
           user_id: string
           client_id: string
           text: string
+          is_demo: boolean
           created_at: string
         }
         Insert: {
@@ -57,10 +61,12 @@ export interface Database {
           user_id: string
           client_id: string
           text: string
+          is_demo?: boolean
           created_at?: string
         }
         Update: {
           text?: string
+          is_demo?: boolean
         }
         Relationships: [
           {
@@ -100,6 +106,7 @@ export interface Database {
           color: string | null
           sold_price: number | null
           sold_at: string | null
+          is_demo: boolean
           created_at: string
           updated_at: string
         }
@@ -130,6 +137,7 @@ export interface Database {
           color?: string | null
           sold_price?: number | null
           sold_at?: string | null
+          is_demo?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -158,6 +166,7 @@ export interface Database {
           color?: string | null
           sold_price?: number | null
           sold_at?: string | null
+          is_demo?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -176,6 +185,7 @@ export interface Database {
           sell_price: number | null
           total_cost: number | null
           margin: number | null
+          is_demo: boolean
           created_at: string
         }
         Insert: {
@@ -189,6 +199,7 @@ export interface Database {
           registration?: number
           other_costs?: number
           sell_price?: number | null
+          is_demo?: boolean
           created_at?: string
         }
         Update: {
@@ -199,6 +210,7 @@ export interface Database {
           registration?: number
           other_costs?: number
           sell_price?: number | null
+          is_demo?: boolean
         }
         Relationships: []
       }
@@ -220,6 +232,7 @@ export interface Database {
           no_gage: boolean
           price_negotiated: boolean
           notes: string | null
+          is_demo: boolean
           created_at: string
         }
         Insert: {
@@ -239,6 +252,7 @@ export interface Database {
           no_gage?: boolean
           price_negotiated?: boolean
           notes?: string | null
+          is_demo?: boolean
           created_at?: string
         }
         Update: {
@@ -255,6 +269,7 @@ export interface Database {
           no_gage?: boolean
           price_negotiated?: boolean
           notes?: string | null
+          is_demo?: boolean
         }
         Relationships: []
       }
@@ -318,6 +333,7 @@ export interface Database {
           listing_id: string
           url: string
           position: number
+          is_demo: boolean
           created_at: string
         }
         Insert: {
@@ -326,11 +342,13 @@ export interface Database {
           listing_id: string
           url: string
           position?: number
+          is_demo?: boolean
           created_at?: string
         }
         Update: {
           position?: number
           url?: string
+          is_demo?: boolean
         }
         Relationships: []
       }
@@ -415,6 +433,7 @@ export interface Database {
           margin: number | null
           margin_pct: number | null
           sold_at: string
+          is_demo: boolean
           created_at: string
         }
         Insert: {
@@ -430,6 +449,7 @@ export interface Database {
           margin?: number | null
           margin_pct?: number | null
           sold_at?: string
+          is_demo?: boolean
           created_at?: string
         }
         Update: {
@@ -442,6 +462,7 @@ export interface Database {
           margin?: number | null
           margin_pct?: number | null
           sold_at?: string
+          is_demo?: boolean
         }
         Relationships: []
       }
@@ -452,6 +473,7 @@ export interface Database {
           type: string
           period: string
           target: number
+          is_demo: boolean
           created_at: string
           updated_at: string
         }
@@ -461,6 +483,7 @@ export interface Database {
           type: string
           period: string
           target: number
+          is_demo?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -468,6 +491,7 @@ export interface Database {
           type?: string
           period?: string
           target?: number
+          is_demo?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -556,7 +580,17 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      cleanup_demo_data: {
+        Args: Record<string, never>
+        Returns: {
+          success: boolean
+          deleted_clients: number
+          deleted_listings: number
+          deleted_transactions: number
+        }
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }

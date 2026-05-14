@@ -1,5 +1,6 @@
 'use client'
 import { Sidebar } from './sidebar'
+import { DemoBanner } from './demo-banner'
 import { GamosChat } from '@/components/gamos/gamos-chat'
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
 import { OnboardingPanel } from '@/components/onboarding/onboarding-panel'
@@ -20,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             }}
           />
           <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
+            <DemoBanner />
             {children}
           </div>
         </main>

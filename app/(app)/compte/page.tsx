@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts'
@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Camera, Trash2, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { Camera, Trash2, Eye, EyeOff, AlertTriangle, Sparkles } from 'lucide-react'
+import { useDemoStatus } from '@/lib/hooks/useDemoStatus'
 import type { Profile } from '@/types/database'
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
@@ -42,7 +43,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function ComptePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const demoSectionRef = useRef<HTMLDivElement>(null)
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -74,6 +77,12 @@ export default function ComptePage() {
   const [passwords, setPasswords] = useState({ newPassword: '', confirm: '' })
   const [showPwd, setShowPwd] = useState({ new: false, confirm: false })
   const [savingPwd, setSavingPwd] = useState(false)
+
+  // Demo
+  const { hasDemoData, refresh: refreshDemoStatus } = useDemoStatus()
+  const [demoCounts, setDemoCounts] = useState({ clients: 0, listings: 0, transactions: 0 })
+  const [showDemoConfirm, setShowDemoConfirm] = useState(false)
+  const [cleaningDemo, setCleaningDemo] = useState(false)
 
   // Delete
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -124,10 +133,47 @@ export default function ComptePage() {
       setListingsCount(lCount ?? 0)
       setClientsCount(cCount ?? 0)
 
+      // Demo counts
+      const [{ count: dc }, { count: dl }, { count: dt }] = await Promise.all([
+        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_demo', true),
+        supabase.from('listings').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_demo', true),
+        supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_demo', true),
+      ])
+      setDemoCounts({ clients: dc ?? 0, listings: dl ?? 0, transactions: dt ?? 0 })
+
       setLoading(false)
     }
     loadAll()
   }, [])
+
+  // ── Auto-scroll to demo section ────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!loading && searchParams.get('action') === 'cleanup-demo' && demoSectionRef.current) {
+      demoSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [loading, searchParams])
+
+  // ── Cleanup demo data ────────────────────────────────────────────────────
+
+  const handleCleanupDemo = useCallback(async () => {
+    setCleaningDemo(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.rpc('cleanup_demo_data')
+      if (error) throw error
+      showToast(`Données démo supprimées (${data.deleted_clients} clients, ${data.deleted_listings} annonces, ${data.deleted_transactions} ventes)`)
+      setShowDemoConfirm(false)
+      setDemoCounts({ clients: 0, listings: 0, transactions: 0 })
+      refreshDemoStatus()
+      localStorage.removeItem('demo-banner-dismissed')
+      setTimeout(() => router.refresh(), 1000)
+    } catch {
+      showToast('Erreur lors du nettoyage des données démo', 'error')
+    } finally {
+      setCleaningDemo(false)
+    }
+  }, [refreshDemoStatus, router])
 
   // ── Avatar ─────────────────────────────────────────────────────────────────
 
@@ -467,7 +513,80 @@ export default function ComptePage() {
             </form>
           </Section>
 
-          {/* ── Section 5 : Zone de danger ── */}
+          {/* ── Section 5 : Données de démonstration ── */}
+          {hasDemoData && (
+            <div ref={demoSectionRef} className="rounded-xl border border-orange-500/30 overflow-hidden">
+              <div className="px-5 py-3 bg-orange-500/10 border-b border-orange-500/30">
+                <h2 className="text-sm font-semibold text-orange-300 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Données de démonstration
+                </h2>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Votre compte contient actuellement des données fictives (clients, annonces, ventes)
+                  pour vous aider à découvrir le potentiel de CarTracker Pro.
+                  Quand vous êtes prêt à utiliser pour de vrai, supprimez-les en un clic.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-3 py-1.5 text-xs rounded-lg bg-[#0a0d14] border border-[#1a1f2e] text-gray-300">
+                    {demoCounts.clients} client{demoCounts.clients !== 1 ? 's' : ''} démo
+                  </span>
+                  <span className="px-3 py-1.5 text-xs rounded-lg bg-[#0a0d14] border border-[#1a1f2e] text-gray-300">
+                    {demoCounts.listings} annonce{demoCounts.listings !== 1 ? 's' : ''} démo
+                  </span>
+                  <span className="px-3 py-1.5 text-xs rounded-lg bg-[#0a0d14] border border-[#1a1f2e] text-gray-300">
+                    {demoCounts.transactions} vente{demoCounts.transactions !== 1 ? 's' : ''} démo
+                  </span>
+                </div>
+
+                {!showDemoConfirm ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowDemoConfirm(true)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20 border-red-900/40"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Nettoyer les données de démonstration
+                  </Button>
+                ) : (
+                  <div className="p-4 rounded-lg border border-red-900/40 bg-red-950/20 space-y-3">
+                    <p className="text-sm text-red-300 font-medium">
+                      Confirmer la suppression de toutes les données de démo ?
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Cette action supprimera {demoCounts.clients} client{demoCounts.clients !== 1 ? 's' : ''},{' '}
+                      {demoCounts.listings} annonce{demoCounts.listings !== 1 ? 's' : ''} et{' '}
+                      {demoCounts.transactions} vente{demoCounts.transactions !== 1 ? 's' : ''} de démonstration.
+                      Vos vraies données ne seront pas affectées.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setShowDemoConfirm(false)}
+                        disabled={cleaningDemo}
+                      >
+                        Annuler
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleCleanupDemo}
+                        disabled={cleaningDemo}
+                        className="bg-red-700 hover:bg-red-600 text-white border-0"
+                      >
+                        {cleaningDemo ? 'Suppression…' : 'Supprimer les données démo'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Section 6 : Zone de danger ── */}
           <div className="rounded-xl border border-red-900/50 overflow-hidden">
             <div className="px-5 py-3 bg-red-950/20 border-b border-red-900/50">
               <h2 className="text-sm font-semibold text-red-400 flex items-center gap-2">

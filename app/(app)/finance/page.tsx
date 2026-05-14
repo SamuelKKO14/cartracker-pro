@@ -539,9 +539,9 @@ export default function FinancePage() {
       if (profileErr) console.error('Erreur profile:', profileErr.message)
       if (goalsErr) console.error('Erreur goals:', goalsErr.message)
       if (txErr) console.error('Erreur transactions:', txErr.message)
-      setAllResold((resold as ResoldListing[]) ?? [])
-      setAllTransactions((txData as Transaction[]) ?? [])
-      setNegoListings((nego as NegoListing[]) ?? [])
+      setAllResold((resold as unknown as ResoldListing[]) ?? [])
+      setAllTransactions((txData as unknown as Transaction[]) ?? [])
+      setNegoListings((nego as unknown as NegoListing[]) ?? [])
       if (profile) {
         setGoals({
           goal_monthly_margin: profile.goal_monthly_margin ?? 5000,
@@ -549,7 +549,7 @@ export default function FinancePage() {
           goal_margin_per_vehicle: profile.goal_margin_per_vehicle ?? 2500,
         })
       }
-      setUserGoals((goalsData as Goal[]) ?? [])
+      setUserGoals((goalsData as unknown as Goal[]) ?? [])
       setLoading(false)
     }
     fetchData()

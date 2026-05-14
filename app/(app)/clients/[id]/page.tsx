@@ -47,7 +47,7 @@ export default function ClientDetailPage() {
 
     setClient(clientRes.data as Client | null)
     setNotes((notesRes.data as ClientNote[]) ?? [])
-    setListings((listingsRes.data as ListingWithDetails[]) ?? [])
+    setListings((listingsRes.data as unknown as ListingWithDetails[]) ?? [])
     setLoading(false)
   }, [id])
 

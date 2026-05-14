@@ -68,7 +68,7 @@ function ListingDetailView({
       .eq('id', listing.id)
       .single()
     if (error) console.error('Erreur refetch:', error.message)
-    if (data) setListing(data as ListingWithDetails)
+    if (data) setListing(data as unknown as ListingWithDetails)
     onRefresh()
   }
 
@@ -401,7 +401,7 @@ export default function AnnoncesPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       if (error) { console.error('Erreur:', error.message); setErrorMsg(error.message) }
-      setListings((data as ListingWithDetails[]) ?? [])
+      setListings((data as unknown as ListingWithDetails[]) ?? [])
     } finally {
       setLoading(false)
     }
@@ -413,7 +413,7 @@ export default function AnnoncesPage() {
     if (!user) return
     const { data, error } = await supabase.from('clients').select('*').eq('user_id', user.id).order('name')
     if (error) console.error('Erreur fetch clients:', error.message)
-    setClients((data as Client[]) ?? [])
+    setClients((data as unknown as Client[]) ?? [])
   }, [])
 
   useEffect(() => {

@@ -45,7 +45,7 @@ export default function StatsPage() {
         .select('*, listing_margins(*), clients(name)')
         .eq('user_id', user.id)
 
-      setListings((data as ListingWithClient[]) ?? [])
+      setListings((data as unknown as ListingWithClient[]) ?? [])
       setLoading(false)
     }
     fetchData()

@@ -54,7 +54,7 @@ export default function ClientsPage() {
         .not('client_id', 'is', null)
       if (listingsErr) { console.error('Erreur:', listingsErr.message); setErrorMsg(listingsErr.message) }
 
-      const listings = rawListings as Array<{ client_id: string; status: string }> | null
+      const listings = rawListings as unknown as Array<{ client_id: string; status: string }> | null
 
       const counts: Record<string, { total: number; negotiation: number; bought: number }> = {}
       listings?.forEach(l => {
@@ -65,7 +65,7 @@ export default function ClientsPage() {
         if (l.status === 'bought') counts[l.client_id].bought++
       })
 
-      const typed = clientsData as Client[]
+      const typed = clientsData as unknown as Client[]
       setClients(typed.map(c => ({
         ...c,
         listing_count: counts[c.id]?.total ?? 0,

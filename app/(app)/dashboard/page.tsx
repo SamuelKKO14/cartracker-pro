@@ -39,17 +39,17 @@ export default async function DashboardPage() {
       .gte('sold_at', monthStart),
   ])
 
-  const allListings = (listingsRes.data ?? []) as Array<{
+  const allListings = (listingsRes.data ?? []) as unknown as Array<{
     id: string; brand: string; model: string | null; year: number | null; km: number | null
     price: number | null; status: string; fuel: string | null; auto_score: number | null
     manual_score: number | null; created_at: string; client_id: string | null; source: string | null
     clients: { name: string } | null
     listing_margins: Array<{ margin: number | null }> | null
   }>
-  const allClients = (clientsRes.data ?? []) as Array<{
+  const allClients = (clientsRes.data ?? []) as unknown as Array<{
     id: string; name: string; budget: number | null; notes: string | null; updated_at: string
   }>
-  const positiveMargins = (marginsRes.data ?? []) as Array<{ margin: number }>
+  const positiveMargins = (marginsRes.data ?? []) as unknown as Array<{ margin: number }>
   const resoldCount = (resoldRes.data ?? []).length
   const monthCA = (monthTransactionsRes.data ?? []).reduce((s, t) => s + ((t as { sell_price: number | null }).sell_price ?? 0), 0)
 
