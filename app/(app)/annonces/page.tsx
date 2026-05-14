@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/header'
@@ -394,8 +395,143 @@ function ListingDetailView({
             </div>
           )}
 
-          {/* Photo grid */}
-          {photos.length > 0 && (
+          {/* 0 photos : placeholder */}
+          {photos.length === 0 && (
+            <div className="flex flex-col items-center justify-center aspect-video rounded-lg bg-[#0a0d14] border border-[#1a1f2e] text-gray-500">
+              <Camera className="w-10 h-10 opacity-30 mb-2" />
+              <p className="text-sm">Aucune photo</p>
+            </div>
+          )}
+
+          {/* 1 photo : pleine largeur */}
+          {photos.length === 1 && !selectionMode && (
+            <div
+              className="relative aspect-video rounded-lg overflow-hidden bg-[#0a0d14] cursor-pointer select-none"
+              role="button"
+              tabIndex={0}
+              aria-label="Voir photo 1"
+              onMouseDown={() => handlePhotoMouseDown(photos[0].id)}
+              onMouseUp={handlePhotoMouseUp}
+              onMouseLeave={handlePhotoMouseUp}
+              onTouchStart={() => handlePhotoTouchStart(photos[0].id)}
+              onTouchEnd={handlePhotoTouchEnd}
+              onTouchMove={handlePhotoTouchMove}
+              onClick={() => handlePhotoClick(photos[0].id, 0)}
+            >
+              <Image src={photos[0].url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 100vw, 800px" />
+              <button
+                onClick={e => { e.stopPropagation(); handleDeleteSingle(photos[0]) }}
+                className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 text-white opacity-50 hover:opacity-100 transition-opacity"
+                aria-label="Supprimer cette photo"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* 2 photos : grille 2 colonnes */}
+          {photos.length === 2 && !selectionMode && (
+            <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden aspect-[2/1]">
+              {photos.slice(0, 2).map((p, idx) => (
+                <div
+                  key={p.id}
+                  className="relative overflow-hidden bg-[#0a0d14] cursor-pointer select-none"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Voir photo ${idx + 1}`}
+                  onMouseDown={() => handlePhotoMouseDown(p.id)}
+                  onMouseUp={handlePhotoMouseUp}
+                  onMouseLeave={handlePhotoMouseUp}
+                  onTouchStart={() => handlePhotoTouchStart(p.id)}
+                  onTouchEnd={handlePhotoTouchEnd}
+                  onTouchMove={handlePhotoTouchMove}
+                  onClick={() => handlePhotoClick(p.id, idx)}
+                >
+                  <Image src={p.url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 50vw, 400px" />
+                  {idx === 0 && (
+                    <button
+                      onClick={e => { e.stopPropagation(); handleDeleteSingle(p) }}
+                      className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 text-white opacity-50 hover:opacity-100 transition-opacity"
+                      aria-label="Supprimer cette photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 3+ photos : mosaïque Airbnb */}
+          {photos.length >= 3 && !selectionMode && (
+            <div className="grid grid-cols-4 grid-rows-2 gap-1 rounded-lg overflow-hidden aspect-[2/1]">
+              {/* Photo 1 — grande gauche */}
+              <div
+                className="relative col-span-2 row-span-2 overflow-hidden bg-[#0a0d14] cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                aria-label="Voir photo 1"
+                onMouseDown={() => handlePhotoMouseDown(photos[0].id)}
+                onMouseUp={handlePhotoMouseUp}
+                onMouseLeave={handlePhotoMouseUp}
+                onTouchStart={() => handlePhotoTouchStart(photos[0].id)}
+                onTouchEnd={handlePhotoTouchEnd}
+                onTouchMove={handlePhotoTouchMove}
+                onClick={() => handlePhotoClick(photos[0].id, 0)}
+              >
+                <Image src={photos[0].url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 50vw, 600px" />
+                <button
+                  onClick={e => { e.stopPropagation(); handleDeleteSingle(photos[0]) }}
+                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 text-white opacity-50 hover:opacity-100 transition-opacity"
+                  aria-label="Supprimer cette photo"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              {/* Photo 2 — haut droit */}
+              <div
+                className="relative col-span-2 row-span-1 overflow-hidden bg-[#0a0d14] cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                aria-label="Voir photo 2"
+                onMouseDown={() => handlePhotoMouseDown(photos[1].id)}
+                onMouseUp={handlePhotoMouseUp}
+                onMouseLeave={handlePhotoMouseUp}
+                onTouchStart={() => handlePhotoTouchStart(photos[1].id)}
+                onTouchEnd={handlePhotoTouchEnd}
+                onTouchMove={handlePhotoTouchMove}
+                onClick={() => handlePhotoClick(photos[1].id, 1)}
+              >
+                <Image src={photos[1].url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 50vw, 300px" />
+              </div>
+              {/* Photo 3 — bas droit + overlay */}
+              <div
+                className="relative col-span-2 row-span-1 overflow-hidden bg-[#0a0d14] cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                aria-label={photos.length > 3 ? `Voir les ${photos.length - 2} photos restantes` : 'Voir photo 3'}
+                onMouseDown={() => handlePhotoMouseDown(photos[2].id)}
+                onMouseUp={handlePhotoMouseUp}
+                onMouseLeave={handlePhotoMouseUp}
+                onTouchStart={() => handlePhotoTouchStart(photos[2].id)}
+                onTouchEnd={handlePhotoTouchEnd}
+                onTouchMove={handlePhotoTouchMove}
+                onClick={() => handlePhotoClick(photos[2].id, 2)}
+              >
+                <Image src={photos[2].url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 50vw, 300px" />
+                {photos.length > 3 && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+                    <span className="text-white font-semibold text-lg md:text-2xl">
+                      +{photos.length - 3} photo{photos.length - 3 > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Mode sélection : grille classique (toutes les photos visibles) */}
+          {selectionMode && photos.length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
               {photos.map((p, idx) => {
                 const isSelected = selectedPhotoIds.has(p.id)
@@ -404,44 +540,20 @@ function ListingDetailView({
                     key={p.id}
                     role="button"
                     tabIndex={0}
-                    aria-label={selectionMode ? `${isSelected ? 'Désélectionner' : 'Sélectionner'} photo ${idx + 1}` : `Voir photo ${idx + 1}`}
-                    onMouseDown={() => handlePhotoMouseDown(p.id)}
-                    onMouseUp={handlePhotoMouseUp}
-                    onMouseLeave={handlePhotoMouseUp}
-                    onTouchStart={() => handlePhotoTouchStart(p.id)}
-                    onTouchEnd={handlePhotoTouchEnd}
-                    onTouchMove={handlePhotoTouchMove}
+                    aria-label={`${isSelected ? 'Désélectionner' : 'Sélectionner'} photo ${idx + 1}`}
                     onClick={() => handlePhotoClick(p.id, idx)}
                     className={`relative aspect-video rounded-lg overflow-hidden bg-[#0a0d14] cursor-pointer select-none transition-all ${
-                      selectionMode
-                        ? isSelected
-                          ? 'border-2 border-orange-500 opacity-100'
-                          : 'border-2 border-transparent opacity-70'
-                        : 'border border-[#1a1f2e] hover:border-[#2a2f3e]'
+                      isSelected
+                        ? 'border-2 border-orange-500 opacity-100'
+                        : 'border-2 border-transparent opacity-70'
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.url} alt="" className="w-full h-full object-cover pointer-events-none" draggable={false} />
-
-                    {/* Mode sélection : checkbox ronde */}
-                    {selectionMode && (
-                      <span className={`absolute top-1.5 left-1.5 w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors ${
-                        isSelected ? 'bg-orange-500 border-orange-500' : 'bg-black/40 border-white/60'
-                      }`}>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                      </span>
-                    )}
-
-                    {/* Mode normal : petite poubelle discrète */}
-                    {!selectionMode && (
-                      <button
-                        onClick={e => { e.stopPropagation(); handleDeleteSingle(p) }}
-                        className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 text-white opacity-50 hover:opacity-100 transition-opacity"
-                        aria-label="Supprimer cette photo"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <Image src={p.url} alt="" fill className="object-cover pointer-events-none" sizes="(max-width: 768px) 33vw, 200px" />
+                    <span className={`absolute top-1.5 left-1.5 w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors ${
+                      isSelected ? 'bg-orange-500 border-orange-500' : 'bg-black/40 border-white/60'
+                    }`}>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                    </span>
                   </div>
                 )
               })}
